@@ -1,0 +1,58 @@
+﻿@model string
+
+<script src="~/js/report-viewer.js" asp-append-version="true"></script>
+<script type="text/javascript">
+    function PreviewClick(s, e) {
+        if(e.Brick) {
+            var reprotPreview = s.GetPreviewModel().reportPreview;
+            if(e.Brick.text() === "Show Results") {
+                reprotPreview.drillThrough("showResults");
+            } else if(e.Brick.text() === "Start a new poll") {
+                reprotPreview.drillThrough("startNewPoll");
+            }
+        }
+    }
+    function BeforeRender(s, e) {
+        DevExpress.Reporting.Viewer.Settings.AIServicesEnabled(false);
+        disposeOnUnload(s, e);
+    }
+    function EditingFieldChanged(s, e) {
+        var reportPreview = s.GetPreviewModel().reportPreview;
+        if(e.Field.groupID()) {
+            reportPreview.editingFieldsProvider().forEach(function(item) {
+                if(item.id() === e.Field.id() && item !== e.Field) {
+                    item.readOnly(e.Field.editValue() !== DevExpress.Reporting.Viewer.Editing.CheckState.Checked);
+                }
+            });
+        }
+    }
+</script>
+
+<div class="wrapper">
+    @{
+        var viewerRender = Html.DevExpress().WebDocumentViewer("viewer")
+            .Height("1000px")
+            .ClientSideModelSettings(x => {
+                x.IncludeCldrData = false;
+                x.IncludeCldrSupplemental = false;
+            })
+            .ClientSideEvents(events => {
+                events.BeforeRender("BeforeRender");
+                events.EditingFieldChanged("EditingFieldChanged");
+                events.PreviewClick("PreviewClick");
+            })
+            .Bind(Model);
+        @viewerRender.RenderHtml()
+    }
+</div>
+
+@await Html.PartialAsync("_ReportDesignerButton", Model)
+
+@section Scripts {
+    <link rel="stylesheet" href="~/css/viewer.part.bundle.min.css" asp-append-version="true" />
+
+    <script src="~/js/reporting.thirdparty.bundle.min.js" asp-append-version="true"></script>
+    <script src="~/js/viewer.part.bundle.min.js" asp-append-version="true"></script>
+
+    @viewerRender.RenderScripts()
+}

@@ -1,0 +1,34 @@
+﻿@model List<SearchResult>
+@Html.DevExpress().CallbackPanel(settings => {
+    settings.Name = "searchResults";
+    settings.CallbackRouteValues = new { Controller = "Home", Action = "SearchListPartial" };
+    settings.ControlStyle.CssClass = "search-results";
+    settings.EnableTheming = false;
+    settings.SettingsLoadingPanel.Enabled = false;
+    settings.SetContent(GetPanelContent().ToHtmlString());
+    settings.ClientSideEvents.EndCallback = "DXDemo.Search.onEndCallback";
+}).GetHtml()
+
+@helper GetPanelContent() {
+    if(Model != null && Model.Any()) {
+        <div id="resultsContainer" class="search-results-container">
+            @{ var index = 0; }
+            @foreach(var sr in Model) {
+                var additionalInfoClass = sr.Group != null ? "" : "no-ai";
+                <a id="sr_@(index++)" href="@Url.Content(Utils.GenerateDemoUrl(!object.Equals(sr.Demo, sr.Product.Intro) ? sr.Demo : sr.Product.Intro))" class="search-result-item">
+                    <span class="demo-title @additionalInfoClass">@Html.Raw(sr.Text)</span>
+                    <span class="additional-info @additionalInfoClass">
+                        <span>@Html.Raw(sr.Product.NavItemTitle)</span>@* spacing fix
+                        *@<span class="icon right-arrow arrow-right-long"></span>@*
+                        *@<span class="icon right-arrow arrow-right-long-selected"></span>@*
+                        *@<span>@Html.Raw(sr.Group != null ? sr.Group.Title : string.Empty)</span>
+                    </span>
+                </a>
+            }
+        </div>
+    } else {
+        <div class="no-results-container">
+            No results found for <b>@ViewData["RequestText"]</b>.
+        </div>
+    }
+}

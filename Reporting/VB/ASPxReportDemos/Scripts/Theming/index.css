@@ -1,0 +1,43 @@
+    .color-scheme-chooser-theme {
+        padding-left: 15px;
+    }
+
+    .color-scheme-chooser-theme img,
+    .color-scheme-chooser-theme span {
+        vertical-align: middle;
+        display: inline-block;
+    }
+
+    .color-scheme-chooser-theme span {
+        padding-left: 9px;
+    }
+
+    .color-scheme-chooser-theme span.dx-textbox {
+        padding-left: 0;
+    }
+
+    .dx-accordion-empty ~ .dx-field-value {
+        display: none;
+    }
+
+    #tabpanel-container .dx-texteditor.dx-state-readonly.dx-widget {
+        opacity: 1;
+    }
+
+.dx-designer .dx-designer-viewport .dx-popup-content .dxrd-custom-popupService .dxrd-editor-menu-item {
+    padding-left: 6px;
+}
+.dx-designer .dx-designer-viewport .dx-popup-content .dxrd-custom-popupService .dxrd-editor-menu-item .dxrd-editor-menu-title {
+    line-height: 16px;
+    vertical-align: middle;
+    display: inline-block;
+    padding: 6px;
+}
+
+.dx-property-grid-sorting-actions-group .dx-icon, .dx-property-grid-sorting-actions-group .dx-button-has-icon .dx-icon {
+    width: 16px;
+    height: 16px;
+}
+.color-scheme-popup-message-text {
+    padding:  15px;
+}

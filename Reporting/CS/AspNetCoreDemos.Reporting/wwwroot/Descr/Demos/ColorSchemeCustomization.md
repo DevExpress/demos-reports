@@ -1,0 +1,3 @@
+This demo illustrates predefined color schemes and allows you to create your own scheme based on them. You can select one of the available color schemes from the drop-down menu on the right panel and customize nine base colors. Click the **Save Changes** button to download files with your customization or the **View Changes** button to invoke the dialog with customization results.
+
+<a href="https://docs.devexpress.com/XtraReports/400417/web-reporting/asp-net-core-reporting/end-user-report-designer-in-asp-net-applications/customize-the-report-designer/customize-the-report-designer-color-scheme" target="_blank">See Documentation</a>

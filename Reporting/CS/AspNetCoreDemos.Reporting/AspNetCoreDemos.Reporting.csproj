@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="DevExpress.AIIntegration.AspNetCore.Reporting" VersionOverride="26.1.2-beta-26148" />
+    <PackageReference Include="DevExpress.AspNetCore.Reporting" VersionOverride="26.1.2-beta-26148" />
+    <PackageReference Include="DevExpress.Drawing.Skia" VersionOverride="26.1.2-beta-26148" />
+    <PackageReference Include="Azure.AI.OpenAI" />
+    <PackageReference Include="BuildBundlerMinifier" />
+    <PackageReference Include="CommonMark.NET" />
+    <PackageReference Include="Microsoft.Data.SQLite" />
+    <PackageReference Include="System.Drawing.Common" />
+    <PackageReference Include="Microsoft.Extensions.AI" />
+    <PackageReference Include="Microsoft.Agents.AI.Workflows" />
+    <PackageReference Include="Microsoft.Extensions.AI.OpenAI" />
+  </ItemGroup>
+  <ItemGroup Condition="!Exists('..\DevExpress.DemoReports\DevExpress.DemoReports.NetCore.csproj')">
+    <PackageReference Include="DevExpress.Reporting.Demos" Version="26.1.2-beta-26148" />
+  </ItemGroup>
+  <ItemGroup Condition="Exists('..\DevExpress.DemoReports\DevExpress.DemoReports.NetCore.csproj')">
+    <ProjectReference Include="..\DevExpress.DemoReports\DevExpress.DemoReports.NetCore.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="**" />
+    <Content Remove="**" />
+    <EmbeddedResource Remove="**" />
+    <None Remove="**" />
+    <Compile Include="**\*.cs" Exclude="obj\**\*.cs" />
+    <Content Include="wwwroot\**\*.*" />
+    <Content Include="Views\**\*.*" />
+    <Content Include="DemoShell\Views\**\*.*" />
+    <Content Include="*.db" />
+    <Content Include="appsettings.json" />
+    <Content Include="bundleconfig.json" />
+    <Content Include="menuMeta.json" />
+    <Content Include="Data\Contacts.db" />
+    <Content Include="Data\Countries.db" />
+    <Content Include="Data\devav.sqlite3" />
+    <Content Include="Data\homes.db" />
+    <Content Include="Data\nwind.db" />
+    <Content Include="Data\Signatures\John_Smith.png" />
+    <Content Include="Data\vehicles.db" />
+    <Content Include="Data\Signatures\certificate.pfx" />
+  </ItemGroup>
+  <ItemGroup>
+    <DotnetPublishFiles Include="wwwroot/**;*.json;*.xlsx">
+      <DestinationRelativePath>%(RelativeDir)%(Filename)%(Extension)</DestinationRelativePath>
+    </DotnetPublishFiles>
+    <DotnetPublishFiles Include="Data/Signatures/*">
+      <DestinationRelativePath>Data/Signatures/%(RecursiveDir)%(Filename)%(Extension)</DestinationRelativePath>
+    </DotnetPublishFiles>
+    <DotnetPublishFiles Include="Data/*.db;Data/*.sqlite3">
+      <DestinationRelativePath>Data/%(RecursiveDir)%(Filename)%(Extension)</DestinationRelativePath>
+    </DotnetPublishFiles>
+    <DotnetPublishFiles Include="**/*.cs;**/*.cshtml">
+      <DestinationRelativePath>Sources/%(RelativeDir)%(Filename)%(Extension).txt</DestinationRelativePath>
+    </DotnetPublishFiles>
+  </ItemGroup>
+</Project>

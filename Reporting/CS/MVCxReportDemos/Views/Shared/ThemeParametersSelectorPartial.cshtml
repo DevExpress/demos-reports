@@ -1,0 +1,56 @@
+﻿<div class="themes-parameters-container">
+    @if(Utils.CanChangeBaseColor) {
+        @Html.DevExpress().ComboBox(settings => {
+            settings.Name = "BaseColorEditor";
+            settings.Properties.Caption = "Base Color";
+            settings.Properties.TextField = "Value";
+            settings.Properties.DropDownRows = 8;
+            settings.Properties.ClientSideEvents.SelectedIndexChanged = "function(s){ DXDemo.SetCurrentBaseColor(s.GetSelectedItem().value); }";
+            settings.Properties.ItemImage.Height = Unit.Pixel(18);
+            settings.Properties.ItemImage.Width = Unit.Pixel(18);
+            PrepatreEditor(settings);
+            settings.PreRender = (s, e) => {
+                string currentBaseColor = string.IsNullOrWhiteSpace(Utils.CurrentBaseColor) ? Utils.GetDefaultBaseColor(Utils.CurrentTheme) : Utils.CurrentBaseColor;
+                var item = ((ASPxComboBox)s).Items.FindByValue(currentBaseColor);
+                if(item != null)
+                    item.Selected = true;
+            };
+        }).BindList(Utils.CustomBaseColors.Select(c => new { Value = c, ImageUrl = Utils.GetColoredSquareUrl(c) })).GetHtml()
+    }
+    @Html.DevExpress().ComboBox(settings => {
+        settings.Name = "FontEditor";
+        settings.Properties.Caption = "Font";
+        settings.Properties.TextField = "Text";
+        var iconButton = new EditButton { Position = ButtonsPosition.Left };
+        iconButton.Image.SpriteProperties.CssClass = "icon font";
+        settings.Properties.Buttons.Add(iconButton);
+        settings.Properties.ClientSideEvents.SelectedIndexChanged = "function(s){ DXDemo.SetCurrentFont(s.GetSelectedItem().value); }";
+        settings.Properties.ClientSideEvents.ButtonClick = "DXDemo.iconButtonClick";
+        PrepatreEditor(settings);
+        settings.ControlStyle.CssClass += " font-editor";
+        settings.Properties.ListBoxStyle.CssClass += " font-editor";
+        settings.PreRender = (s, e) => {
+            ASPxComboBox comboBox = (ASPxComboBox)s;
+            comboBox.SelectedIndex = !string.IsNullOrEmpty(ASPxWebControl.GlobalThemeFont) ? comboBox.Items.IndexOfValue(ASPxWebControl.GlobalThemeFont) : 0;
+        };
+    }).BindList(Utils.GetFontFamiliesDataSource().Select(i => new { Value = i.Value, Text = i.Text, ImageUrl = "" })).GetHtml()
+</div>
+
+@functions{
+    protected void PrepatreEditor(ComboBoxSettings settings) {
+        settings.ControlStyle.CssClass = "themes-parameters-editor";
+        settings.EnableTheming = false;
+        settings.Properties.DropDownStyle = DropDownStyle.DropDownList;
+        settings.Properties.ValueField = "Value";
+        settings.Properties.ImageUrlField = "ImageUrl";
+        settings.Properties.ShowImageInEditBox = true;
+        settings.Properties.CaptionSettings.Position = EditorCaptionPosition.Top;
+        settings.Properties.CaptionSettings.ShowColon = false;
+        settings.Properties.CaptionStyle.CssClass = "themes-parameters-caption";
+        settings.Properties.ListBoxStyle.CssClass = "themes-parameters-listbox";
+        settings.Properties.ButtonStyle.CssClass = "themes-parameters-button-edit";
+        settings.Properties.DropDownButton.Image.SpriteProperties.CssClass = "icon drop-down";
+        settings.Properties.DropDownButton.Image.Height = 12;
+        settings.Properties.DropDownButton.Image.Width = 12;
+    }
+}

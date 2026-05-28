@@ -1,0 +1,100 @@
+[
+  {
+    "outputFileName": "wwwroot/bundle.min.css",
+    "inputFiles": [
+      "wwwroot/css/ace.css",
+      "wwwroot/css/theme/ambiance.css",
+      "wwwroot/css/theme/dreamweaver.css",
+      "wwwroot/css/github.min.css"
+    ],
+    "minify": {
+      "enabled": false
+    }
+  },
+  {
+    "outputFileName": "wwwroot/bundle-reporting.min.css",
+    "inputFiles": [
+      "wwwroot/css/report-designer-button.css",
+      "wwwroot/xtrareportsjs/css/dx-reporting-skeleton-screen.css"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/css/viewer.part.bundle.min.css",
+    "inputFiles": [
+      "wwwroot/xtrareportsjs/css/dx-analytics.common.css",
+      "wwwroot/xtrareportsjs/css/dx-webdocumentviewer.css"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/css/designer.part.bundle.min.css",
+    "inputFiles": [
+      "wwwroot/css/dx.richedit.css",
+      "wwwroot/xtrareportsjs/css/dx-querybuilder.css",
+      "wwwroot/xtrareportsjs/css/dx-reportdesigner.css"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/bundle.min.js",
+    "inputFiles": [
+      "wwwroot/js/jquery.min.js",
+      "wwwroot/js/report-designer-button.js",
+      "wwwroot/js/highlight.min.js",
+      "wwwroot/js/cshtml-razor.min.js"
+    ],
+    "minify": {
+      "enabled": false
+    }
+  },
+  {
+    "outputFileName": "wwwroot/js/reporting.thirdparty.bundle.min.js",
+    "inputFiles": [
+      "wwwroot/js/knockout.js",
+      "wwwroot/js/ace/ace.js",
+      "wwwroot/js/ace/ext-language_tools.js",
+      "wwwroot/js/ace/snippets/text.js"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/js/viewer.part.bundle.min.js",
+    "inputFiles": [
+      "wwwroot/js/dx.all.js",
+      "wwwroot/xtrareportsjs/js/dx-analytics-core.min.js",
+      "wwwroot/xtrareportsjs/js/dx-webdocumentviewer.min.js"
+    ],
+    "minify": {
+      "enabled": false
+    }
+  },
+  {
+    "outputFileName": "wwwroot/js/designer.part.bundle.min.js",
+    "inputFiles": [
+      "wwwroot/js/jszip.min.js",
+      "wwwroot/js/dx.richedit.min.js",
+      "wwwroot/xtrareportsjs/js/dx-querybuilder.min.js",
+      "wwwroot/xtrareportsjs/js/dx-reportdesigner.min.js"
+    ],
+    "minify": {
+      "enabled": false
+    }
+  },
+  {
+    "outputFileName": "wwwroot/css/contrast.theme.bundle.css",
+    "inputFiles": [
+      "wwwroot/css/dx.contrast.css",
+      "wwwroot/xtrareportsjs/css/dx-analytics.contrast.css"
+    ],
+    "minify": {
+      "enabled": false
+    }
+  },
+  {
+    "outputFileName": "wwwroot/css/light.theme.bundle.css",
+    "inputFiles": [
+      "wwwroot/css/dx.light.css",
+      "wwwroot/xtrareportsjs/css/dx-analytics.light.css"
+    ],
+    "minify": {
+      "enabled": false
+    }
+  }
+]

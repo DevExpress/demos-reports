@@ -1,0 +1,1147 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{2118EA52-FFB4-4DDB-8CD0-A624A1796D03}</ProjectGuid>
+    <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{F184B08F-C81C-45F6-A57F-5ABD9991F28F}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <RootNamespace>
+    </RootNamespace>
+    <AssemblyName>ASPxReportDemos</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <UseIISExpress>true</UseIISExpress>
+    <IISExpressSSLPort>44306</IISExpressSSLPort>
+    <OptionExplicit>On</OptionExplicit>
+    <OptionCompare>Binary</OptionCompare>
+    <OptionStrict>Off</OptionStrict>
+    <OptionInfer>On</OptionInfer>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform" />
+    <PackageReference Include="EntityFramework" />
+    <PackageReference Include="System.Data.SQLite.EF6" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
+    <PackageReference Include="System.Text.Json" />
+    <PackageReference Include="Microsoft.Data.SqlClient" />
+    <PackageReference Include="Azure.Identity" />
+    <PackageReference Include="System.Security.AccessControl" />
+    <PackageReference Include="Microsoft.VisualBasic" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Web.DynamicData">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Web.Entity">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Web.ApplicationServices">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.ComponentModel.DataAnnotations">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Data">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Core">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Data.DataSetExtensions">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Web.Extensions">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Xml.Linq">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Drawing">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Web">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Xml">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Configuration">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Web.Services">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.EnterpriseServices">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DevExpress.CodeParser.v26.1">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>
+      </HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DevExpress.Data.v26.1">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>
+      </HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DevExpress.DataAccess.v26.1">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>
+      </HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DevExpress.Drawing.v26.1">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>
+      </HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DevExpress.Office.v26.1.Core">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>
+      </HintPath>
+      <Private>False</Private>
+    </Reference>
+    <ProjectReference Include="..\..\..\Components\CS\Web.DemoData\Web.DemoData.csproj">
+      <Project>{B681C0F5-978D-45A0-A3B5-6D3860FD749D}</Project>
+      <Name>Web.DemoData</Name>
+    </ProjectReference>
+    <Reference Include="DevExpress.Web.DemoTheme.v26.1">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>
+      </HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DevExpress.Web.v26.1">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>
+      </HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DevExpress.Web.Resources.v26.1">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>
+      </HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DevExpress.Web.ASPxThemes.v26.1">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>
+      </HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DevExpress.XtraReports.v26.1">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>
+      </HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DevExpress.XtraReports.v26.1.Web">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>
+      </HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DevExpress.XtraReports.v26.1.Web.WebForms">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>
+      </HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DevExpress.Charts.v26.1.Core">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>
+      </HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DevExpress.XtraCharts.v26.1">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>
+      </HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DevExpress.PivotGrid.v26.1.Core">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>
+      </HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DevExpress.Pdf.v26.1.Core">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>
+      </HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DevExpress.Printing.v26.1.Core">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>
+      </HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DevExpress.RichEdit.v26.1.Core">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>
+      </HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DevExpress.RichEdit.v26.1.Export">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>
+      </HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DevExpress.XtraGauges.v26.1.Core">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>
+      </HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DevExpress.Sparkline.v26.1.Core">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>
+      </HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DevExpress.Xpo.v26.1">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>
+      </HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DevExpress.DemoReports.v26.1">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Bin\DevExpress.DemoReports.v26.1.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DevExpress.DemoData.v26.1">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>
+      </HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include="Microsoft.VisualBasic" />
+    <Import Include="System.Collections.Generic" />
+    <Import Include="System.Collections" />
+    <Import Include="System.Diagnostics" />
+    <Import Include="System.Linq" />
+    <Import Include="System.Xml.Linq" />
+    <Import Include="System.Data" />
+    <Import Include="System.Drawing" />
+    <Import Include="System.Web" />
+    <Import Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Appearance\FormattingRules.aspx" />
+    <Content Include="App_Data\Dictionaries\english.txt" />
+    <Content Include="App_Data\Dictionaries\german.txt" />
+    <Content Include="App_Data\Dictionaries\italian.txt" />
+    <Content Include="App_Data\Signatures\John_Smith.png" />
+    <Content Include="ComplexReports\BalanceSheetReport.aspx" />
+    <Content Include="ComplexReports\FallCatalog.aspx" />
+    <Content Include="ComplexReports\Invoice.aspx" />
+    <Content Include="ComplexReports\ProductList.aspx" />
+    <Content Include="ComplexReports\ProfitAndLossReport.aspx" />
+    <Content Include="ComplexReports\RestaurantMenu.aspx" />
+    <Content Include="ComplexReports\RollPaper.aspx" />
+    <Content Include="ComplexReports\SalesSummary.aspx" />
+    <Content Include="ComplexReports\SwissQRBill.aspx" />
+    <Content Include="Content\1x1.gif" />
+    <Content Include="Content\arrowDown.svg" />
+    <Content Include="Content\arrowUp.svg" />
+    <Content Include="Content\CodeFormatter.css" />
+    <Content Include="Content\CustomToolbar\BtnFirstPage.png" />
+    <Content Include="Content\CustomToolbar\BtnFirstPageDisabled.png" />
+    <Content Include="Content\CustomToolbar\BtnLastPage.png" />
+    <Content Include="Content\CustomToolbar\BtnLastPageDisabled.png" />
+    <Content Include="Content\CustomToolbar\BtnNextPage.png" />
+    <Content Include="Content\CustomToolbar\BtnNextPageDisabled.png" />
+    <Content Include="Content\CustomToolbar\BtnPrevPage.png" />
+    <Content Include="Content\CustomToolbar\BtnPrevPageDisabled.png" />
+    <Content Include="Content\CustomToolbar\BtnPrint.png" />
+    <Content Include="Content\CustomToolbar\BtnPrintDisabled.png" />
+    <Content Include="Content\CustomToolbar\BtnPrintPage.png" />
+    <Content Include="Content\CustomToolbar\BtnPrintPageDisabled.png" />
+    <Content Include="Content\CustomToolbar\BtnSave.png" />
+    <Content Include="Content\CustomToolbar\BtnSaveDisabled.png" />
+    <Content Include="Content\CustomToolbar\BtnSaveWindow.png" />
+    <Content Include="Content\CustomToolbar\BtnSaveWindowDisabled.png" />
+    <Content Include="Content\CustomToolbar\BtnSearch.png" />
+    <Content Include="Content\CustomToolbar\BtnSearchDisabled.png" />
+    <Content Include="Content\CustomToolbar\ButtonBack.gif" />
+    <Content Include="Content\CustomToolbar\ButtonHoverBack.gif" />
+    <Content Include="Content\CustomToolbar\DocumentMap_16x16.png" />
+    <Content Include="Content\CustomToolbar\DocumentMap_16x16_Metro.png" />
+    <Content Include="Content\CustomToolbar\DocumentMap_32x32.png" />
+    <Content Include="Content\CustomToolbar\DocumentMap_32x32_Metro.png" />
+    <Content Include="Content\CustomToolbar\Parameters_16x16.png" />
+    <Content Include="Content\CustomToolbar\Parameters_16x16_Metro.png" />
+    <Content Include="Content\CustomToolbar\Parameters_32x32.png" />
+    <Content Include="Content\CustomToolbar\Parameters_32x32_Metro.png" />
+    <Content Include="Content\DemoIcons\BalanceSheet.png" />
+    <Content Include="Content\DemoIcons\BarCode.png" />
+    <Content Include="Content\DemoIcons\Chart.png" />
+    <Content Include="Content\DemoIcons\CrossBandContent.png" />
+    <Content Include="Content\DemoIcons\CrossTab.png" />
+    <Content Include="Content\DemoIcons\Designer.png" />
+    <Content Include="Content\DemoIcons\DrillDownReport.png" />
+    <Content Include="Content\DemoIcons\DrillThroughReport.png" />
+    <Content Include="Content\DemoIcons\E-Form.png" />
+    <Content Include="Content\DemoIcons\IListDataSource.png" />
+    <Content Include="Content\DemoIcons\Invoice.png" />
+    <Content Include="Content\DemoIcons\LabelReport.png" />
+    <Content Include="Content\DemoIcons\LargeQuantityOfData.png" />
+    <Content Include="Content\DemoIcons\MailMerge.png" />
+    <Content Include="Content\DemoIcons\MasterDetail.png" />
+    <Content Include="Content\DemoIcons\ProfitAndLoss.png" />
+    <Content Include="Content\DemoIcons\ReportMergingWithPdf.png" />
+    <Content Include="Content\DemoIcons\RestaurantMenu.png" />
+    <Content Include="Content\DemoIcons\SideBySide.png" />
+    <Content Include="Content\DemoIcons\SwissQRBill.png" />
+    <Content Include="Content\DemoIcons\Table.png" />
+    <Content Include="Content\DemoIcons\VehicleInspection.png" />
+    <Content Include="Content\Designer.css" />
+    <Content Include="Content\FeatureIcons\AdvancedWebControls.png" />
+    <Content Include="Content\FeatureIcons\Ajax.png" />
+    <Content Include="Content\FeatureIcons\Charts.png" />
+    <Content Include="Content\FeatureIcons\Classes.png" />
+    <Content Include="Content\FeatureIcons\ClientSide.png" />
+    <Content Include="Content\FeatureIcons\CrossBrowser.png" />
+    <Content Include="Content\FeatureIcons\DataBinding.png" />
+    <Content Include="Content\FeatureIcons\Export.png" />
+    <Content Include="Content\FeatureIcons\RichText.png" />
+    <Content Include="Content\FeatureIcons\Search.png" />
+    <Content Include="Content\FeatureIcons\Versions.png" />
+    <Content Include="Content\FeatureIcons\VisualStudio.png" />
+    <Content Include="Content\feedback.css" />
+    <Content Include="Content\FeedbackIcons\icon-cancel-hover.svg" />
+    <Content Include="Content\FeedbackIcons\icon-cancel.svg" />
+    <Content Include="Content\FeedbackIcons\icon-chat-hover.svg" />
+    <Content Include="Content\FeedbackIcons\icon-chat.svg" />
+    <Content Include="Content\FeedbackIcons\icon-thumb-down-hover.svg" />
+    <Content Include="Content\FeedbackIcons\icon-thumb-down.svg" />
+    <Content Include="Content\FeedbackIcons\icon-thumb-up-hover.svg" />
+    <Content Include="Content\FeedbackIcons\icon-thumb-up.svg" />
+    <Content Include="Content\Flags\Australia.png" />
+    <Content Include="Content\Flags\China.png" />
+    <Content Include="Content\Flags\France.png" />
+    <Content Include="Content\Flags\Germany.png" />
+    <Content Include="Content\Flags\India.png" />
+    <Content Include="Content\Flags\Italy.png" />
+    <Content Include="Content\Flags\Japan.png" />
+    <Content Include="Content\Flags\Russia.png" />
+    <Content Include="Content\Flags\United_Kingdom.png" />
+    <Content Include="Content\Flags\United_States_of_America.png" />
+    <Content Include="Content\IconsDark\angle-down.svg" />
+    <Content Include="Content\IconsDark\angle-right.svg" />
+    <Content Include="Content\IconsDark\arrow-left.svg" />
+    <Content Include="Content\IconsDark\arrow-right.svg" />
+    <Content Include="Content\IconsDark\arrowDown.svg" />
+    <Content Include="Content\IconsDark\arrowUp.svg" />
+    <Content Include="Content\IconsDark\copy.svg" />
+    <Content Include="Content\IconsDark\drop-down.svg" />
+    <Content Include="Content\IconsDark\font.svg" />
+    <Content Include="Content\IconsDark\phone-selected.svg" />
+    <Content Include="Content\IconsDark\phone.svg" />
+    <Content Include="Content\IconsDark\rotate.svg" />
+    <Content Include="Content\IconsDark\scrollLeft.svg" />
+    <Content Include="Content\IconsDark\scrollRight.svg" />
+    <Content Include="Content\IconsDark\search.svg" />
+    <Content Include="Content\IconsDark\sprite.svg" />
+    <Content Include="Content\IconsDark\tablet-selected.svg" />
+    <Content Include="Content\IconsDark\tablet.svg" />
+    <Content Include="Content\IconsDark\three-dots.svg" />
+    <Content Include="Content\ios-landscape.png" />
+    <Content Include="Content\ios.png" />
+    <Content Include="Content\Loading.gif" />
+    <Content Include="Content\MobileEmulator.css" />
+    <Content Include="Content\PageBorders\bottom-left-corner.gif" />
+    <Content Include="Content\PageBorders\bottom-left-corner.png" />
+    <Content Include="Content\PageBorders\bottom-right-corner.gif" />
+    <Content Include="Content\PageBorders\bottom-right-corner.png" />
+    <Content Include="Content\PageBorders\bottom.gif" />
+    <Content Include="Content\PageBorders\bottom.png" />
+    <Content Include="Content\PageBorders\left.gif" />
+    <Content Include="Content\PageBorders\left.png" />
+    <Content Include="Content\PageBorders\right.gif" />
+    <Content Include="Content\PageBorders\right.png" />
+    <Content Include="Content\PageBorders\styles.css" />
+    <Content Include="Content\PageBorders\styles_ie6.css" />
+    <Content Include="Content\PageBorders\top-left-corner.gif" />
+    <Content Include="Content\PageBorders\top-left-corner.png" />
+    <Content Include="Content\PageBorders\top-right-corner.gif" />
+    <Content Include="Content\PageBorders\top-right-corner.png" />
+    <Content Include="Content\PageBorders\top.gif" />
+    <Content Include="Content\PageBorders\top.png" />
+    <Content Include="Content\QRCode.png" />
+    <Content Include="Content\RunDesigner.png" />
+    <Content Include="Content\RunDesignerButton.css" />
+    <Content Include="Content\sprite.css" />
+    <Content Include="Content\sprite.png" />
+    <Content Include="Content\sprite.svg" />
+    <Content Include="Content\ThemeIcons\generic-carmine.svg" />
+    <Content Include="Content\ThemeIcons\generic-contrast.svg" />
+    <Content Include="Content\ThemeIcons\generic-dark.svg" />
+    <Content Include="Content\ThemeIcons\generic-darkmoon.svg" />
+    <Content Include="Content\ThemeIcons\generic-darkviolet.svg" />
+    <Content Include="Content\ThemeIcons\generic-greenmist.svg" />
+    <Content Include="Content\ThemeIcons\generic-light.svg" />
+    <Content Include="Content\ThemeIcons\generic-softblue.svg" />
+    <Content Include="Content\Thumbnails.css" />
+    <Content Include="Content\VideoBanner.png" />
+    <Content Include="Content\VideoButton.png" />
+    <Content Include="Content\ViewerSelector.css" />
+    <Content Include="Content\ViewerSelector.png" />
+    <Content Include="Content\ViewerSelector_WebDocumentViewer.png" />
+    <Content Include="DataBinding\CalculatedFields.aspx" />
+    <Content Include="DataBinding\HugeAmountRecords.aspx" />
+    <Content Include="DataBinding\MailMerge.aspx" />
+    <Content Include="DataBinding\PivotGridAndChart.aspx" />
+    <Content Include="Default.aspx" />
+    <Content Include="Error404.aspx" />
+    <Content Include="Error500.aspx" />
+    <Content Include="Global.asax" />
+    <Content Include="Interaction\DrillDownReport.aspx" />
+    <Content Include="Interaction\DrillThroughReport.aspx" />
+    <Content Include="Interaction\EForm.aspx" />
+    <Content Include="Interaction\EmployeePerformanceReview.aspx" />
+    <Content Include="Interaction\InteractiveSorting.aspx" />
+    <Content Include="Interaction\VehicleInspection.aspx" />
+    <Content Include="LayoutFeatures\CrossBandContent.aspx" />
+    <Content Include="LayoutFeatures\CrossBandControls.aspx" />
+    <Content Include="LayoutFeatures\HiddenColumns.aspx" />
+    <Content Include="LayoutFeatures\ShrinkGrow.aspx" />
+    <Content Include="LayoutFeatures\VerticalAnchoring.aspx" />
+    <Content Include="MobileViewer.aspx" />
+    <Content Include="ReportControls\BarCode.aspx" />
+    <Content Include="ReportControls\Charts.aspx" />
+    <Content Include="ReportControls\CrossBand.aspx" />
+    <Content Include="ReportControls\CustomControl.aspx" />
+    <Content Include="ReportControls\PdfVisualSignature.aspx" />
+    <Content Include="ReportControls\Shapes.aspx" />
+    <Content Include="ReportControls\Sparkline.aspx" />
+    <Content Include="ReportTypes\CarryoverSummaryReport.aspx" />
+    <Content Include="ReportTypes\EmbeddedPdfContent.aspx" />
+    <Content Include="ReportTypes\HierarchicalReport.aspx" />
+    <Content Include="ReportTypes\LabelReport.aspx" />
+    <Content Include="ReportTypes\MasterDetail.aspx" />
+    <Content Include="ReportTypes\MultiColumn.aspx" />
+    <Content Include="ReportTypes\ReportMerging.aspx" />
+    <Content Include="ReportTypes\ReportMergingWithPdf.aspx" />
+    <Content Include="ReportTypes\SideBySide.aspx" />
+    <Content Include="ReportTypes\Subreports.aspx" />
+    <Content Include="ReportTypes\TableReport.aspx" />
+    <Content Include="Scripts\CustomToolBarScripts.js" />
+    <Content Include="Scripts\Demo.js" />
+    <Content Include="Scripts\Designer.js" />
+    <Content Include="Scripts\Feedback.js" />
+    <Content Include="Scripts\Theming\beautify-css.js" />
+    <Content Include="Scripts\Theming\index.css" />
+    <Content Include="Scripts\Theming\index.js" />
+    <Content Include="Scripts\Theming\jszip.min.js" />
+    <Content Include="Scripts\Theming\less.min.js" />
+    <Content Include="Scripts\Theming\Less_themes\theme-builder-generic-carmine.less.js" />
+    <Content Include="Scripts\Theming\Less_themes\theme-builder-generic-dark.less.js" />
+    <Content Include="Scripts\Theming\Less_themes\theme-builder-generic-darkmoon.less.js" />
+    <Content Include="Scripts\Theming\Less_themes\theme-builder-generic-darkviolet.less.js" />
+    <Content Include="Scripts\Theming\Less_themes\theme-builder-generic-greenmist.less.js" />
+    <Content Include="Scripts\Theming\Less_themes\theme-builder-generic-light.less.js" />
+    <Content Include="Scripts\Theming\Less_themes\theme-builder-generic-softblue.less.js" />
+    <Content Include="Scripts\Theming\loadPanel.js" />
+    <Content Include="Scripts\Theming\ThemingTemplates.html" />
+    <Content Include="Scripts\Viewer.js" />
+    <Content Include="UserControls\CodeViewer.ascx" />
+    <Content Include="UserControls\CustomResources.ascx" />
+    <Content Include="UserControls\DemoTabs.ascx" />
+    <Content Include="UserControls\ErrorMessage.ascx" />
+    <Content Include="UserControls\EventMonitor.ascx" />
+    <Content Include="UserControls\FeedbackPanel.ascx" />
+    <Content Include="UserControls\FooterText.ascx" />
+    <Content Include="UserControls\Head.ascx" />
+    <Content Include="UserControls\MobileEmulator.ascx" />
+    <Content Include="UserControls\Navigation.ascx" />
+    <Content Include="UserControls\Products.ascx" />
+    <Content Include="UserControls\ReportControlToggleButton.ascx" />
+    <Content Include="UserControls\Search.ascx" />
+    <Content Include="UserControls\ServerEventMonitor.ascx" />
+    <Content Include="UserControls\ThemeParametersSelector.ascx" />
+    <Content Include="UserControls\ThemeSelector.ascx" />
+    <Content Include="UserControls\ViewerSelector.ascx" />
+    <Content Include="Web.config" />
+    <Content Include="WebSpecificFeatures\ColorSchemeCustomization.aspx" />
+    <Content Include="WebSpecificFeatures\MobileViewer.aspx" />
+    <Content Include="WebSpecificFeatures\ReportDesigner.aspx" />
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Error404.aspx.vb">
+      <DependentUpon>Error404.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Error404.aspx.designer.vb">
+      <DependentUpon>Error404.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Error500.aspx.vb">
+      <DependentUpon>Error500.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Error500.aspx.designer.vb">
+      <DependentUpon>Error500.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\EventMonitor.ascx.vb">
+      <DependentUpon>EventMonitor.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\EventMonitor.ascx.designer.vb">
+      <DependentUpon>EventMonitor.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\ServerEventMonitor.ascx.vb">
+      <DependentUpon>ServerEventMonitor.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\ServerEventMonitor.ascx.designer.vb">
+      <DependentUpon>ServerEventMonitor.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="Global.asax.vb">
+      <DependentUpon>Global.asax</DependentUpon>
+    </Compile>
+    <Compile Include="Appearance\FormattingRules.aspx.vb">
+      <DependentUpon>FormattingRules.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Appearance\FormattingRules.aspx.designer.vb">
+      <DependentUpon>FormattingRules.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ComplexReports\BalanceSheetReport.aspx.designer.vb">
+      <DependentUpon>BalanceSheetReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ComplexReports\FallCatalog.aspx.designer.vb">
+      <DependentUpon>FallCatalog.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ComplexReports\Invoice.aspx.designer.vb">
+      <DependentUpon>Invoice.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ComplexReports\ProductList.aspx.designer.vb">
+      <DependentUpon>ProductList.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ComplexReports\ProfitAndLossReport.aspx.designer.vb">
+      <DependentUpon>ProfitAndLossReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ComplexReports\RestaurantMenu.aspx.designer.vb">
+      <DependentUpon>RestaurantMenu.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ComplexReports\RollPaper.aspx.designer.vb">
+      <DependentUpon>RollPaper.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ComplexReports\SalesSummary.aspx.designer.vb">
+      <DependentUpon>SalesSummary.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ComplexReports\SwissQRBill.aspx.designer.vb">
+      <DependentUpon>SwissQRBill.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="DataBinding\CalculatedFields.aspx.designer.vb">
+      <DependentUpon>CalculatedFields.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="DataBinding\HugeAmountRecords.aspx.designer.vb">
+      <DependentUpon>HugeAmountRecords.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="DataBinding\MailMerge.aspx.designer.vb">
+      <DependentUpon>MailMerge.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="DataBinding\PivotGridAndChart.aspx.designer.vb">
+      <DependentUpon>PivotGridAndChart.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Interaction\DrillDownReport.aspx.designer.vb">
+      <DependentUpon>DrillDownReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Interaction\DrillThroughReport.aspx.designer.vb">
+      <DependentUpon>DrillThroughReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Interaction\EForm.aspx.designer.vb">
+      <DependentUpon>EForm.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Interaction\EmployeePerformanceReview.aspx.designer.vb">
+      <DependentUpon>EmployeePerformanceReview.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Interaction\InteractiveSorting.aspx.designer.vb">
+      <DependentUpon>InteractiveSorting.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Interaction\VehicleInspection.aspx.designer.vb">
+      <DependentUpon>VehicleInspection.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="LayoutFeatures\CrossBandContent.aspx.designer.vb">
+      <DependentUpon>CrossBandContent.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="LayoutFeatures\CrossBandControls.aspx.designer.vb">
+      <DependentUpon>CrossBandControls.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="LayoutFeatures\HiddenColumns.aspx.designer.vb">
+      <DependentUpon>HiddenColumns.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="LayoutFeatures\ShrinkGrow.aspx.designer.vb">
+      <DependentUpon>ShrinkGrow.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="LayoutFeatures\VerticalAnchoring.aspx.designer.vb">
+      <DependentUpon>VerticalAnchoring.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="MobileViewer.aspx.designer.vb">
+      <DependentUpon>MobileViewer.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="DeviceViewer.master.vb">
+      <DependentUpon>DeviceViewer.master</DependentUpon>
+    </Compile>
+    <Compile Include="DeviceViewer.master.designer.vb">
+      <DependentUpon>DeviceViewer.master</DependentUpon>
+    </Compile>
+    <Compile Include="Code\CustomJsonDataConnectionProviderFactory.vb" />
+    <Compile Include="Code\CustomObjectDataSourceWizardTypeProvider.vb" />
+    <Compile Include="Code\CustomPdfSignatureOptionsProviderAsync.vb" />
+    <Compile Include="Code\DataSourceWizardConnectionStringsProvider.vb" />
+    <Compile Include="Code\DataSourceWizardJsonDataConnectionStorage.vb" />
+    <Compile Include="Code\DemoReportResolver.vb" />
+    <Compile Include="Code\DemoReportStorageExtension.vb" />
+    <Compile Include="Code\Helpers.vb" />
+    <Compile Include="Code\IMobileEmulator.vb" />
+    <Compile Include="Code\IReportControlToggleButton.vb" />
+    <Compile Include="Code\PageBase.vb" />
+    <Compile Include="Code\DemoQueryKeys.vb" />
+    <Compile Include="Code\ReportStorageHelper.vb" />
+    <Compile Include="Code\RightPlaceHolder.vb" />
+    <Compile Include="Code\ViewerSelectorState.vb" />
+    <Compile Include="App_GlobalResources\CalculatedFieldsReport.designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CalculatedFieldsReport.resx</DependentUpon>
+    </Compile>
+    <Compile Include="App_GlobalResources\CatalogReport.designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CatalogReport.resx</DependentUpon>
+    </Compile>
+    <Compile Include="App_GlobalResources\ChartsReport.designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ChartsReport.resx</DependentUpon>
+    </Compile>
+    <Compile Include="App_GlobalResources\CrossBandControlsReport.designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CrossBandControlsReport.resx</DependentUpon>
+    </Compile>
+    <Compile Include="App_GlobalResources\EmployeeComparisonReport.designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EmployeeComparisonReport.resx</DependentUpon>
+    </Compile>
+    <Compile Include="App_GlobalResources\EmployeeOrdersReport.designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EmployeeOrdersReport.resx</DependentUpon>
+    </Compile>
+    <Compile Include="App_GlobalResources\FormattingRulesReport.designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>FormattingRulesReport.resx</DependentUpon>
+    </Compile>
+    <Compile Include="App_GlobalResources\IListDataSourceReportReport.designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>IListDataSourceReportReport.resx</DependentUpon>
+    </Compile>
+    <Compile Include="App_GlobalResources\InvoiceReport.designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>InvoiceReport.resx</DependentUpon>
+    </Compile>
+    <Compile Include="App_GlobalResources\MailMergeReport.designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>MailMergeReport.resx</DependentUpon>
+    </Compile>
+    <Compile Include="App_GlobalResources\MasterDetailReport.designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>MasterDetailReport.resx</DependentUpon>
+    </Compile>
+    <Compile Include="App_GlobalResources\OddEvenStylesReport.designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>OddEvenStylesReport.resx</DependentUpon>
+    </Compile>
+    <Compile Include="App_GlobalResources\ProductListReport.designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ProductListReport.resx</DependentUpon>
+    </Compile>
+    <Compile Include="App_GlobalResources\ShrinkGrowReport.designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ShrinkGrowReport.resx</DependentUpon>
+    </Compile>
+    <Compile Include="App_GlobalResources\TableReport.designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>TableReport.resx</DependentUpon>
+    </Compile>
+    <Compile Include="App_GlobalResources\VerticalAnchoringReport.designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>VerticalAnchoringReport.resx</DependentUpon>
+    </Compile>
+    <Compile Include="App_GlobalResources\XRPivotGridReport.designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>XRPivotGridReport.resx</DependentUpon>
+    </Compile>
+    <Compile Include="ComplexReports\BalanceSheetReport.aspx.vb">
+      <DependentUpon>BalanceSheetReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ComplexReports\FallCatalog.aspx.vb">
+      <DependentUpon>FallCatalog.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ComplexReports\Invoice.aspx.vb">
+      <DependentUpon>Invoice.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ComplexReports\ProductList.aspx.vb">
+      <DependentUpon>ProductList.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ComplexReports\ProfitAndLossReport.aspx.vb">
+      <DependentUpon>ProfitAndLossReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ComplexReports\RestaurantMenu.aspx.vb">
+      <DependentUpon>RestaurantMenu.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ComplexReports\RollPaper.aspx.vb">
+      <DependentUpon>RollPaper.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ComplexReports\SalesSummary.aspx.vb">
+      <DependentUpon>SalesSummary.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ComplexReports\SwissQRBill.aspx.vb">
+      <DependentUpon>SwissQRBill.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="DataBinding\CalculatedFields.aspx.vb">
+      <DependentUpon>CalculatedFields.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="DataBinding\HugeAmountRecords.aspx.vb">
+      <DependentUpon>HugeAmountRecords.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="DataBinding\MailMerge.aspx.vb">
+      <DependentUpon>MailMerge.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="DataBinding\PivotGridAndChart.aspx.vb">
+      <DependentUpon>PivotGridAndChart.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interaction\DrillDownReport.aspx.vb">
+      <DependentUpon>DrillDownReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interaction\DrillThroughReport.aspx.vb">
+      <DependentUpon>DrillThroughReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interaction\EForm.aspx.vb">
+      <DependentUpon>EForm.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interaction\EmployeePerformanceReview.aspx.vb">
+      <DependentUpon>EmployeePerformanceReview.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interaction\InteractiveSorting.aspx.vb">
+      <DependentUpon>InteractiveSorting.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interaction\VehicleInspection.aspx.vb">
+      <DependentUpon>VehicleInspection.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="LayoutFeatures\CrossBandContent.aspx.vb">
+      <DependentUpon>CrossBandContent.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="LayoutFeatures\CrossBandControls.aspx.vb">
+      <DependentUpon>CrossBandControls.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="LayoutFeatures\HiddenColumns.aspx.vb">
+      <DependentUpon>HiddenColumns.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="LayoutFeatures\ShrinkGrow.aspx.vb">
+      <DependentUpon>ShrinkGrow.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="LayoutFeatures\VerticalAnchoring.aspx.vb">
+      <DependentUpon>VerticalAnchoring.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="MobileViewer.aspx.vb">
+      <DependentUpon>MobileViewer.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="My Project\AssemblyInfo.vb" />
+    <Compile Include="ReportControls\BarCode.aspx.vb">
+      <DependentUpon>BarCode.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ReportControls\BarCode.aspx.designer.vb">
+      <DependentUpon>BarCode.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ReportControls\Charts.aspx.vb">
+      <DependentUpon>Charts.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ReportControls\Charts.aspx.designer.vb">
+      <DependentUpon>Charts.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ReportControls\CrossBand.aspx.vb">
+      <DependentUpon>CrossBand.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ReportControls\CrossBand.aspx.designer.vb">
+      <DependentUpon>CrossBand.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ReportControls\CustomControl.aspx.vb">
+      <DependentUpon>CustomControl.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ReportControls\CustomControl.aspx.designer.vb">
+      <DependentUpon>CustomControl.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ReportControls\PdfVisualSignature.aspx.vb">
+      <DependentUpon>PdfVisualSignature.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ReportControls\PdfVisualSignature.aspx.designer.vb">
+      <DependentUpon>PdfVisualSignature.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ReportControls\Shapes.aspx.vb">
+      <DependentUpon>Shapes.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ReportControls\Shapes.aspx.designer.vb">
+      <DependentUpon>Shapes.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ReportControls\Sparkline.aspx.vb">
+      <DependentUpon>Sparkline.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ReportControls\Sparkline.aspx.designer.vb">
+      <DependentUpon>Sparkline.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ReportTypes\CarryoverSummaryReport.aspx.vb">
+      <DependentUpon>CarryoverSummaryReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ReportTypes\CarryoverSummaryReport.aspx.designer.vb">
+      <DependentUpon>CarryoverSummaryReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ReportTypes\EmbeddedPdfContent.aspx.vb">
+      <DependentUpon>EmbeddedPdfContent.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ReportTypes\EmbeddedPdfContent.aspx.designer.vb">
+      <DependentUpon>EmbeddedPdfContent.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ReportTypes\HierarchicalReport.aspx.vb">
+      <DependentUpon>HierarchicalReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ReportTypes\HierarchicalReport.aspx.designer.vb">
+      <DependentUpon>HierarchicalReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ReportTypes\LabelReport.aspx.vb">
+      <DependentUpon>LabelReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ReportTypes\LabelReport.aspx.designer.vb">
+      <DependentUpon>LabelReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ReportTypes\MasterDetail.aspx.vb">
+      <DependentUpon>MasterDetail.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ReportTypes\MasterDetail.aspx.designer.vb">
+      <DependentUpon>MasterDetail.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ReportTypes\MultiColumn.aspx.vb">
+      <DependentUpon>MultiColumn.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ReportTypes\MultiColumn.aspx.designer.vb">
+      <DependentUpon>MultiColumn.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ReportTypes\ReportMerging.aspx.vb">
+      <DependentUpon>ReportMerging.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ReportTypes\ReportMerging.aspx.designer.vb">
+      <DependentUpon>ReportMerging.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ReportTypes\ReportMergingWithPdf.aspx.vb">
+      <DependentUpon>ReportMergingWithPdf.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ReportTypes\ReportMergingWithPdf.aspx.designer.vb">
+      <DependentUpon>ReportMergingWithPdf.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ReportTypes\SideBySide.aspx.vb">
+      <DependentUpon>SideBySide.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ReportTypes\SideBySide.aspx.designer.vb">
+      <DependentUpon>SideBySide.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ReportTypes\Subreports.aspx.vb">
+      <DependentUpon>Subreports.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ReportTypes\Subreports.aspx.designer.vb">
+      <DependentUpon>Subreports.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ReportTypes\TableReport.aspx.vb">
+      <DependentUpon>TableReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ReportTypes\TableReport.aspx.designer.vb">
+      <DependentUpon>TableReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\CodeViewer.ascx.vb">
+      <DependentUpon>CodeViewer.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="UserControls\CodeViewer.ascx.designer.vb">
+      <DependentUpon>CodeViewer.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\DemoTabs.ascx.vb">
+      <DependentUpon>DemoTabs.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="UserControls\DemoTabs.ascx.designer.vb">
+      <DependentUpon>DemoTabs.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\FeedbackPanel.ascx.vb">
+      <DependentUpon>FeedbackPanel.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="UserControls\FeedbackPanel.ascx.designer.vb">
+      <DependentUpon>FeedbackPanel.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\MobileEmulator.ascx.vb">
+      <DependentUpon>MobileEmulator.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="UserControls\MobileEmulator.ascx.designer.vb">
+      <DependentUpon>MobileEmulator.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\ReportControlToggleButton.ascx.vb">
+      <DependentUpon>ReportControlToggleButton.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="UserControls\ReportControlToggleButton.ascx.designer.vb">
+      <DependentUpon>ReportControlToggleButton.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\Search.ascx.vb">
+      <DependentUpon>Search.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="UserControls\Search.ascx.designer.vb">
+      <DependentUpon>Search.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="UserControls\ViewerSelector.ascx.vb">
+      <DependentUpon>ViewerSelector.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="UserControls\ViewerSelector.ascx.designer.vb">
+      <DependentUpon>ViewerSelector.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="WebSpecificFeatures\ColorSchemeCustomization.aspx.vb">
+      <DependentUpon>ColorSchemeCustomization.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="WebSpecificFeatures\ColorSchemeCustomization.aspx.designer.vb">
+      <DependentUpon>ColorSchemeCustomization.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="WebSpecificFeatures\MobileViewer.aspx.vb">
+      <DependentUpon>MobileViewer.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="WebSpecificFeatures\MobileViewer.aspx.designer.vb">
+      <DependentUpon>MobileViewer.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="WebSpecificFeatures\ReportDesigner.aspx.vb">
+      <DependentUpon>ReportDesigner.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="WebSpecificFeatures\ReportDesigner.aspx.designer.vb">
+      <DependentUpon>ReportDesigner.aspx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="App_Data\Contacts.db" />
+    <Content Include="App_Data\Countries.db" />
+    <Content Include="App_Data\devav.sqlite3" />
+    <Content Include="App_Data\homes.db" />
+    <Content Include="App_Data\nwind.db" />
+    <Content Include="App_Data\nwind.json" />
+    <Content Include="App_Data\Questions.xlsx" />
+    <Content Include="App_Data\Signatures\certificate.pfx" />
+    <Content Include="App_Data\StyleSheetLavender.repss" />
+    <Content Include="App_Data\Thumbnails\dirinfo" />
+    <Content Include="App_Data\vehicles.db" />
+    <Content Include="connectionStrings.config" />
+    <Content Include="Content\Fonts\OpenSans-CondBold.woff" />
+    <Content Include="Content\Fonts\overpass-semibold.woff" />
+    <Content Include="Content\Site.scss" />
+    <Content Include="Content\Site.css" />
+    <Content Include="DeviceViewer.master" />
+    <Content Include="Site.master" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="App_GlobalResources\CalculatedFieldsReport.resx">
+      <Generator>GlobalResourceProxyGenerator</Generator>
+      <LastGenOutput>CalculatedFieldsReport.designer.vb</LastGenOutput>
+    </Content>
+    <Content Include="App_GlobalResources\CatalogReport.resx">
+      <Generator>GlobalResourceProxyGenerator</Generator>
+      <LastGenOutput>CatalogReport.designer.vb</LastGenOutput>
+    </Content>
+    <Content Include="App_GlobalResources\ChartsReport.resx">
+      <Generator>GlobalResourceProxyGenerator</Generator>
+      <LastGenOutput>ChartsReport.designer.vb</LastGenOutput>
+    </Content>
+    <Content Include="App_GlobalResources\CrossBandControlsReport.resx">
+      <Generator>GlobalResourceProxyGenerator</Generator>
+      <LastGenOutput>CrossBandControlsReport.designer.vb</LastGenOutput>
+    </Content>
+    <Content Include="App_GlobalResources\EmployeeComparisonReport.resx">
+      <Generator>GlobalResourceProxyGenerator</Generator>
+      <LastGenOutput>EmployeeComparisonReport.designer.vb</LastGenOutput>
+    </Content>
+    <Content Include="App_GlobalResources\EmployeeOrdersReport.resx">
+      <Generator>GlobalResourceProxyGenerator</Generator>
+      <LastGenOutput>EmployeeOrdersReport.designer.vb</LastGenOutput>
+    </Content>
+    <Content Include="App_GlobalResources\FormattingRulesReport.resx">
+      <Generator>GlobalResourceProxyGenerator</Generator>
+      <LastGenOutput>FormattingRulesReport.designer.vb</LastGenOutput>
+    </Content>
+    <Content Include="App_GlobalResources\IListDataSourceReportReport.resx">
+      <Generator>GlobalResourceProxyGenerator</Generator>
+      <LastGenOutput>IListDataSourceReportReport.designer.vb</LastGenOutput>
+    </Content>
+    <Content Include="App_GlobalResources\InvoiceReport.resx">
+      <Generator>GlobalResourceProxyGenerator</Generator>
+      <LastGenOutput>InvoiceReport.designer.vb</LastGenOutput>
+    </Content>
+    <Content Include="App_GlobalResources\MailMergeReport.resx">
+      <Generator>GlobalResourceProxyGenerator</Generator>
+      <LastGenOutput>MailMergeReport.designer.vb</LastGenOutput>
+    </Content>
+    <Content Include="App_GlobalResources\MasterDetailReport.resx">
+      <Generator>GlobalResourceProxyGenerator</Generator>
+      <LastGenOutput>MasterDetailReport.designer.vb</LastGenOutput>
+    </Content>
+    <Content Include="App_GlobalResources\OddEvenStylesReport.resx">
+      <Generator>GlobalResourceProxyGenerator</Generator>
+      <LastGenOutput>OddEvenStylesReport.designer.vb</LastGenOutput>
+    </Content>
+    <Content Include="App_GlobalResources\ProductListReport.resx">
+      <Generator>GlobalResourceProxyGenerator</Generator>
+      <LastGenOutput>ProductListReport.designer.vb</LastGenOutput>
+    </Content>
+    <Content Include="App_GlobalResources\ShrinkGrowReport.resx">
+      <Generator>GlobalResourceProxyGenerator</Generator>
+      <LastGenOutput>ShrinkGrowReport.designer.vb</LastGenOutput>
+    </Content>
+    <Content Include="App_GlobalResources\TableReport.resx">
+      <Generator>GlobalResourceProxyGenerator</Generator>
+      <LastGenOutput>TableReport.designer.vb</LastGenOutput>
+    </Content>
+    <Content Include="App_GlobalResources\VerticalAnchoringReport.resx">
+      <Generator>GlobalResourceProxyGenerator</Generator>
+      <LastGenOutput>VerticalAnchoringReport.designer.vb</LastGenOutput>
+    </Content>
+    <Content Include="App_GlobalResources\XRPivotGridReport.resx">
+      <Generator>GlobalResourceProxyGenerator</Generator>
+      <LastGenOutput>XRPivotGridReport.designer.vb</LastGenOutput>
+    </Content>
+  </ItemGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.VisualBasic.targets" />
+  <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
+        <WebProjectProperties>
+          <UseIIS>True</UseIIS>
+          <AutoAssignPort>True</AutoAssignPort>
+          <DevelopmentServerPort>0</DevelopmentServerPort>
+          <DevelopmentServerVPath>/</DevelopmentServerVPath>
+          <IISUrl>http://localhost:61002/</IISUrl>
+          <NTLMAuthentication>False</NTLMAuthentication>
+          <UseCustomServer>False</UseCustomServer>
+          <CustomServerUrl>
+          </CustomServerUrl>
+          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+        </WebProjectProperties>
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <PropertyGroup>
+  </PropertyGroup>
+  <Target Name="CopyNativeRuntimeAssemblies" AfterTargets="Build">
+    <ItemGroup>
+      <NativeDlls_x64 Include="$(OutDir)runtimes\win-x64\native\*.dll" />
+      <NativeDlls_x86 Include="$(OutDir)runtimes\win-x86\native\*.dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(NativeDlls_x64)" DestinationFolder="$(OutDir)x64\" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(NativeDlls_x86)" DestinationFolder="$(OutDir)x86\" SkipUnchangedFiles="true" />
+  </Target>
+</Project>

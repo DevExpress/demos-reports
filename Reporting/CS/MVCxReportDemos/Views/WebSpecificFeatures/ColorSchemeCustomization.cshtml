@@ -1,0 +1,40 @@
+﻿@model ReportsDemoModel
+
+@section AdditionalResources {
+    <script type="text/javascript">
+        (function() {
+            window.LESS_RESOURCE_PATH = "@Url.Content("~/Scripts/Theming/Less_themes/")";
+            window.ICONS_RESOURCE_PATH = "@Url.Content("~/Content/ThemeIcons/")";
+        })();
+    </script>
+    <link rel="stylesheet" type="text/css" href="@this.GetUrlContentWithVersionSuffix("~/Content/Designer.css")" /> 
+    <script type="text/javascript" src="@this.GetUrlContentWithVersionSuffix("~/Scripts/Theming/less.min.js")"></script>
+    <script type="text/javascript" src="@this.GetUrlContentWithVersionSuffix("~/Scripts/Theming/beautify-css.js")"></script>
+    <script type="text/javascript" src="@this.GetUrlContentWithVersionSuffix("~/Scripts/Theming/jszip.min.js")"></script>
+    <script src="@this.GetUrlContentWithVersionSuffix("~/Scripts/Theming/index.js")"></script>
+    <link rel="stylesheet" type="text/css" href="@this.GetUrlContentWithVersionSuffix("~/Content/RunDesignerButton.css")" />
+    <link rel="stylesheet" type="text/css" href="@this.GetUrlContentWithVersionSuffix("~/Content/ViewerSelector.css")" />
+    <link rel="stylesheet" type="text/css" href="@this.GetUrlContentWithVersionSuffix("~/Scripts/Theming/index.css")" /> 
+}
+@{
+    bool showViewerButton = Request.Params["ShowDesigner"] != null;
+}
+
+@section TopRightMenuRegion {
+    @Html.Partial("ReportControlToggleButtonPartial", Model, new ViewDataDictionary {
+        { "ShowViewerButton", showViewerButton },
+        { "RouteUrl", Url.Action("ColorSchemeCustomization", "WebSpecificFeatures", showViewerButton ? null : new { ShowDesigner = true } )}
+    })
+}
+@Html.Raw(File.ReadAllText(Server.MapPath("~/Scripts/Theming/ThemingTemplates.html")))
+<div class="report-designer-preview" style="position: relative; min-height: 900px; overflow: hidden; border: 1px solid #cccccc;">
+    <div id="theming_demo_load_panel"></div>
+    @if(showViewerButton) {
+        @Html.Partial("ColorSchemeCustomizationDesignerPartial", Model)
+    } else {
+        @Html.Partial("ColorSchemeCustomizationPartial", Model)
+    }    
+</div>
+<script type="text/javascript" src="@this.GetUrlContentWithVersionSuffix("~/Scripts/Theming/loadPanel.js")"></script>
+
+

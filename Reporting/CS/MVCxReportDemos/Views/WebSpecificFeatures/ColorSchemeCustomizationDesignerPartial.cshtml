@@ -1,0 +1,9 @@
+﻿@using DevExpress.Web.Demos.Code.Designer
+@model ReportsDemoModel
+
+@Html.DevExpress().ReportDesigner(settings => {
+    settings.Name = "reportDesigner";
+    settings.ControlStyle.CssClass = "fullscreen";
+    settings.Height = Unit.Empty;
+    settings.ClientSideEvents.CustomizeElements = "customizeDesignerElements";
+}).BindToUrl(Model.ReportID).GetHtml()

@@ -1,0 +1,38 @@
+﻿@model string
+
+<script src="@Url.Content("~/js/report-viewer.js")" asp-append-version="true"></script>
+<script type="text/javascript">
+    function BeforeRender(s, e) {
+        DevExpress.Reporting.Viewer.Settings.AIServicesEnabled(false);
+        registerDamageDiagramEditor();
+        editingFieldsHighlightingEnable(s, e);
+        disposeOnUnload(s, e);
+    }
+</script>
+
+<div class="wrapper">
+    @{
+        var viewerRender = Html.DevExpress().WebDocumentViewer("viewer")
+            .Height("1000px")
+            .ClientSideModelSettings(x => {
+                x.IncludeCldrData = false;
+                x.IncludeCldrSupplemental = false;
+            })
+            .ClientSideEvents(events => {
+                events.BeforeRender("BeforeRender");
+            })
+            .Bind(Model);
+        @viewerRender.RenderHtml()
+    }
+</div>
+
+@await Html.PartialAsync("_ReportDesignerButton", Model)
+
+@section Scripts {
+    <link rel="stylesheet" href="~/css/viewer.part.bundle.min.css" asp-append-version="true" />
+
+    <script src="~/js/reporting.thirdparty.bundle.min.js" asp-append-version="true"></script>
+    <script src="~/js/viewer.part.bundle.min.js" asp-append-version="true"></script>
+
+    @viewerRender.RenderScripts()
+}

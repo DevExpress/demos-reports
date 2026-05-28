@@ -1,0 +1,1 @@
+﻿<%@ Application Language="vb" Codebehind="Global.asax.vb" Inherits="DevExpress.Web.Demos.Global" %>

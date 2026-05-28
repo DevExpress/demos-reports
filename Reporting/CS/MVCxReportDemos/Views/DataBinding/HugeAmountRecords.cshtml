@@ -1,0 +1,39 @@
+﻿@model ReportsDemoModel
+@section AdditionalResources {
+    <link rel="stylesheet" type="text/css" href="@this.GetUrlContentWithVersionSuffix("~/Content/RunDesignerButton.css")" />
+    <link rel="stylesheet" type="text/css" href="@this.GetUrlContentWithVersionSuffix("~/Content/ViewerSelector.css")" />
+    <script>
+        function CustomizeExportOptions(s, e) {
+            ['XLS', 'XLSX', 'Text', 'MHT', 'HTML', 'Image', 'DOCX', 'CSV', 'RTF'].forEach(function(format) { e.HideFormat(DevExpress.Reporting.Viewer.ExportFormatID[format]); });
+        }
+        function CustomizeViewerMenuActions(s, e) {
+            DevExpress.Reporting.Viewer.Settings.EditablePreviewEnabled(false);
+            UsePdfExportOnly(s, e);
+        }
+        function UsePdfExportOnly(s, e) {
+            var exportAction = e.GetById(DevExpress.Reporting.Viewer.ActionId.ExportTo);
+            if(!exportAction)
+                return;
+            exportAction.imageTemplateName = "dxrd-svg-preview-export-export-to-pdf";
+            exportAction.templateName = undefined;
+            exportAction.clickAction = function(_args) {
+                s.ExportTo('pdf');
+            }
+        }
+    </script>
+}
+
+@section TopRightMenuRegion {
+    @Html.Partial("ViewerSelectorPartial", Model)
+    @Html.Partial("ReportControlToggleButtonPartial", Model)
+}
+
+@if(Model.IsHTML5Viewer) {
+    @Html.DevExpress().WebDocumentViewer(settings => {
+        settings.Name = "webDocumentViewer";
+        settings.ClientSideEvents.CustomizeMenuActions = "CustomizeViewerMenuActions";
+        settings.ClientSideEvents.CustomizeExportOptions = "CustomizeExportOptions";
+    }).Bind(Model.ReportID).GetHtml()
+} else if(Model.IsMobileViewer) {
+    @Html.Partial("MobileEmulator", Model.EmulatorModel)
+}

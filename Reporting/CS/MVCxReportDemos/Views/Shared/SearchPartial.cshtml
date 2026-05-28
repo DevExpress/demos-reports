@@ -1,0 +1,26 @@
+﻿@model bool
+
+<div class="search-wrapper" @Html.Raw(Utils.GetAccessibilityAttribute("role", "search"))>
+    @Html.DevExpress().ButtonEdit(settings => {
+        settings.Name = "SearchEditor";
+        settings.Properties.ClientInstanceName = "searchEditor";
+        settings.Properties.NullText = "Search Demos";
+        settings.Properties.NullTextDisplayMode = NullTextDisplayMode.UnfocusedAndFocused;
+        settings.ControlStyle.CssClass = "search-input";
+        settings.EnableTheming = false;
+        settings.Properties.ClearButton.DisplayMode = ClearButtonDisplayMode.Always;
+        var iconButton = new EditButton { Position = ButtonsPosition.Left };
+        iconButton.Image.SpriteProperties.CssClass = "icon search";
+        settings.Properties.Buttons.Add(iconButton);
+        settings.Properties.ClearButton.Image.SpriteProperties.CssClass = "icon clear-button";
+        settings.Properties.ClientSideEvents.GotFocus = "DXDemo.Search.onSearchBoxGotFocus";
+        settings.Properties.ClientSideEvents.LostFocus = "DXDemo.Search.onSearchBoxLostFocus";
+        settings.Properties.ClientSideEvents.KeyDown = "DXDemo.Search.onSearchEditorKeyDown";
+        settings.Properties.ClientSideEvents.ButtonClick = "DXDemo.iconButtonClick";
+        settings.Init = (s, e) => {
+            if(Model)
+                ((ASPxButtonEdit)s).Focus();
+        };
+    }).GetHtml()
+    @Html.Partial("SearchListPartial", new List<SearchResult>())
+</div>

@@ -1,0 +1,323 @@
+﻿[
+  {
+    "Name": "Reporting",
+    "Groups": [
+      {
+        "Name": "AI-powered Extensions",
+        "Badge": "Updated",
+        "Demos": [
+          {
+            "Title": "Report Viewer AI Extensions",
+            "Action": "AIPoweredInvoiceReport",
+            "Controller": "Demos",
+            "DemoType": "Web",
+            "Badge": "Updated"
+          },
+          {
+            "Title": "Report Designer AI Extensions",
+            "Action": "AIPoweredReportDesigner",
+            "Controller": "Demos",
+            "DemoType": "Web",
+            "Badge": "Updated"
+          }
+        ]
+      },
+      {
+        "Name": "Interaction",
+        "Demos": [
+          {
+            "Title": "Drill-Down Report",
+            "Action": "DrillDownReport",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "Drill-Through Report",
+            "Action": "DrillThroughReport",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "Employee Performance Review",
+            "Action": "EmployeePerformanceReview",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "Interactive Sorting",
+            "Action": "InteractiveSorting",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "E-Form",
+            "Action": "CharacterComb",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "Vehicle Inspection Report",
+            "Action": "VehicleInspectionReport",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          }
+        ]
+      },
+
+      {
+        "Name": "Report Types",
+        "Demos": [
+          {
+            "Title": "Hierarchical Report",
+            "Action": "HierarchicalReport",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "Table Report",
+            "Action": "TableReport",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "Master-Detail Report",
+            "Action": "MasterDetailReport",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "Subreports",
+            "Action": "Subreports",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "Multi-Column Report",
+            "Action": "MultiColumnReport",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "Label Report",
+            "Action": "ProductLabelsReport",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "Report Merging",
+            "Action": "MergedReport",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "Report Merging with PDF",
+            "Action": "ReportMergingWithPdf",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "Embedded PDF Content",
+            "Action": "EmbeddedPDFContentReport",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "Side-by-side Reports",
+            "Action": "SideBySideReports",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "Carryover Summary",
+            "Action": "CarryoverSummaryReport",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          }
+        ]
+      },
+
+      {
+        "Name": "Data binding",
+        "Demos": [
+          {
+            "Title": "PivotGrid And Chart",
+            "Action": "PivotGridAndChart",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "Calculated Fields",
+            "Action": "CalculatedFields",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "Large Dataset",
+            "Action": "CachedDocumentSource",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "Rich Text and Mail Merge",
+            "Action": "MailMerge",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          }
+        ]
+      },
+
+      {
+        "Name": "Real-life Reports",
+        "Demos": [
+          {
+            "Title": "Balance Sheet",
+            "Action": "BalanceSheetReport",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "Product List",
+            "Action": "ProductListReport",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "Fall Catalog",
+            "Action": "CatalogReport",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "Invoice",
+            "Action": "InvoiceReport",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "Swiss QR Bill",
+            "Action": "SwissQRBill",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "Profit And Loss Report",
+            "Action": "ProfitAndLossReport",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "Roll Paper Report",
+            "Action": "RollPaper",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "Restaurant Menu",
+            "Action": "RestaurantMenu",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "Sales Summary Report",
+            "Action": "SalesSummaryReport",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          }
+        ]
+      },
+
+      {
+        "Name": "Layout Features",
+        "Demos": [
+          {
+            "Title": "Cross-Band Content",
+            "Action": "CrossBandContent",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "Shrink and Grow",
+            "Action": "ShrinkGrow",
+            "Controller": "Demos",
+            "DemoType": "Web",
+            "MvcAdditionalFiles": [
+              "/Services/ReportSourceResolver.cs"
+            ]
+          },
+          {
+            "Title": "Anchoring",
+            "Action": "AnchorVertical",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "Hidden Columns",
+            "Action": "HiddenColumns",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          }
+        ]
+      },
+
+      {
+        "Name": "Report Controls",
+        "Demos": [
+          {
+            "Title": "Sparkline",
+            "Action": "Sparkline",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "Bar Code",
+            "Action": "BarCodeTypesReport",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "PDF Visual Signature",
+            "Action": "PdfVisualSignatureReport",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "Shapes",
+            "Action": "Shape",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "Chart",
+            "Action": "Charts",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          },
+          {
+            "Title": "Cross-band Controls",
+            "Action": "CrossBandControls",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          }
+        ]
+      },
+      {
+        "Name": "Web-specific Features",
+        "Demos": [
+          {
+            "Title": "Web Report Designer",
+            "Action": "ReportDesigner",
+            "Controller": "Demos",
+            "DemoType": "Web",
+            "Badge": "Updated"
+          },
+          {
+            "Title": "Color Scheme Customization",
+            "Action": "ColorSchemeCustomization",
+            "Controller": "Demos",
+            "DemoType": "Web"
+          }
+        ]
+      }
+    ]
+  }
+]

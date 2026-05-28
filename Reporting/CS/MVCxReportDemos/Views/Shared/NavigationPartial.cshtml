@@ -1,0 +1,122 @@
+﻿@functions{
+    void LoadTreeView(MVCxTreeViewNodeCollection nodes, DemoProductModel product) {
+        var demoProductNode = nodes.Add(
+            product.NavItemTitle,
+            string.Empty,
+            string.Empty,
+            product != Utils.CurrentDemo.Product ? Utils.GenerateDemoUrl(product.Intro) : string.Empty
+        );
+        demoProductNode.NodeStyle.CssClass += " group-node";
+        demoProductNode.Name = product.Key;
+        if(product.IsPreview)
+            SetPreviewMarker(demoProductNode);
+        if(product.IsNew)
+            SetNewMarker(demoProductNode);
+        if(product == Utils.CurrentDemo.Product)
+            LoadTreeView(product, demoProductNode);
+        else if(product.GetVisibleGroups().Any(g => g.IsPreview || g.IsNew || g.IsUpdated || g.GetVisibleDemos().Any(d => d.IsPreview || d.IsNew || d.IsUpdated)))
+            SetUpdatedMarker(demoProductNode);
+    }
+    void LoadTreeView(DemoProductModel product, MVCxTreeViewNode productNode) {
+        if (product.Intro != null) {
+            TreeViewNode overviewNode = productNode.Nodes.Add("Introduction", string.Empty, string.Empty, Url.Content(Utils.GenerateDemoUrl(Utils.CurrentDemo.Product.Intro)));
+            overviewNode.Name = string.Format("{0}_{1}", product.Key, product.Intro.Key);
+            overviewNode.NodeStyle.CssClass += " group-node";
+        }
+        foreach (var group in product.GetVisibleGroups()) {
+            var groupNode = productNode.Nodes.Add(group.Title);
+            groupNode.Name = string.Format("{0}_{1}", product.Key, group.Key);
+            groupNode.NodeStyle.CssClass += " group-node";
+            foreach(var demo in group.GetAllDemos(true)) {
+                var demoNode = groupNode.Nodes.Add(demo.Title, string.Empty, string.Empty, Utils.GenerateDemoUrl(demo));
+                demoNode.NodeStyle.CssClass += " demo-node";
+                demoNode.Name = string.Format("{0}_{1}_{2}", product.Key, group.Key, demo.Key);
+                if(demo.IsUpdated)
+                    SetUpdatedMarker(demoNode);
+                if(demo.IsNew)
+                    SetNewMarker(demoNode);
+                if(demo.IsPreview)
+                    SetPreviewMarker(demoNode);
+            }
+            if(group.IsUpdated)
+                SetUpdatedMarker(groupNode);
+            if(group.IsNew)
+                SetNewMarker(groupNode);
+        }
+    }
+    void SetNewMarker(TreeViewNode node) {
+        if(!node.NodeStyle.CssClass.Contains("Ico"))
+            node.NodeStyle.CssClass += " newIco";
+        SetUpdatedMarker(node.Parent);
+    }
+    void SetUpdatedMarker(TreeViewNode node) {
+        while(node != null) {
+            if(!node.NodeStyle.CssClass.Contains("Ico"))
+                node.NodeStyle.CssClass += " updatedIco";
+            node = node.Parent;
+        }
+    }
+    void SetPreviewMarker(TreeViewNode node) {
+        if(!node.NodeStyle.CssClass.Contains("Ico"))
+            node.NodeStyle.CssClass += " previewIco";
+        SetUpdatedMarker(node.Parent);
+    }
+}
+
+<nav>
+    <div id="NavControl" class="nav-control" style="visibility:hidden">
+        @Html.DevExpress().Button(settings => {
+            settings.Name = "NavigationBreadCrumbsButton";
+            settings.Text="All Demos";
+            settings.UseSubmitBehavior = false;
+            settings.EnableTheming = false;
+            settings.Width = Unit.Percentage(100);
+            settings.ControlStyle.CssClass = "navigation-breadcrumbs-button";
+            settings.Images.Image.SpriteProperties.CssClass = "icon";
+            settings.ControlStyle.HorizontalAlign = HorizontalAlign.Left;
+            settings.Styles.FocusRectStyle.Border.BorderWidth = 0;
+            settings.Styles.FocusRectStyle.Paddings.Padding = 0;
+            settings.ClientSideEvents.Click = "function(){ NavControl.onNavigationBreadCrumbsButtonClick(); }";
+            settings.ClientVisible = Utils.IsSiteMode && DemosModel.Instance.SortedDemoProducts.Count > 1 && !DemosModel.Current.IsRootDemo;
+        }).GetHtml()
+        <div class="nav-tree-view">
+            <div id="breadCrumbs" class="breadCrumbs">All Demos</div>
+            @Html.DevExpress().TreeView(settings => {
+                settings.Name = "NavigationTreeView";
+                settings.EnableClientSideAPI = true;
+                settings.Width = Unit.Percentage(100);
+                settings.ShowTreeLines = false;
+                settings.ShowExpandButtons = true;
+                settings.EncodeHtml = false;
+                settings.Theme = "Metropolis";
+                settings.EnableHotTrack = false;
+                settings.Images.ExpandButton.SpriteProperties.CssClass = "icon angle-right";
+                settings.Images.CollapseButton.SpriteProperties.CssClass = "icon angle-down";
+                settings.ClientSideEvents.Init = "DXDemo.treeViewInit";
+                
+                if(!Utils.IsSiteMode) {
+                    LoadTreeView(settings.Nodes, Utils.CurrentDemo.Product);
+                } else {
+                    foreach(var demoProduct in DemosModel.Instance.SortedDemoProducts) {
+                        if(!demoProduct.HideNavItem && !demoProduct.IsRootDemo)
+                            LoadTreeView(settings.Nodes, demoProduct);
+                    }
+                }
+
+                settings.PreRender = (s, e) => {
+                    var treeView = s as MVCxTreeView;
+                    var node = treeView.Nodes.FindByName(Utils.CurrentDemoNodeName);
+                    treeView.SelectedNode = node;
+                    if(node != null) {
+                        treeView.ExpandToNode(node);
+                        node.Expanded = true;
+                        while(node != null) {
+                            node.NodeStyle.CssClass += " demo-selected";
+                            node = node.Parent;
+                        }
+                    }
+                };
+            }).GetHtml()
+        </div>
+    </div>
+</nav>

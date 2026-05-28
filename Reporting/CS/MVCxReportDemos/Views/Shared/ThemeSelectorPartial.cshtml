@@ -1,0 +1,91 @@
+﻿@using System.Web.Script.Serialization;
+
+@Html.DevExpress().Label(settings => {
+    settings.Name = "ThemesLabel";
+    settings.Text = "Themes";
+    settings.ControlStyle.CssClass = "themes-caption";
+}).GetHtml()
+@foreach(var themesGroup in Utils.CurrentThemesModel.GetAllGroups()) {
+    @Html.DevExpress().ListBox(settings => {
+    settings.Name = "ThemesList" + themesGroup.Name;
+    settings.ControlStyle.CssClass = "themes-list";
+    settings.Width = Unit.Percentage(100);
+    settings.EnableTheming = false;
+    settings.Properties.CaptionSettings.Position = EditorCaptionPosition.Top;
+    settings.Properties.ValueField = "Value";
+    settings.Properties.TextField = "Text";
+    settings.Properties.ImageUrlField = "ImageUrl";
+    settings.Properties.CaptionCellStyle.CssClass = "themes-list-caption-cell";
+    settings.Properties.ItemImage.Height = 18;
+    settings.Properties.ItemImage.Width = 18;
+    settings.Properties.CaptionSettings.ShowColon = false;
+    settings.Properties.CaptionStyle.CssClass = "themes-list-caption";
+    settings.Properties.ItemStyle.CssClass = "item";
+    settings.Properties.ItemStyle.SelectedStyle.CssClass = "item-selected";
+    settings.Properties.ItemStyle.HoverStyle.CssClass = "item-hover";
+    settings.Properties.ClientSideEvents.SelectedIndexChanged = "DXDemo.OnThemesListSelectedIndexChanged";
+    settings.Properties.ClientSideEvents.Init = "DXDemo.OnThemesListInit";
+    settings.Init = (s, e) => BindThemesList((ASPxListBox)s, themesGroup);
+    settings.PreRender = (s, e) => {
+        ASPxListBox themesList = (ASPxListBox)s;
+        themesList.UnselectAll();
+        var selectedItem = themesList.Items.FindByValue(GetThemeTitle(Utils.CurrentTheme));
+        if(selectedItem != null)
+            selectedItem.Selected = true;
+        var jsSerializer = new JavaScriptSerializer();
+        themesList.JSProperties["cpNewThemes"] = themesList.Items.Cast<ListEditItem>()
+            .Where(item => Utils.CurrentThemesModel.NewThemes.Select(t => t.Title).Contains(item.Text))
+            .Select(item => item.Text);
+    };
+}).GetHtml()
+}
+@Html.DevExpress().Button(settings => {
+    settings.Name = "ShowAllThemesButton";
+    settings.Text = "Show All Themes";
+    settings.EnableTheming = false;
+    settings.Width = Unit.Percentage(100);
+    settings.ControlStyle.CssClass = "show-all-themes-button";
+    settings.ControlStyle.HorizontalAlign = HorizontalAlign.Left;
+    settings.Styles.FocusRectStyle.Border.BorderWidth = 0;
+    settings.Images.Image.SpriteProperties.CssClass = "icon three-dots";
+    settings.ClientSideEvents.Click = "function(){ DXDemo.OnShowAllThemesClick(); }";
+    settings.Init = (s, e) => {
+        ASPxButton button = (ASPxButton)s;
+        button.JSProperties["cpThemesListsNames"] = Utils.CurrentThemesModel.GetAllGroups().Select(g => GetThemesListClientName(g.Name)).ToList();
+        button.JSProperties["cpCurrenTheme"] = Utils.CurrentTheme;
+        button.JSProperties["cpUseDevExtremeCookieKey"] = DemoHelper.Instance.UseDevExtremeThemeSelector;
+    };
+}).GetHtml()
+@functions{
+    void BindThemesList(ASPxListBox themesList, ThemeGroupModel group) {
+        bool isFirstgroup = group.Name == "FirstGroup";
+        themesList.Caption = group.Title;
+
+        if(isFirstgroup)
+            themesList.CssClass += " firstGroup";
+
+        var dataSource = group.Themes.Select(t => new ListEditItem() {
+            Value = GetThemeTitle(t.Name),
+            Text = t.Title,
+            ImageUrl = String.IsNullOrEmpty(t.PreveiwIconResourceName) ? Utils.GetColoredSquareUrl(t.PreveiwColor) : Utils.EncodeSvgIconBase64(Utils.GetCurrentResource(t.PreveiwIconResourceName)),
+        }).ToList();
+
+        themesList.ClientInstanceName = GetThemesListClientName(group.Name);
+        themesList.ClientVisible = isFirstgroup;
+
+        themesList.Items.Clear();
+        themesList.Items.AddRange(dataSource);
+        if(Utils.CurrentThemesModel != null) {
+            themesList.ItemImage.Height = Utils.CurrentThemesModel.IconHeight;
+            themesList.ItemImage.Width = Utils.CurrentThemesModel.IconWidth;
+        }
+    }
+
+    string GetThemesListClientName(string groupName) {
+        return "themesList" + groupName;
+    }
+
+    string GetThemeTitle(string themeName) {
+        return !string.IsNullOrEmpty(themeName) ? themeName : "Default";
+    }
+}

@@ -1,0 +1,225 @@
+body {
+    margin: 0;
+    padding: 0;
+}
+
+.body-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.logo-image {
+    color: #212529;
+    z-index: 1;
+    opacity: 0.5;
+    bottom: 20px;
+    left: 20px;
+    position: fixed;
+    background-color: currentColor;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    cursor: pointer;
+    width: 156px;
+    height: 26px;
+    mask-image: url(/DemoShell/images/Layout/dx-footer-logo.svg);
+    -webkit-mask-image: url(/DemoShell/images/Layout/dx-footer-logo.svg);
+}
+
+/* Color Classes */
+.Blue {
+    fill: #3a7fba;
+}
+
+.Grey {
+    fill: #d4d4d4;
+}
+
+/* Main Flex Containers */
+.dx-designer-viewport .dxrd-right-panel-flex-container {
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+    height: 100%;
+    width: 100%;
+}
+
+.dxrd-right-panel-flex-container .dxrd-right-panel-flex-item {
+    height: 100%;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.dxrd-right-panel-flex-container
+    .dxrd-right-panel-flex-item.dxrd-interactive-demo-extention {
+    max-width: 25rem;
+    min-width: 25rem;
+}
+
+/* Demo Extension Header */
+.dx-designer-viewport .dxrd-interactive-demo-extention-header {
+    font-size: 1.375rem;
+}
+
+.dx-designer-viewport .dxrd-interactive-demo-extention-header-content {
+    padding: 2.3rem 1.8rem 0;
+}
+
+.dx-designer-viewport .dxrd-interactive-demo-extention-subtitle {
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    font-weight: 600;
+    opacity: 0.5;
+    padding: 0.5rem 1.8rem 1rem;
+}
+
+/* Demo Extension Description */
+.dx-designer-viewport .dxrd-interactive-demo-extention-description {
+    font-size: 0.825rem;
+    line-height: 1.3rem;
+}
+
+.dx-designer-viewport .dxrd-interactive-demo-extention-description p {
+    margin-top: 0.375rem;
+}
+
+.dxrd-interactive-demo-extention-description.dxd-text-info > p {
+    opacity: 0.85;
+}
+
+/* Demo Extension List Items */
+.dx-designer-viewport .dxrd-interactive-demo-extention-list-item {
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+    border-top-width: 1px;
+    border-top-style: solid;
+}
+
+.dx-designer-viewport .dxrd-interactive-demo-extention-list-item-content {
+    padding: 1.125rem 1rem;
+    width: 100%;
+}
+
+.dx-designer-viewport .dxrd-interactive-demo-extention-list-item-image {
+    min-width: 4rem;
+    height: 4rem;
+    margin: 1.25rem 0.875rem 1.25rem 1.875rem;
+}
+
+.dx-designer-viewport .dxrd-interactive-demo-extention-list-item-title {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    line-height: 1.2rem;
+}
+
+.dx-designer-viewport .dxrd-interactive-demo-extention-list-item-description {
+    font-size: 0.75rem;
+    line-height: 1.3rem;
+    margin: 0.315rem 0;
+}
+
+.dx-designer-viewport .dxrd-interactive-demo-extention-list-item-buttons {
+    margin-top: 0.825rem;
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+}
+
+/* Demo Extension Widgets and Controls */
+.dx-designer-viewport .dxrd-interactive-demo-extention .dx-widget {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+.dx-designer-viewport .dxrd-interactive-demo-extention-close {
+    position: absolute;
+    right: 0.5rem;
+    top: 0.5rem;
+    z-index: 1;
+}
+
+.dx-designer-viewport
+    .dxrd-interactive-demo-extention
+    .dx-button-has-icon
+    .dx-button-content {
+    padding: 0.5rem;
+}
+
+/* Button Container */
+.dx-button-container {
+    width: 100%;
+    margin-top: 0.935rem;
+    letter-spacing: -0.5rem;
+}
+
+.dx-button-container .dx-font-button {
+    width: 3.1rem;
+    letter-spacing: 0px;
+    display: inline-flex;
+    height: 4.34rem;
+    vertical-align: top;
+    flex-direction: column;
+}
+
+.dx-button-container .dx-font-button .dx-button {
+    border-left-width: 0px;
+    border-radius: 0;
+}
+
+.dx-button-container .dx-font-button:first-child .dx-button {
+    border-left-width: 1px;
+    border-bottom-left-radius: 4px;
+    border-top-left-radius: 4px;
+}
+
+.dx-button-container .dx-font-button:last-child .dx-button {
+    border-right-width: 1px;
+    border-bottom-right-radius: 4px;
+    border-top-right-radius: 4px;
+}
+
+.dx-button-container .dx-button .dx-button-content {
+    opacity: 0.4;
+}
+
+.dx-button-container .dx-text {
+    text-align: center;
+    margin-top: 5px;
+    opacity: 0.4;
+}
+
+/* Demo Description Button */
+.dx-demo-description-button {
+    position: absolute;
+    bottom: 0;
+    opacity: 0.75;
+    height: 3.125rem;
+    width: 100%;
+}
+
+/* State Modifiers */
+.dx-designer-viewport .dxrd-interactive-demo-extention-close:not(.dx-state-hover) {
+    border-color: transparent;
+}
+
+.dx-button-container .dx-font-button.dx-font-button-active .dx-text {
+    opacity: 1;
+}
+
+.dx-button-container .dx-font-button.dx-font-button-active .dx-button .dx-button-content {
+    opacity: 1;
+}
+
+.dx-demo-description-button.dxd-state-active {
+    opacity: 1;
+}

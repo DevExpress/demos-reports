@@ -1,0 +1,41 @@
+﻿@model DevExpress.Web.Demos.ErrorMessageModel
+           
+@functions{
+    object GetDemoProducts() {
+        return DemosModel.Instance.DemoProducts.Where(product => !product.IsRootDemo).OrderBy(product => product.NavItemTitle)
+            .Select(product => new DevExpress.Web.Demos.ErrorMessageModel() { Title = product.NavItemTitle, NavigateUrl = Utils.GenerateDemoUrl(product.Intro) });
+    }
+}
+
+<div class="ErrorContainer">
+    <div class="MainMessage">
+        @ViewData["MainMessage"]
+    </div>
+    <div class="Details">
+        @foreach(var line in (string[])ViewData["Details"]) {
+            <p>@line</p>
+        }
+    </div>
+    <div>
+     @if (DemosModel.Instance.DemoProducts.Count > 1) {
+        @Html.DevExpress().DataView(dv =>
+        {
+            dv.Name = "dvProductLinks";
+            dv.EnableTheming = false;
+            dv.AllowPaging = false;
+            dv.Layout = DevExpress.Web.Layout.Flow;
+            dv.SettingsFlowLayout.ItemsPerPage = 100;
+            dv.Styles.Item.Width = 210;
+            dv.SetItemTemplateContent(s => {
+                var title = s.EvalDataItem("Title");
+                var navigateUrl = Url.Content(s.EvalDataItem("NavigateUrl").ToString());
+                ViewContext.Writer.Write(string.Format("<a href=\"{0}\">{1}</a>", navigateUrl, title));
+            });
+            dv.ControlStyle.ItemSpacing = Unit.Pixel(0);
+            dv.ControlStyle.CssClass = "ProductsView";
+            dv.Styles.Item.CssClass = "Product";
+            dv.Styles.EmptyItem.CssClass = "EmptyProduct";
+        }).Bind(GetDemoProducts()).GetHtml()
+    }
+    </div>
+</div>

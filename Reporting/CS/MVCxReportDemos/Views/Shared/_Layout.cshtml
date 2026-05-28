@@ -1,0 +1,419 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>@Utils.GetCurrentDemoPageTitle()</title>
+    @if(!Utils.IsIncludeThirdPartyClientLibraries) {
+    <script src="@Url.Content("~/Scripts/jquery.min.js")" type="text/javascript"></script>
+    }
+    @RenderSection("AdditionalResources", false)
+    @Html.Partial("HeadPartial")
+    <link rel="stylesheet" type="text/css" href="@this.GetUrlContentWithVersionSuffix("~/Content/Site.css")" />
+    <link rel="stylesheet" type="text/css" href="@this.GetUrlContentWithVersionSuffix("~/Content/feedback.css")" />
+    <link rel="stylesheet" type="text/css" href="@this.GetUrlContentWithVersionSuffix("~/Content/sprite.css")" />
+    @if(!DemosModel.Current.IsRootDemo) {
+    <link rel="stylesheet" type="text/css" href="@this.GetUrlContentWithVersionSuffix("~/Content/CodeFormatter.css")" />
+    }
+    <link rel="stylesheet" type="text/css" href="@this.GetUrlContentWithVersionSuffix("~/Content/Components.css")" />
+    <link rel="stylesheet" type="text/css" href="@this.GetUrlContentWithVersionSuffix("~/Content/Platform.css")" />
+    <script src="@this.GetUrlContentWithVersionSuffix("~/Scripts/Demo.js")" type="text/javascript"></script>
+    <script src="@this.GetUrlContentWithVersionSuffix("~/Scripts/Feedback.js")" type="text/javascript"></script>
+    <style>
+        @@font-face
+        {
+            font-family: "arima madurai";
+            src:url("@this.GetUrlContentWithVersionSuffix("~/Content/Fonts/CustomFont0.woff")") format('woff');
+        }
+        @@font-face
+        {
+            font-family: "comfortaa";
+            src:url("@this.GetUrlContentWithVersionSuffix("~/Content/Fonts/CustomFont1.woff")") format('woff');
+        }
+        @@font-face
+        {
+            font-family: "coda";
+            src:url("@this.GetUrlContentWithVersionSuffix("~/Content/Fonts/CustomFont2.woff")") format('woff');
+        }
+    </style>
+</head>
+<body class="defaultFont">
+    <script>
+        window.addEventListener('load', function(e) {
+            DXDemo.adjustDemoSettingsBlock();
+            window.addEventListener('resize', function(e) {
+                DXDemo.adjustDemoSettingsBlock();
+            });
+        });
+    </script>
+    @RenderSection("CustomTopAreaHolder", false)
+    <header>
+        @Html.DevExpress().Panel(settings => {
+            settings.Name = "TopPanel";
+            settings.FixedPosition = PanelFixedPosition.WindowTop;
+            settings.ControlStyle.CssClass = "header-panel";
+            settings.EnableTheming = false;
+            settings.FixedPositionOverlap = true;
+            settings.SetContent(GetHeaderPanelContent().ToHtmlString());
+        }).GetHtml()
+    </header>
+    @if(!Utils.CurrentDemo.IsErrorPage) {
+        @Html.DevExpress().Panel(settings => {
+            int collapseAtWindowInnerWidth = 1200;
+            settings.Name = "NavigationPanel";
+            settings.FixedPosition = PanelFixedPosition.WindowLeft;
+            settings.ControlStyle.CssClass = "navigation-panel";
+            settings.Collapsible = true;
+            settings.ScrollBars = ScrollBars.Auto;
+            settings.Theme = "Default";
+            settings.SettingsAdaptivity.CollapseAtWindowInnerWidth = collapseAtWindowInnerWidth;
+            settings.SettingsCollapsing.ExpandEffect = PanelExpandEffect.PopupToRight;
+            settings.SettingsCollapsing.AnimationType = AnimationType.Slide;
+            settings.SettingsCollapsing.ExpandButton.Visible = false;
+            settings.SettingsCollapsing.Modal = true;
+            settings.Styles.ExpandBar.Width = 0;
+            settings.Styles.ModalBackground.CssClass = "dx-modal-background";
+            settings.ClientVisible = !DemosModel.Current.IsRootDemo;
+            settings.SetContent(GetNavigationPanelContent().ToHtmlString());
+            settings.ClientSideEvents.Collapsed = "DXDemo.onVerticalPanelCollapsed";
+            settings.Init = (s,e) => {
+                ((ASPxPanel)s).JSProperties["cpCollapseAtWindowInnerWidth"] = collapseAtWindowInnerWidth;
+            };
+        }).GetHtml()
+    }
+    @if(DemosModel.Current.IsRootDemo && !Utils.CurrentDemo.IsErrorPage) {
+        <div class="root-intro">
+            <div class="slogan">
+                <h1>When only the best will do</h1>
+                <h2>Over 65 MVC Extensions</h2>
+            </div>
+            @Html.Partial("SearchPartial", true)
+            @Html.Partial("ProductsPartial")
+            @RenderBody()
+            <section class="footer-text" @Html.Raw(Utils.GetAccessibilityAttribute("role", "complementary"))>
+                @Html.Partial("FooterTextPartial")
+            </section>
+        </div>
+    } else if(Utils.CurrentDemo.IsErrorPage) {
+        @RenderBody()
+        <section class="footer-text horizontal-center-aligned error-page-footer" @Html.Raw(Utils.GetAccessibilityAttribute("role", "complementary"))>
+            @Html.Partial("FooterTextPartial")
+        </section>
+    } else {
+        <div class="main-content-wrapper">
+            <section class="top-panel clearfix top-panel-dark">
+                @if(Utils.CanChangeTheme) {
+                @Html.DevExpress().Button(settings => {
+                    settings.Name = "ChangeThemeSettignsButton";
+                    settings.Text = "Change Theme Settings";
+                    settings.UseSubmitBehavior = false;
+                    settings.ControlStyle.CssClass = "theme-settings-menu-button adaptive";
+                    settings.EnableTheming = false;
+                    settings.ImagePosition = ImagePosition.Right;
+                    settings.Images.Image.SpriteProperties.CssClass = "icon angle-down theme-settings-menu-button-image";
+                    settings.Styles.FocusRectStyle.Border.BorderWidth = 0;
+                    settings.ClientSideEvents.Click = "DXDemo.toggleThemeSettingsPanel";
+                }).GetHtml()
+                }
+                <ul class="breadcrumbs clearfix">
+                    @if(Utils.IsSiteMode && Utils.RootProduct != null) {
+                        <li><a href="@Url.Content(Utils.GenerateDemoUrl(Utils.RootProduct.Intro))">Home</a><span class="icon angle-right"></span></li>
+                    }
+                    <li>
+                        @if(!Utils.IsIntro) {
+                            <a href="@Url.Content(Utils.GenerateDemoUrl(Utils.CurrentDemo.Product.Intro))">@Utils.CurrentDemo.Product.NavItemTitle</a>
+                            <span class="icon angle-right"></span>
+                        } else {
+                            <span class="last-breadcrumbs-item">@Utils.CurrentDemo.Product.NavItemTitle</span>
+                        }
+                    </li>
+                    @if(!Utils.IsIntro && Utils.CurrentDemo != null) {
+                        <li><span class="last-breadcrumbs-item">@Utils.CurrentDemo.Title</span></li>
+                    }
+                </ul>
+            </section>
+            @if(Utils.CanChangeTheme) {
+                @Html.DevExpress().Panel(settings => {
+                    settings.Name = "ThemeSettingsPanel";
+                    settings.ControlStyle.CssClass = "theme-settings-panel";
+                    settings.FixedPosition = PanelFixedPosition.WindowRight;
+                    settings.Collapsible = true;
+                    settings.EnableTheming = false;
+                    settings.ScrollBars = ScrollBars.Auto;
+                    settings.FixedPositionOverlap = true;
+                    settings.SettingsCollapsing.AnimationType = AnimationType.Slide;
+                    settings.SettingsCollapsing.ExpandEffect = PanelExpandEffect.PopupToLeft;
+                    settings.SettingsCollapsing.ExpandButton.Visible = false;
+                    settings.SettingsCollapsing.Modal = true;
+                    settings.Styles.ExpandBar.Width = 0;
+                    settings.Styles.ExpandedPanel.CssClass = "theme-settings-panel-expanded";
+                    settings.Styles.ModalBackground.CssClass = "dx-modal-background";
+                    settings.SetContent(GetThemeSettingsPanelContent().ToHtmlString());
+                    settings.ClientSideEvents.Collapsed = "DXDemo.onVerticalPanelCollapsed";
+                }).GetHtml()
+            }
+            <main>
+                @if(Utils.IsIntro) {
+                    <div class="intro-wrapper">
+                        <h1>Introduction</h1>
+                        @{var featuredDemos = Utils.GenerateFeaturedDemos(); }
+                        <section class="featured-demos clearfix">
+                            <div class="video-item-wrapper">
+                                <div class="video-item clearfix">
+                                    <h2><a href="@Utils.CurrentIntro.BannerUrl" target="_blank">@Utils.CurrentIntro.BannerTitle</a></h2>
+                                    <a href="@Utils.CurrentIntro.BannerUrl" target="_blank">
+                                        <img src="@this.GetUrlContentWithVersionSuffix(Utils.CurrentIntro.BannerImageUrl)" alt="See overview video" />
+                                        <img src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" class="icon play-button" alt="See overview video" />
+                                    </a><div class="annotation" onclick="DXDemo.Intro.onFeaturedDemoAnnotatonClick(this)">
+                                        @if(string.IsNullOrEmpty(Utils.CurrentIntro.BannerHeaderUrl)) {
+                                            <h2>@Utils.CurrentIntro.BannerTitle</h2>
+                                        } else {
+                                        <h2><a href="@Utils.CurrentIntro.BannerHeaderUrl" target="_blank">@Utils.CurrentIntro.BannerTitle</a></h2>
+                                        }
+                                        @Html.Raw(Utils.CurrentIntro.BannerText)
+                                        <div>
+                                            <a href="@AssemblyInfo.DXLinkTrial" class="see-demo" target="_blank">Free 30-Day Trial</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr class="video-separator" />
+                            @foreach(var featuredDemo in featuredDemos) {
+                                <div class="featured-demo-item-wrapper">
+                                    <div class="featured-demo-item clearfix">
+                                        <h2><a href="@Url.Content(featuredDemo.NavigateUrl)">@featuredDemo.Title</a></h2>
+                                        <a href="@Url.Content(featuredDemo.NavigateUrl)">
+                                            <img src="@this.GetUrlContentWithVersionSuffix(featuredDemo.ImageUrl)" alt="@featuredDemo.Title" class="background-img" />
+                                        </a><div class="annotation" onclick="DXDemo.Intro.onFeaturedDemoAnnotatonClick(this)">
+                                            <h2><a href="@Url.Content(featuredDemo.NavigateUrl)">@featuredDemo.Title</a></h2>
+                                            <p>@Html.Raw(featuredDemo.Description)</p>
+                                            <div>
+                                                <a href="@Url.Content(featuredDemo.NavigateUrl)" class="see-demo">See demo</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <hr />
+                                </div>
+                            }
+                        </section>
+                    </div>
+                    @RenderBody()
+                } else { /* Demo Page */
+                    <section class="control-section">
+                        <div class="header-wrapper clearfix" @Html.Raw(GetHeaderWrapperStyleAttr())>
+                            <h1>@Utils.CurrentDemo.Title</h1>
+                            @if(IsSectionDefined("TopRightMenuRegion")) {
+                                <div class="top-right-menu-region clearfix">
+                                    @RenderSection("TopRightMenuRegion", false)
+                                </div>
+                            }
+                        </div>
+                        @RenderSection("StartDemoRegion", false)
+                        @if(IsSectionDefined("DeviceViewerRegion")) {
+                            @RenderSection("DeviceViewerRegion", false)
+                        } else {
+                        <div id="DemoArea">
+                            @if(IsSectionDefined("DemoOptionsTop")) {
+                                <div class="options-top-container">
+                                    @RenderSection("DemoOptionsTop", false)
+                                </div>
+                            }
+                            @if(IsSectionDefined("DemoInfo")) {
+                                <div class="demo-info" @Html.Raw(GetDemoInfoStyleAttr())>
+                                    @RenderSection("DemoInfo", false)
+                                </div>
+                            }
+                            <div class="control-area" @Html.Raw(GetControlAreaStyleAttr())>
+                                @RenderBody()
+                            </div>@if(IsSectionDefined("DemoOptions")) {<div @Html.Raw(GetControlOptionsContainerClassAttr()) @Html.Raw(GetControlOptionsContainerStyleAttr()) @Html.Raw(GetControlOptionsContainerInitialWidthStyleAttr()) >
+                                    @RenderSection("DemoOptions", false)
+                                </div>
+                            }
+                            </div>
+                        }
+                        @RenderSection("EndDemoRegion", false)
+                        @if(IsFeedbackEnabled) {
+                            @Html.Partial("FeedbackPanel")
+                        }
+                    </section>
+                    <section class="tabs-section">
+                        @Html.Partial("DemoTabsPartial")
+                    </section>
+                }
+                <section class="footer-text" @Html.Raw(Utils.GetAccessibilityAttribute("role", "complementary"))>
+                    @Html.Partial("FooterTextPartial")
+                </section>
+            </main>
+        </div>
+    }
+</body>
+</html>
+
+@functions{
+    string GetHeaderWrapperStyleAttr() {
+        return DemoHelper.Instance.ControlAreaMaxWidth != Unit.Percentage(100)
+            ? string.Format("style=\"max-width: {0};\"", DemoHelper.Instance.ControlAreaMaxWidth.ToString())
+            : string.Empty;
+    }
+    string GetControlAreaStyleAttr() {
+        var styles = string.Empty;
+        if(DemoHelper.Instance.ControlAreaMaxWidth != Unit.Percentage(100))
+            styles += string.Format("max-width: {0};", DemoHelper.Instance.ControlAreaMaxWidth.ToString());
+        if(DemoHelper.Instance.ControlAreaMinWidth != Unit.Pixel(0))
+            styles += string.Format("min-width: {0};", DemoHelper.Instance.ControlAreaMinWidth.ToString());
+        if(DemoHelper.Instance.ControlAreaMinHeight != 0)
+            styles += string.Format("min-height: {0};", DemoHelper.Instance.ControlAreaMinHeight.ToString());
+        return !string.IsNullOrEmpty(styles)
+            ? string.Format("style=\"{0}\"", styles)
+            : string.Empty;
+    }
+    string GetDemoInfoStyleAttr() {
+        var styles = string.Empty;
+        if(DemoHelper.Instance.ControlAreaMaxWidth.Type != UnitType.Percentage && DemoHelper.Instance.ControlOptionsRightBlockWidth != 0)
+            styles += string.Format("max-width: {0};", (DemoHelper.Instance.ControlAreaMaxWidth.Value + DemoHelper.Instance.ControlOptionsRightBlockWidth.Value).ToString() + "px");
+        return !string.IsNullOrEmpty(styles)
+            ? string.Format("style=\"{0}\"", styles)
+            : string.Empty;
+    }
+    string GetControlOptionsContainerInitialWidthStyleAttr() {
+        return string.Format("data-initialWidth=\"{0}\"", DemoHelper.Instance.ControlOptionsRightBlockWidth != 0
+            ? DemoHelper.Instance.ControlOptionsRightBlockWidth.ToString()
+            : string.Empty);
+    }
+    string GetControlOptionsContainerStyleAttr() {
+        return string.Format("style=\"width: {0};\"", DemoHelper.Instance.ControlOptionsRightBlockWidth != 0
+            ? DemoHelper.Instance.ControlOptionsRightBlockWidth.ToString()
+            : "100%");
+    }
+    string GetControlOptionsContainerClassAttr() {
+        return string.Format("class=\"options-container{0}\"", DemoHelper.Instance.ControlOptionsRightBlockWidth == 0
+            ? " bottom-block"
+            : string.Empty);
+    }
+    protected bool IsFeedbackEnabled {
+        get {
+            string feedbackEnabledValue = System.Configuration.ConfigurationManager.AppSettings["FeedbackEnabled"];
+            return feedbackEnabledValue != null && feedbackEnabledValue.Equals("true", StringComparison.InvariantCultureIgnoreCase);
+        }
+    }
+}
+@helper GetHeaderPanelContent() {
+    var settings = new ButtonSettings();
+    settings.Name = "MenuButton";
+    settings.Text = "";
+    settings.ControlStyle.CssClass = "menu-button";
+    settings.ClientSideEvents.Click = "DXDemo.toggleNavigationPanel";
+    settings.Styles.FocusRectStyle.Border.BorderWidth = 0;
+    settings.Images.Image.SpriteProperties.CssClass = "icon menu";
+    settings.EnableTheming = false;
+    settings.Width = Unit.Pixel(60);
+    settings.Height = Unit.Pixel(60);
+
+    var outputStringBuilder = new System.Text.StringBuilder();
+
+    using (var writer = new StringWriter(outputStringBuilder)) {
+        var viewContext = new ViewContext { Writer = writer };
+        new ButtonExtension(settings, viewContext).Render();
+        @(new MvcHtmlString(outputStringBuilder.ToString()));
+    }
+    <a href="https://www.devexpress.com/products/net/controls/asp/mvc/" target="_blank">
+        <div class="logo">
+            <span class="primary-text">DevExpress</span>
+            <span class="secondary-text">ASP.NET MVC EXTENSIONS</span>
+        </div>
+    </a>
+if(Utils.CanChangeTheme) {
+<a class="right-button right-button-toggle-themes-panel" href="javascript:void(0)" onclick="DXDemo.toggleThemeSettingsPanel(); return false;" @Html.Raw(Utils.GetAccessibilityAttribute("role", "button")) @Html.Raw(Utils.GetAccessibilityAttribute("aria-pressed", "false"))>
+    @{
+        var cogSettings = new ImageEditSettings();
+        cogSettings.Name = "ThemeSetImage";
+        cogSettings.Properties.AlternateText = "Show theme settings";
+        cogSettings.Properties.SpriteCssClass = "icon cog";
+
+        var cogSb = new System.Text.StringBuilder();
+        using(var writer = new StringWriter(cogSb)) {
+            var viewContext = new ViewContext { Writer = writer };
+            new ImageEditExtension(cogSettings, viewContext).Render();
+            @(new MvcHtmlString(cogSb.ToString()))
+        }
+    }
+</a>
+    }
+<a class="right-button" href="@AssemblyInfo.DXLinkBuyNowASP" @Html.Raw(Utils.GetAccessibilityAttribute("role", "button"))>
+    @{
+        var buySettings = new ImageEditSettings();
+        buySettings.Name = "ShoppingCartImage";
+        buySettings.Properties.AlternateText = "Shopping cart";
+        buySettings.Properties.SpriteCssClass = "icon shopping-cart";
+
+        var buySb = new System.Text.StringBuilder();
+        using(var writer = new StringWriter(buySb)) {
+            var viewContext = new ViewContext { Writer = writer };
+            new ImageEditExtension(buySettings, viewContext).Render();
+                @(new MvcHtmlString(buySb.ToString()))
+        }
+    }
+</a>
+<a class="right-button" href="@AssemblyInfo.DXLinkTrial" @Html.Raw(Utils.GetAccessibilityAttribute("role", "button"))>
+    @{
+        var trialSettings = new ImageEditSettings();
+        trialSettings.Name = "TrialImage";
+        trialSettings.Properties.AlternateText = "Download trial";
+        trialSettings.Properties.SpriteCssClass = "icon download";
+
+        var trialSb = new System.Text.StringBuilder();
+        using(var writer = new StringWriter(trialSb)) {
+            var viewContext = new ViewContext { Writer = writer };
+            new ImageEditExtension(trialSettings, viewContext).Render();
+            @(new MvcHtmlString(trialSb.ToString()))
+        }
+    }<span>Free Trial</span>
+</a>
+}
+@helper GetNavigationPanelContent() {
+    if(!DemosModel.Current.IsRootDemo) {
+        @Html.Partial("SearchPartial", false)
+    }
+    @Html.Partial("NavigationPartial")
+    <div class="footer">
+        <div class="info-wrapper" @Html.Raw(Utils.GetAccessibilityAttribute("role", "contentinfo"))>
+            <div class="version">Version: @Utils.GetVersionText()</div>
+            <div class="copyright">
+                Copyright &copy; 2006-@DateTime.Now.Year
+                Developer Express Inc
+            </div>
+        </div>
+        <a class="footer-button" href="@AssemblyInfo.DXLinkBuyNowASP">Buy Now</a>
+        <a class="footer-button" href="@AssemblyInfo.DXLinkTrial">Free Trial</a>
+    </div>
+}
+@helper GetThemeSettingsPanelContent() {
+    <div class="top-panel top-panel-dark clearfix">
+    @{
+        var settings = new ButtonSettings();
+        settings.Name = "InnerChangeThemeSettignsButton";
+        settings.Text = "Change Theme Settings";
+        settings.UseSubmitBehavior = false;
+        settings.ControlStyle.CssClass = "theme-settings-menu-button";
+        settings.EnableTheming = false;
+        settings.ImagePosition = ImagePosition.Right;
+        settings.ControlStyle.HorizontalAlign = HorizontalAlign.Left;
+        settings.Images.Image.SpriteProperties.CssClass = "icon angle-down theme-settings-menu-button-image";
+        settings.Styles.FocusRectStyle.Border.BorderWidth = 0;
+        settings.ClientSideEvents.Click = "DXDemo.toggleThemeSettingsPanel";
+
+        var outputStringBuilder = new System.Text.StringBuilder();
+        using(var writer = new StringWriter(outputStringBuilder)) {
+            var viewContext = new ViewContext { Writer = writer };
+            new ButtonExtension(settings, viewContext).Render();
+            @(new MvcHtmlString(outputStringBuilder.ToString()))
+        }
+    }
+    </div>
+    <div class="theme-settings-panel-content">
+        @Html.Partial("ThemeSelectorPartial")
+        @if(Utils.CanApplyThemeParameters) {
+            @Html.Partial("ThemeParametersSelectorPartial")
+        }
+    </div>
+}

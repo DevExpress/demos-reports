@@ -1,0 +1,17 @@
+﻿@Html.DevExpress().GetStyleSheets(ReportDemoHelper.getCurrentTheme(),
+        // Default theme for some demos
+        new StyleSheet { ExtensionSuite = ExtensionSuite.NavigationAndLayout, Theme = "Default" },
+        // Metropolis theme for layout
+        new StyleSheet { ExtensionSuite = ExtensionSuite.NavigationAndLayout, Theme = "Metropolis" },
+        new StyleSheet { ExtensionSuite = ExtensionSuite.Icons },
+        new StyleSheet { ExtensionSuite = ExtensionSuite.Editors, Theme = DemoHelper.Instance.Theme },
+        new StyleSheet { ExtensionType = ExtensionType.ReportDesigner },
+        new StyleSheet { ExtensionType = ExtensionType.ClientRichEdit }
+)
+
+@Html.DevExpress().GetScripts(
+        new Script { ExtensionSuite = ExtensionSuite.NavigationAndLayout },
+        new Script { ExtensionSuite = ExtensionSuite.Icons },
+        new Script { ExtensionType = ExtensionType.ReportDesigner },
+        new Script { ExtensionType = ExtensionType.ClientRichEdit }
+)

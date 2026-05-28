@@ -1,0 +1,34 @@
+﻿@model string
+
+<script src="@Url.Content("~/js/report-viewer.js")" asp-append-version="true"></script>
+<script type="text/javascript">
+    function BeforeRender(s, e) {
+        disposeOnUnload(s, e);
+    }
+</script>
+
+@{
+    var viewerRender = Html.DevExpress().WebDocumentViewer("viewer")
+        .Height("1000px")
+        .ClientSideModelSettings(x => {
+            x.IncludeCldrData = false;
+            x.IncludeCldrSupplemental = false;
+        })
+        .ClientSideEvents(events => {
+            events.BeforeRender("BeforeRender");
+        })
+        .Bind(Model);
+}
+
+<div class="wrapper">
+    @viewerRender.RenderHtml()
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="~/css/viewer.part.bundle.min.css" asp-append-version="true" />
+
+    <script src="~/js/reporting.thirdparty.bundle.min.js" asp-append-version="true"></script>
+    <script src="~/js/viewer.part.bundle.min.js" asp-append-version="true"></script>
+
+    @viewerRender.RenderScripts()
+}

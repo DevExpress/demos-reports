@@ -1,0 +1,16 @@
+﻿using System.ClientModel.Primitives;
+using System.Net.Http;
+
+namespace AspNetCoreDemos.Reporting.Services {
+    //WA for https://github.com/Azure/azure-sdk-for-net/issues/45618
+    public class PromoteHttpStatusErrorsPipelineTransport : HttpClientPipelineTransport {
+        protected override void OnReceivedResponse(PipelineMessage message, HttpResponseMessage httpResponse) {
+            if(!httpResponse.IsSuccessStatusCode) {
+                if((int)httpResponse.StatusCode == 429)
+                    throw new AIDemoException(AIDemoException.Error429Message);
+                throw new HttpRequestException("HTTP request failed with status code: " + httpResponse.StatusCode);
+            }
+            base.OnReceivedResponse(message, httpResponse);
+        }
+    }
+}

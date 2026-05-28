@@ -1,0 +1,167 @@
+﻿@functions{
+    static object instanceLocker = new object();
+    private static Dictionary<string, string> _productPlatformCache;
+    private static Dictionary<string, string> ProductPlatformCache {
+        get {
+            if(_productPlatformCache == null) {
+                lock(instanceLocker) {
+                    if(_productPlatformCache == null) {
+                        _productPlatformCache = new Dictionary<string, string>();
+                        _productPlatformCache.Add("CardView", "fafeb03c-ab1b-11e2-908f-c44619bb1483:45b3902a-fe85-11e6-82d9-54271e19360e");
+                        _productPlatformCache.Add("Chart", "fafeb03c-ab1b-11e2-908f-c44619bb1483:fb091263-ab1c-11e2-908f-c44619bb1483");
+                        _productPlatformCache.Add("Dashboard", "35e0b143-40ca-11e2-b3e9-c0cb38ffce8d:3768aa0d-ea5f-11e3-b387-5442496457d0");
+                        _productPlatformCache.Add("Diagram", "fafeb03c-ab1b-11e2-908f-c44619bb1483:c0b1a439-d809-4c3e-8271-a8e7830d43c3");
+                        _productPlatformCache.Add("Editors", "fafeb03c-ab1b-11e2-908f-c44619bb1483:d9e0dc1a-ab1d-11e2-908f-c44619bb1483");
+                        _productPlatformCache.Add("DockAndPopups", "fafeb03c-ab1b-11e2-908f-c44619bb1483:ae69e661-ab20-11e2-908f-c44619bb1483");
+                        _productPlatformCache.Add("FileManagerAndUpload", "fafeb03c-ab1b-11e2-908f-c44619bb1483:ae69e661-ab20-11e2-908f-c44619bb1483");
+                        _productPlatformCache.Add("Gantt", "fafeb03c-ab1b-11e2-908f-c44619bb1483:fc778c41-5c85-4a9d-b475-22537703edbd");
+                        _productPlatformCache.Add("GridView", "fafeb03c-ab1b-11e2-908f-c44619bb1483:52ee706b-ab1e-11e2-908f-c44619bb1483");
+                        _productPlatformCache.Add("HtmlEditor", "fafeb03c-ab1b-11e2-908f-c44619bb1483:c8a8d4c0-ab1f-11e2-908f-c44619bb1483");
+                        _productPlatformCache.Add("ImageAndDataNavigation", "fafeb03c-ab1b-11e2-908f-c44619bb1483:ae69e661-ab20-11e2-908f-c44619bb1483");
+                        _productPlatformCache.Add("MultiUseExtensions", "fafeb03c-ab1b-11e2-908f-c44619bb1483:ae69e661-ab20-11e2-908f-c44619bb1483");
+                        _productPlatformCache.Add("NavigationAndLayout", "fafeb03c-ab1b-11e2-908f-c44619bb1483:ae69e661-ab20-11e2-908f-c44619bb1483");
+                        _productPlatformCache.Add("PivotGrid", "fafeb03c-ab1b-11e2-908f-c44619bb1483:4179b511-ab21-11e2-908f-c44619bb1483");
+                        _productPlatformCache.Add("Report", "fafeb03c-ab1b-11e2-908f-c44619bb1483:fe1b2487-ab21-11e2-908f-c44619bb1483");
+                        _productPlatformCache.Add("RichEdit", "fafeb03c-ab1b-11e2-908f-c44619bb1483:f8dd1f2c-fa40-11e4-829f-54271e19360e");
+                        _productPlatformCache.Add("Scheduler", "fafeb03c-ab1b-11e2-908f-c44619bb1483:bc2acb06-ab22-11e2-908f-c44619bb1483");
+                        _productPlatformCache.Add("SpellChecker", "fafeb03c-ab1b-11e2-908f-c44619bb1483:05dc697f-7faa-11e4-b14e-5442496457d0");
+                        _productPlatformCache.Add("Spreadsheet", "fafeb03c-ab1b-11e2-908f-c44619bb1483:282be020-dc14-11e3-b387-5442496457d0");
+                        _productPlatformCache.Add("TreeList", "fafeb03c-ab1b-11e2-908f-c44619bb1483:8710ee86-ab23-11e2-908f-c44619bb1483");
+                        _productPlatformCache.Add("VerticalGrid", "fafeb03c-ab1b-11e2-908f-c44619bb1483:5073e6a9-fe85-11e6-82d9-54271e19360e");
+                    }
+                }
+            }
+            return _productPlatformCache;
+        }
+    }
+
+    private string GetProductPlatformId(string demoNodeName) {
+        return ProductPlatformCache.ContainsKey(demoNodeName) ? ProductPlatformCache[demoNodeName] : "";
+    }
+
+    ButtonSettings GetFeedbackButtonSettings(string buttonName, string clickEventHandler, string cssRegular, string cssHottracked) {
+        ButtonSettings btnSettings = new ButtonSettings();
+        btnSettings.Name = buttonName;
+        btnSettings.EnableTheming = false;
+        btnSettings.UseSubmitBehavior = false;
+        btnSettings.RenderMode = ButtonRenderMode.Link;
+        btnSettings.Text = "";
+        btnSettings.ClientSideEvents.Click = clickEventHandler;
+        btnSettings.Images.Image.SpriteProperties.CssClass = cssRegular;
+        btnSettings.Images.Image.SpriteProperties.HottrackedCssClass = cssHottracked;
+        return btnSettings;
+    }
+}
+<div class="feedbackPanelContainer" id="feedbackContainerDiv">
+    <div id="compactButtonContainer" class="compactButtonContainer collapsedElement">
+        @Html.DevExpress().Button(GetFeedbackButtonSettings("btnExpandPanel", "onExpandPanelClick", "feedbackImage iconChat", "iconChatHottracked")).GetHtml()
+    </div>
+    @Html.DevExpress().RoundPanel(rpSettings => {
+    rpSettings.Name = "feedbackPanel";
+    rpSettings.EnableTheming = false;
+    rpSettings.EnableAnimation = false;
+    rpSettings.ShowCollapseButton = false;
+    rpSettings.Width = Unit.Pixel(375);
+    rpSettings.ControlStyle.CssClass = "feedbackPanel";
+    rpSettings.Styles.Header.CssClass = "feedbackHeaderPanel";
+    rpSettings.ControlStyle.HorizontalAlign = HorizontalAlign.Center;
+    rpSettings.ClientVisible = false;
+    rpSettings.ControlStyle.BackColor = Color.White;
+    rpSettings.ClientSideEvents.Init = "onFeedbackPanelInit";
+    rpSettings.SetHeaderContentTemplateContent(c => {
+        ViewContext.Writer.Write("<div class=\"headerContainer\">");
+        Html.DevExpress().Label(labelSettings => {
+            labelSettings.Name = "lblFeedbackCaption";
+            labelSettings.Text = "Did this demo address your needs?";
+            labelSettings.ControlStyle.CssClass = "label label-width-265";
+            labelSettings.EnableTheming = false;
+            labelSettings.Properties.EnableClientSideAPI = true;
+        }).Render();
+        ViewContext.Writer.Write("<div class=\"buttonsContainer\">");
+        Html.DevExpress().Button(GetFeedbackButtonSettings("btnFeedbackPositive", "onPositiveFeedbackClick", "feedbackImage thumbUp", "thumbUpHottracked")).Render();
+        Html.DevExpress().Button(GetFeedbackButtonSettings("btnFeedbackNegative", "onNegativeFeedbackClick", "feedbackImage thumbDown", "thumbDownHottracked")).Render();
+        Html.DevExpress().Button(GetFeedbackButtonSettings("btnFeedbackClose", "onCloseFeedbackClick", "feedbackImage iconClose", "iconCloseHottracked")).Render();
+        ViewContext.Writer.Write("</div>");
+        ViewContext.Writer.Write("</div>");
+    });
+
+    rpSettings.SetContent(() => {
+        Html.DevExpress().PageControl(pageControlSettings => {
+            pageControlSettings.Name = "pageControlfeedbackContent";
+            pageControlSettings.Width = Unit.Percentage(100);
+            pageControlSettings.ShowTabs = false;
+            pageControlSettings.EnableTheming = false;
+            pageControlSettings.ControlStyle.Paddings.Padding = Unit.Pixel(0);
+            pageControlSettings.Styles.Content.CssClass = "feedbackContentPage";
+            pageControlSettings.TabPages.Add("", "pagePositiveFeedback").SetContent(() => {
+                ViewContext.Writer.Write("<span>If you’d like us to extend this demo further, please describe your needs below.</span>");
+                ViewContext.Writer.Write("<br />");
+                ViewContext.Writer.Write("<span>Thank you in advance for your cooperation.</span>");
+            });
+            pageControlSettings.TabPages.Add("", "pageNegativeFeedback").SetContent(() => {
+                ViewContext.Writer.Write("<span>Please describe your use-case below and we’ll be happy to extend this demo to better server your needs.</span>");
+                ViewContext.Writer.Write("<br />");
+                ViewContext.Writer.Write("<br />");
+                ViewContext.Writer.Write("<span>If you need immediate help, please submit a support ticket</span>");
+                ViewContext.Writer.Write("<br />");
+                Html.DevExpress().HyperLink(linkSettings => {
+                    linkSettings.Name = "linkSupportCenter";
+                    linkSettings.EnableTheming = false;
+                    linkSettings.ControlStyle.CssClass = "feedbackSClink";
+                    linkSettings.Properties.Text = "on the DevExpress Support Forum.";
+                    linkSettings.Properties.Target = "_blank";
+                    linkSettings.Init = (send, evargs) => {
+                        MVCxHyperLink hyperLink = (MVCxHyperLink)send;
+                        string navigateUrlSC = "https://supportcenter.devexpress.com/ticket/list";
+                        if(DevExpress.Web.Demos.Utils.CurrentDemo.Product != null) {
+                            string currentDemoKey = DevExpress.Web.Demos.Utils.CurrentDemo.Product.Key;
+                            string currentProductID = GetProductPlatformId(currentDemoKey);
+                            string currentProductFilter = "filters=%5B%7B%22filterName%22:%22PlatformedProductId%22,%22selectedValues%22:%5B%22" + currentProductID + "%22%5D%7D%5D";
+                            string demoTitle = DevExpress.Web.Demos.Utils.CurrentDemo.GetSeoTitle();
+
+                            string demoGroup = "";
+                            if(currentDemoKey.Contains("DockAndPopups") || currentDemoKey.Contains("FileManagerAndUpload") || currentDemoKey.Contains("ImageAndDataNavigation") || currentDemoKey.Contains("MultiUseExtensions") || currentDemoKey.Contains("NavigationAndLayout")) {
+                                DevExpress.Web.Demos.DemoPageModel pageModel = DevExpress.Web.Demos.Utils.CurrentDemo as DevExpress.Web.Demos.DemoPageModel;
+                                if(pageModel != null) {
+                                    if(pageModel.Group.Key.Contains("Accessibility"))
+                                        demoGroup = DevExpress.Web.Demos.Utils.CurrentDemo.Product.NavItemTitle;
+                                    else if(!pageModel.Group.Key.Contains("Cloud Storage"))
+                                        demoGroup = pageModel.Group.Title;
+                                }
+                            }
+                            if(!String.IsNullOrEmpty(demoGroup) && demoTitle != "Icon Library Explorer") demoTitle = demoGroup + " " + demoTitle;
+
+                            demoTitle = demoTitle.Replace("/", " ").Replace("Support for", "");
+                            navigateUrlSC = String.Format("https://supportcenter.devexpress.com/ticket/list?{0}&searchString={1}&sorting=Relevance", currentProductFilter, HttpUtility.UrlEncode(demoTitle));
+                        }
+                        hyperLink.NavigateUrl = navigateUrlSC;
+                    };
+                }).Render();
+                ViewContext.Writer.Write("<br />");
+                ViewContext.Writer.Write("<span>We are here to help.</span>");
+            });
+        }).Render();
+        Html.DevExpress().Memo(memoSettings => {
+            memoSettings.Name = "memoFeedbackText";
+            memoSettings.EnableTheming = false;
+            memoSettings.Width = Unit.Percentage(100);
+            memoSettings.Height = Unit.Pixel(100);
+            memoSettings.ControlStyle.CssClass = "feedbackText";
+            memoSettings.Properties.ClientSideEvents.UserInput = "onFeedbackTextInput";
+            memoSettings.Properties.ClientSideEvents.Init = "onFeedbackTextInit";
+        }).Render();
+        Html.DevExpress().Button(btnSettings => {
+            btnSettings.Name = "btnSendFeedback";
+            btnSettings.EnableTheming = true;
+            btnSettings.Theme = "Office365";
+            btnSettings.UseSubmitBehavior = false;
+            btnSettings.Width = Unit.Percentage(100);
+            btnSettings.Height = Unit.Pixel(32);
+            btnSettings.Text = "SEND FEEDBACK";
+            btnSettings.ControlStyle.CssClass = "btnSendFeedback";
+            btnSettings.ClientEnabled = false;
+            btnSettings.ClientSideEvents.Click = "onSendFeedbackClick";
+        }).Render();
+    });
+}).GetHtml()
+</div>

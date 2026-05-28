@@ -1,0 +1,40 @@
+﻿@model DevExpress.Web.Demos.ReportsDemoModel
+@{
+    string routeUrl;
+    string customRouteUrl = Convert.ToString(ViewData["RouteUrl"]);
+    if(string.IsNullOrEmpty(customRouteUrl)) {
+        var routeValues = new RouteValueDictionary();
+        routeValues["reportID"] = Model.ReportID;
+
+        var demoPage = DevExpress.Web.Demos.Utils.CurrentDemoPage;
+        if(demoPage != null) {
+            routeValues["fromGroup"] = demoPage.Group.Key;
+            routeValues["fromDemo"] = demoPage.Key;
+        }
+        if(!string.IsNullOrEmpty(Model.CurrentViewer)) {
+            routeValues["CurrentViewer"] = Model.CurrentViewer;
+        }
+        routeUrl = Url.Action("ReportDesigner", "WebSpecificFeatures", routeValues);
+    } else {
+        routeUrl = customRouteUrl;
+    }
+}
+
+@if(Convert.ToBoolean(ViewData["ShowViewerButton"])) {
+<a href="@routeUrl" class="ViewerSelectorButton" title="Show WebDocument Viewer" id="ViewerSelectorPopupButton" style="margin-right: 34px">
+    @Html.DevExpress().Image(s => {
+        s.Name = "tViewerSelectorPic";
+        s.Properties.SpriteCssClass = "Icon ViewerSelectorIcon";
+    }).GetHtml()
+    VIEWER
+    @Html.DevExpress().Image(s => {
+        s.Name = "tViewerSelectorGlyph";
+        s.Properties.SpriteCssClass = "Glyph";
+    }).GetHtml()
+</a>
+} else {
+<a id="run-designer-button" class="ViewerSelectorButton run-designer-button" href="@routeUrl" title="Customize the report on the client side using the in-browser Report Designer.">
+    <img class="run-designer-image" src="@this.GetUrlContentWithVersionSuffix("~/Content/RunDesigner.png")" alt="run report designer" />
+    REPORT DESIGNER
+</a>
+}

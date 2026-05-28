@@ -1,0 +1,143 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" MasterPageFile="~/Site.master" Inherits="DevExpress.Web.Demos.DeviceViewer" CodeBehind="~/DeviceViewer.master.cs" %>
+<asp:Content runat="server" ContentPlaceHolderID="CustomHeadHolder">
+    <script>
+        var DEVICE_VIEWER_CLASS = 'device-viewer';
+        var DEVICE_ICON_ITEM_CLASS = 'device-icon-item';
+        var TABLET = 'tablet',
+            PHONE = 'phone',
+            ROTATE = 'rotate';
+        var deviceViewer = null;
+        var isTablet = <%= DefaultMobile ? "false" : "true" %>;
+        var isRotate = <%= DefaultRotate ? "true" : "false" %>;
+        var enableAnimation = '<%= EnableAnimation.ToString().ToLower() %>' === 'true';
+        window.addEventListener('DOMContentLoaded', function() {
+            if(ASPxClientUtils.touchUI)
+                initTouchView();
+            else
+                initDesktopView();
+        });
+        function initTouchView() {
+            var touchContainer = document.querySelector('.touch-container');
+            var qrCode = document.querySelector('.resolution-side-bar .qrcode').cloneNode(true);
+            touchContainer.appendChild(qrCode);
+        }
+        function initDesktopView() {
+            deviceViewer = document.querySelector('.' + DEVICE_VIEWER_CLASS);
+            setDefaultState();
+            updateView();
+            window.setTimeout(function() {
+                deviceViewer.style.visibility = 'visible';
+                if(enableAnimation)
+                    deviceViewer.parentNode.className = deviceViewer.parentNode.className.replace('no-animation', '')
+            }, 0);
+            [].forEach.call(document.querySelectorAll('.' + DEVICE_ICON_ITEM_CLASS), function(item) {
+                item.addEventListener('click', onDeviceClick);
+            });
+        }
+        function setDefaultState() {
+            var parameters = window.location.search.split('&');
+            if(parameters[0] && parameters[0].indexOf('?device=') > -1)
+                setFlags(parameters[0].split('=')[1])
+            <% if(DefaultRotate) { %>
+            if(parameters[1] && parameters[1].indexOf('rotate=') > -1)
+                isRotate = parameters[1].split('=')[1] == '0' ? false : true;
+            <% } else { %>
+            if(parameters[1] && parameters[1].indexOf('rotate=') > -1)
+                isRotate = parameters[1].split('=')[1] == '1' ? true : false;
+            <% } %>
+        }
+        function onDeviceClick(e) {
+            var target = getTargetByChild(e.srcElement || e.target);
+            var action = target.dataset ? target.dataset['action'] : target.getAttribute('data-action');
+            selectDevice(action);
+        }
+        function selectDevice(action) {
+            setFlags(action);
+            updateView(action);
+        }
+        function updateView(action) {
+            if(action != ROTATE)
+                updateDeviceIconsState();
+            updateDeviceViewerState();
+            if(window.history && window.history.replaceState)
+                updateQueryString(action);
+        }
+        function updateQueryString(action) {
+            var parameters = '?device=' + (isTablet ? TABLET : PHONE) +
+                             '&rotate=' + (isRotate ? '1' : '0');
+            window.history.replaceState("", "", parameters);
+        }
+        function updateDeviceIconsState() {
+            var selected = ' selected';
+            var items = document.querySelectorAll('.' + DEVICE_ICON_ITEM_CLASS);
+            items[0].className = DEVICE_ICON_ITEM_CLASS + (isTablet ? selected : '');
+            items[1].className = DEVICE_ICON_ITEM_CLASS + (!isTablet ? selected : '');
+        }
+        function setFlags(action) {
+            switch(action) {
+                case TABLET:
+                    isTablet = true;
+                    isRotate = <%= DefaultRotate ? "true" : "false" %>;
+                    break;
+                case PHONE:
+                    isTablet = false;
+                    isRotate = <%= DefaultRotate ? "true" : "false" %>;
+                    break;
+                case ROTATE:
+                    isRotate = !isRotate;
+                    break;
+            }
+        }
+        function updateDeviceViewerState() {
+            var viewerClassName = DEVICE_VIEWER_CLASS;
+            viewerClassName += ' ' + (isTablet ? TABLET : PHONE);
+            viewerClassName += ' ' + (isRotate ? ROTATE : '');
+            deviceViewer.className = viewerClassName;
+        }
+        function getTargetByChild(element) {
+            if(element.className.indexOf(DEVICE_ICON_ITEM_CLASS) > -1)
+                return element;
+            return getTargetByChild(element.parentNode)
+        }
+    </script>
+</asp:Content>
+<asp:Content runat="server" ContentPlaceHolderID="deviceViewertHolder">
+    <div class="touch-container">
+    </div>
+    <div class="box-shadow-overflow">
+        <div class="resolution-side-bar">
+            <a id="QrcodeLink" runat="server" href="#" target="_blank" class="qrcode">
+                <img id="QrcodeImg" runat="server" src="" alt="QRCode" />
+                <span>Please click here to open the demonstration page in the fullscreen mode</span>
+            </a>
+            <div class="device-icon-item" data-action="tablet" title="Tablet">
+                <div class="device-icon-wrapper">
+                    <div class="icon tablet"></div>
+                    <div class="icon tablet-selected"></div>
+                </div>
+            </div>
+            <div class="device-icon-item" data-action="phone" title="Phone">
+                <div class="device-icon-wrapper">
+                    <div class="icon phone"></div>
+                    <div class="icon phone-selected"></div>
+                </div>
+            </div>
+            <% if(!HideRotate) { %>
+            <div class="device-icon-item" data-action="rotate" title="Rotate">
+                <div class="device-icon-wrapper">
+                    <div class="icon rotate"></div>
+                </div>
+            </div>
+            <% } %>
+        </div>
+    </div>
+    <div class="device-area">
+        <div class="device-wrapper no-animation">
+            <div class="device-viewer">
+                <div class="device-viewer-border">
+                    <iframe id="viewer" runat="server" class="device-viewer-screen"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+</asp:Content>

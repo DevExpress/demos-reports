@@ -1,0 +1,24 @@
+﻿@model ReportsDemoModel
+@section AdditionalResources {
+    <link rel="stylesheet" type="text/css" href="@this.GetUrlContentWithVersionSuffix("~/Content/RunDesignerButton.css")" />
+    <link rel="stylesheet" type="text/css" href="@this.GetUrlContentWithVersionSuffix("~/Content/ViewerSelector.css")" />
+    <script type="text/javascript">
+        function EditingFieldsHighlightingEnable(s, e) {
+            e.reportPreview.editingFieldsHighlighted = true;
+        }
+    </script>
+}
+
+@section TopRightMenuRegion {
+    @Html.Partial("ViewerSelectorPartial", Model)
+    @Html.Partial("ReportControlToggleButtonPartial", Model)
+}
+
+@if(Model.IsHTML5Viewer) {
+    @Html.DevExpress().WebDocumentViewer(settings => {
+    settings.Name = "webDocumentViewer";
+    settings.ClientSideEvents.BeforeRender = "EditingFieldsHighlightingEnable";
+}).Bind(Model.ReportID).GetHtml()
+} else if(Model.IsMobileViewer) {
+    @Html.Partial("MobileEmulator", Model.EmulatorModel)
+}

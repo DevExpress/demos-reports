@@ -1,0 +1,22 @@
+﻿@* Model is reportID *@
+@model string
+@inject DemoMenuMeta DemoMeta
+@functions {
+    object ToScript(string value) {
+        return Html.Raw(Json.Serialize(value));
+    }
+    object GetReportDesignerButtonUrl() {
+        string currentDemoAction = DemoMeta.CurrentDemo?.Action;
+        string reportDesignerAction = currentDemoAction?.Contains("AIPoweredInvoiceReport") ?? false ? "AIPoweredReportDesigner" : "ReportDesigner";
+        var additionalQuery = new Dictionary<string, string>();
+        additionalQuery.Add("fromDemo", currentDemoAction);
+        additionalQuery.Add("reportID", Model);
+        return ToScript(DemoUtils.KeepQueryString(Url.Action(reportDesignerAction, "Demos"), Context.Request, additionalQuery, "theme", "onlyview"));
+    }
+}
+
+<script>
+    (() => {
+        addReportDesignerButton(@GetReportDesignerButtonUrl());
+    })()
+</script>

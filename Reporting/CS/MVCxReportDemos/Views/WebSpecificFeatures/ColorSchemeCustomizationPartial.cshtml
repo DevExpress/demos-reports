@@ -1,0 +1,7 @@
+﻿@using DevExpress.Web.Demos.Code.Designer
+@model ReportsDemoModel
+
+@Html.DevExpress().WebDocumentViewer(settings => {
+    settings.Name = "webDocumentViewer";
+    settings.ClientSideEvents.CustomizeElements = "customizeViewerElements";
+}).Bind(Model.ReportID).GetHtml()

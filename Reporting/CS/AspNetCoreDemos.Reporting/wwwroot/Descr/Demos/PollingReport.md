@@ -1,0 +1,1 @@
+This demo illustrates the interactive capabilities of DevExpress Reports that enable you to create polls and analyze the resulting data. 

@@ -1,0 +1,56 @@
+﻿@model AspNetCoreDemos.Reporting.Models.DemoReportDesignerModel
+
+<script src="@Url.Content("~/js/report-viewer.js")" asp-append-version="true"></script>
+<script src="@Url.Content("~/js/report-designer.js")" asp-append-version="true"></script>
+<script>
+    function BeforeRender(s, e) {
+        registerNationalityEditor("@Url.Content("~/Content/")");
+        registerDamageDiagramEditor()
+        var aceConfig = ace && ace.config;
+        if (aceConfig) {
+            aceConfig.setModuleUrl('ace/mode/csharp', '@Url.Content("~/js/ace/mode-csharp.js")');
+            aceConfig.setModuleUrl('ace/mode/vbscript', '@Url.Content("~/js/ace/mode-vbscript.js")');
+            aceConfig.setModuleUrl('ace/mode/json', '@Url.Content("~/js/ace/mode-json.js")');
+            aceConfig.setModuleUrl('ace/mode/json_worker', '@Url.Content("~/js/ace/worker-json.js")');
+        }
+        disposeOnUnload(s, e);
+        var currentURL = window.location.href;
+        if (currentURL.includes("AIPoweredInvoiceReport") || currentURL.includes("AIPoweredReportDesigner")) {
+            DevExpress.Reporting.Viewer.Settings.AIServicesEnabled(true);
+            DevExpress.Reporting.Designer.Settings.AIServicesEnabled(true);
+        } else {
+            DevExpress.Reporting.Viewer.Settings.AIServicesEnabled(false);
+            DevExpress.Reporting.Designer.Settings.AIServicesEnabled(false);
+        }
+    }
+    function ExitDesigner(s, e) {
+        goToViewer();
+    }
+</script>
+@{
+    var designerRender = Html.DevExpress().ReportDesigner("reportDesigner")
+        .ClientSideModelSettings(x => {
+            x.IncludeCldrData = false;
+            x.IncludeCldrSupplemental = false;
+        })
+        .ClientSideEvents(events => {
+            events.BeforeRender("BeforeRender");
+            events.ExitDesigner("ExitDesigner");
+        })
+        .Height("1000px")
+        .Bind(Model.ReportID);
+    @designerRender.RenderHtml()
+}
+
+<input type="hidden" id="redirectValue" value="@Model.RedirectUrl" />
+
+@section Scripts {
+    <link rel="stylesheet" href="~/css/viewer.part.bundle.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/designer.part.bundle.min.css" asp-append-version="true" />
+
+    <script src="~/js/reporting.thirdparty.bundle.min.js" asp-append-version="true"></script>
+    <script src="~/js/viewer.part.bundle.min.js" asp-append-version="true"></script>
+    <script src="~/js/designer.part.bundle.min.js" asp-append-version="true"></script>
+
+    @designerRender.RenderScripts()
+}

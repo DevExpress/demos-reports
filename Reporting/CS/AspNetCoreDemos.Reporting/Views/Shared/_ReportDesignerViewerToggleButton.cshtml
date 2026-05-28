@@ -1,0 +1,8 @@
+﻿@* Model is demo Action name *@
+@model string
+
+<script>
+    addReportDesignerViewerToggleButton(
+        @Html.Raw(Json.Serialize(DemoUtils.KeepQueryString(Url.Action(Model, "Demos"), Context.Request, null, "theme", "onlyview")))
+    );
+</script>

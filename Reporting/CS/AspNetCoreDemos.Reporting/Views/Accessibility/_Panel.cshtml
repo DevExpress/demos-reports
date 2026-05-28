@@ -1,0 +1,158 @@
+
+<script type="text/html" id="dx-infopanel-fontsize1">
+    <svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 32 32">
+      <path d="M17 25h-3l-.7 2h.7v1h-3v-1h.7l2.8-8h1.8l2.8 8h.9v1h-3v-1h.6zm-1.5-4.5L14.3 24h2.3z" class="dxd-icon-fill"/>
+    </svg>
+</script>
+
+<script type="text/html" id="dx-infopanel-fontsize2">
+    <svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 32 32">
+      <path d="M22.7 26h-1.2l-4.1-10.8c0-.1-.1-.2-.2-.2h-2.5c-.1 0-.2.1-.2.2L10.3 26h-1q-.3 0-.3.3v1.5c0 .1.1.2.3.2h4.5c.1 0 .3-.1.3-.3v-1.5c0-.1-.1-.3-.3-.3h-.9l.7-2h4.8l.7 2h-.8c-.1 0-.3.1-.3.3v1.5c0 .1.1.3.3.3h4.5c.1 0 .3-.1.3-.3v-1.5c-.1-.1-.2-.2-.4-.2m-8.4-4 1.6-4.8h.1l1.7 4.8z" class="dxd-icon-fill"/>
+    </svg>
+</script>
+
+<script type="text/html" id="dx-infopanel-fontsize3">
+    <svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 32 32">
+      <path d="M19.1 23h-6.3l-1 2.7h1.7c.3 0 .5.2.5.5v1.3c0 .3-.2.5-.5.5h-6c-.3 0-.5-.2-.5-.5v-1.3c0-.3.2-.5.5-.5h1.1L14 11.3c.1-.2.3-.3.5-.3h2.9c.2 0 .4.1.5.3l5.4 14.4h1.2c.3 0 .5.2.5.5v1.3c0 .3-.2.5-.5.5h-6c-.3 0-.5-.2-.5-.5v-1.3c0-.3.2-.5.5-.5h1.6zM16 13.9l-2.3 6.7h4.7z" class="dxd-icon-fill"/>
+    </svg>
+</script>
+
+<script type="text/html" id="dx-infopanel-fontsize4">
+    <svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 32 32">
+      <path d="M20 22h-8l-1.1 3h1.4c.4 0 .8.3.8.8v1.5c0 .4-.3.8-.8.8H5.8c-.5-.1-.8-.4-.8-.8v-1.5c0-.5.3-.8.8-.8H7l6.5-18.5c.1-.3.4-.5.7-.5h3.4c.3 0 .6.2.7.5L24.9 25h1.4c.4 0 .8.3.8.8v1.5c0 .4-.3.8-.8.8h-6.5c-.4 0-.8-.3-.8-.8v-1.5c0-.4.3-.8.8-.8H21zM16 9.8 13 19h6z" class="dxd-icon-fill"/>
+    </svg>
+</script>
+
+<script type="text/html" id="dx-infopanel-fontsize5">
+    <svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 32 32">
+      <path d="M20.4 20h-8.9l-1.4 4H12c.6 0 1 .4 1 1v2c0 .6-.4 1-1 1H4c-.6 0-1-.5-1-1v-2c0-.6.4-1 1-1h1.5l7.6-21.3c.1-.4.5-.7.9-.7h3.8c.4 0 .8.3.9.7L26.3 24H28c.6 0 1 .4 1 1v2c0 .6-.4 1-1 1h-8c-.6 0-1-.4-1-1v-2c0-.6.4-1 1-1h1.8zM16 6.5h-.1l-3 9.5h6.2z" class="dxd-icon-fill"/>
+    </svg>
+</script>
+
+<script type="text/html" id="dxrd-right-panel-template-base-customized">
+    <div class="dx-shadow dx-shadow-right dxd-border-secondary dxrd-tab-panel-wrapper" data-bind="styleunit: { width: width }, css: class, dxMutationObserver: keyboardHelper">
+        <div class="dxrd-right-tabs dxd-side-panel-tabs-back-color dxd-back-contrast" data-bind="css: tabsElement.class">
+            <!-- ko foreach: $data.tabs -->
+            <div role="button" class="dxrd-tab-item dx-accessibility-rightpanel-button dxd-side-panel-tab-back-color dxd-back-highlighted dx-accessibility-focus-border-accented" data-bind="dxAction: { action: function(s) { $data.click(); }}, css: css.class, attr: { title: text, 'aria-label': text, 'aria-expanded': active }, visible: visible">
+                <div class="dxrd-image-padding" data-bind="css: image.class, template: {name: image.templateName, if: !!ko.unwrap($data.image.templateName)}"> </div>
+            </div>
+            <!-- /ko -->
+            <!-- ko with: $root.exploreFeaturesProperties.exploreFeaturesTab -->
+            <div role="button" class="dxrd-tab-item dx-demo-description-button dxd-back-accented" data-bind="dxAction: { action: action }, css: { 'dxd-state-active': active }, attr: { title: 'Explore Features', 'aria-label': 'Explore Features', 'aria-expanded': active }, visible: visible">
+                <div class="dxrd-image-padding">
+                    <svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" style="width:2rem;height:2rem" viewBox="0 0 32 32">
+                        <path d="M32 12h-8l-8.5 8.5L11 16l1.5-1.5 3 3L21 12 16 1l-5 11H0l9.5 7.5L5 31l11-7.1L27 31l-4.5-11.5z" style="fill:#fff"/>
+                    </svg>
+                </div>
+            </div>
+            <!-- /ko -->
+        </div>
+
+        <div class="dxrd-right-panel dxd-property-grid-group-header-back-color dxd-back-primary2" data-bind="styleunit: { width: contentElement.width }, css: contentElement.class, resizable: getResizableOptions($element, 50, $root.exploreFeaturesProperties.minWidthTabPanel)">
+            <div class="dxrd-right-panel-flex-container">
+                    <div class="dxrd-right-panel-flex-item">
+                        <!-- ko foreach: tabs -->
+                        <!-- ko lazy: { template: $data.template } -->
+                        <!-- /ko -->
+                        <!-- /ko -->
+                    </div>
+                    <div data-bind="visible: $root.exploreFeaturesProperties.exploreFeatures" class="dxrd-right-panel-flex-item dxrd-interactive-demo-extention dxd-border-primary" style="border-left-width: 1px; border-left-style: solid;">
+                        <div class="dxrd-properties-wrapper@(@Model.IsContrast == true ? " dxrd-interactive-demo-contrast" : "")">
+                            <div class="dxrd-interactive-demo-extention-content dxd-text-primary dx-editors" data-bind="dxScrollView: { showScrollbar: 'onHover', useNative: false, scrollByThumb: true }">
+                                <div class="dxrd-interactive-demo-extention-close" data-bind="dxButton: { icon: 'close', onClick: function(e) {
+                                                $root.exploreFeaturesProperties.exploreFeatures(false);
+                                        }}"></div>
+                                <div class="dxrd-interactive-demo-extention-header-content">
+                                    <div class="dxrd-interactive-demo-extention-header">Document Viewer Accessibility Demo</div>
+                                    <div class="dxrd-interactive-demo-extention-description dxd-text-info">
+                                        <p>
+                                            This demo shows the DevExpress Document Viewer accessibility features. The Document Viewer control displays a master-detail report with invoice data where the detail report lists the ordered products.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="dxrd-interactive-demo-extention-subtitle dxd-text-info">
+                                    Key Features
+                                </div>
+                                <div class="dxrd-interactive-demo-extention-features-list">
+                                    <div class="dxrd-interactive-demo-extention-list-item dxd-back-primary2 dxd-border-secondary">
+                                        <div class="dxrd-interactive-demo-extention-list-item-image">
+                                            <svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 64 64">
+                                                <path d="M27 16c0-2.8 2.2-5 5-5s5 2.2 5 5-2.2 5-5 5-5-2.2-5-5m21.7 5.5c-.5-1.2-1.8-1.7-3.1-1.5l-13.5 3h-.3l-13.5-2.9c-1.2-.2-2.6.3-3.1 1.5-.7 1.6.2 3.4 1.9 3.7l9.3 2.2c.3.1.6.4.6.7v8.7c0 .1 0 .2-.1.3l-5.7 12.2c-.6 1.3-.2 3 1.1 3.6 1.4.7 3 .1 3.7-1.2l5.3-11.3c.3-.5 1-.5 1.3 0l5.2 11.2c.5 1.2 1.8 1.9 3.1 1.6 1.7-.4 2.5-2.2 1.8-3.8L37 37.2c0-.1-.1-.2-.1-.3v-8.7c0-.3.2-.6.6-.7l9.3-2.2c1.7-.4 2.7-2.2 1.9-3.8M32 1C14.9 1 1 14.9 1 32s13.9 31 31 31 31-13.9 31-31S49.1 1 32 1m0 58C17.1 59 5 46.9 5 32S17.1 5 32 5s27 12.1 27 27-12.1 27-27 27" class="Blue"/>
+                                            </svg>
+                                        </div>
+                                        <div class="dxrd-interactive-demo-extention-list-item-content">
+                                            <div class="dxrd-interactive-demo-extention-list-item-title dxd-text-accented">Keyboard Accessibility</div>
+                                            <div class="dxrd-interactive-demo-extention-list-item-description dxd-text-info">
+                                                <span>
+                                                    Accessibility Compliant mode allows you to use keyboard and screen reader navigation. Navigate the Document Viewer elements and document page with a keyboard and use popular screen readers, such as NVDA.
+                                                </span>
+                                            </div>
+                                            <div class="dxrd-interactive-demo-extention-list-item-buttons">
+                                                <div data-bind="dxButton: { text: 'Learn More', onClick: $root.exploreFeaturesProperties.showDoc }"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="dxrd-interactive-demo-extention-list-item dxd-back-primary2 dxd-border-secondary">
+                                        <div class="dxrd-interactive-demo-extention-list-item-image">
+                                            <svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 64 64">
+                                                <path d="m18 8-6 6h4v4h4v-4h4z" class="Grey"/>
+                                                <path d="M13 46h-1.3l1.4-4h9.3l2.8-7.8L21 22.7c-.1-.4-.5-.7-.9-.7H16c-.4 0-.8.3-.9.7L6.7 46H5c-.6 0-1 .4-1 1v2c0 .6.4 1 1 1h8c.6 0 1-.4 1-1v-2c0-.6-.4-1-1-1m5-19h.1l3.6 11h-7.3zm29.3 12H33.4l-2.1 6h2.6c.6 0 1 .4 1 1v3c0 .6-.4 1-1 1H22c-.6 0-1-.4-1-1v-3c0-.6.4-1 1-1h2.5l11.8-32.3c.1-.4.5-.7.9-.7h6.5c.4 0 .8.3.9.7L56.3 45H59c.6 0 1 .4 1 1v3c0 .6-.4 1-1 1H47c-.6 0-1-.4-1-1v-3c0-.6.4-1 1-1h2.4zm-6.9-20.5h-.2l-5 15.5h10.4z" class="Blue"/>
+                                            </svg>
+                                        </div>
+                                        <div class="dxrd-interactive-demo-extention-list-item-content">
+                                            <div class="dxrd-interactive-demo-extention-list-item-title dxd-text-accented">Font Sizing</div>
+                                            <div class="dxrd-interactive-demo-extention-list-item-description dxd-text-info">
+                                                <span>
+                                                    Adjust the font size for better readability.
+                                                </span>
+                                            </div>
+                                            <div class="dx-button-container">
+                                                <!-- ko foreach: $root.exploreFeaturesProperties.fonts -->
+                                                <div class="dx-font-button" data-bind="css: { 'dx-font-button-active': $root.exploreFeaturesProperties.zoom() === $data.size }">
+                                                    <div data-bind="dxButton: { onClick: click, template: (_,elt) => document.getElementById('dx-infopanel-fontsize' + ($index() + 1)) },
+                                                        style: { fontSize: 1 + $index()*0.25 + 'rem' },
+                                                        css: { 'dx-state-focused': $root.exploreFeaturesProperties.zoom() === $data.size }" style="width: 3.1rem;height: 3.1rem"></div>
+                                                    <div class="dx-text dxd-text-info" data-bind="text: $data.size"></div>
+                                                </div>
+                                                <!-- /ko -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="dxrd-interactive-demo-extention-list-item dxd-back-primary2 dxd-border-secondary">
+                                        <div class="dxrd-interactive-demo-extention-list-item-image">
+                                            <svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 64 64">
+                                                <path d="M18.8 47.6 17 50H7c-.5 0-1-.5-1-1V5c0-.5.5-1 1-1h44c.3 0 .5.1.7.3s.3.4.3.7v30.8c-1.3-.5-2.6-.9-4-1.3V8L10 46h10.1c-.8.9-1.2 1.5-1.3 1.6M64 50s-9 12-21 12-21-12-21-12 9-12 21-12 21 12 21 12m-12 0c0-5-4-9-9-9s-9 4-9 9 4 9 9 9 9-4 9-9m-9-6c-1.5 0-2.8.5-3.9 1.4.4-.3.9-.4 1.4-.4 1.4 0 2.5 1.1 2.5 2.5S41.9 50 40.5 50 38 48.9 38 47.5c0-.5.1-1 .4-1.4-.9 1-1.4 2.4-1.4 3.9 0 3.3 2.7 6 6 6s6-2.7 6-6-2.7-6-6-6" class="Blue"/>
+                                            </svg>
+                                        </div>
+                                        <div class="dxrd-interactive-demo-extention-list-item-content">
+                                            <div class="dxrd-interactive-demo-extention-list-item-title dxd-text-accented">Contrast Theme</div>
+                                            <div class="dxrd-interactive-demo-extention-list-item-description dxd-text-info">
+                                                <span>
+                                                    Apply a contrast theme with a limited color palette so that users can better perceive the information on the page.
+                                                </span>
+                                            </div>
+                                            <div class="dxrd-interactive-demo-extention-list-item-description dxd-text-info"><span>Use High Contrast Theme </span><div style="float:right" data-bind="dxSwitch: { value: $root.exploreFeaturesProperties.isContrast }"></div></div>
+                                        </div>
+                                    </div>
+                                    <div class="dxrd-interactive-demo-extention-list-item dxd-back-primary2 dxd-border-secondary">
+                                        <div class="dxrd-interactive-demo-extention-list-item-image">
+                                            <svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 64 64">
+                                                <path d="M6 17C11.2 8 20.9 2 32 2s20.8 6.1 26 15c-3 2.6-4.4 8.4-5.9 14.3-1.1 4.5-3 12.1-5.1 12.1s-3.9-7.6-5.1-12.1c-2-8.2-4-15.9-9.9-15.9s-7.9 7.7-9.9 15.9c-1.1 4.5-3 12.1-5.1 12.1s-3.9-7.6-5.1-12.1C10.4 25.4 9 19.7 6 17m50.9 15.6c-2 8.2-4 15.9-9.9 15.9s-7.9-7.7-9.9-15.9c-1.1-4.5-3-12.1-5.1-12.1s-3.9 7.6-5.1 12.1c-2 8.2-4 15.9-9.9 15.9s-7.9-7.7-9.9-15.9c-.8-3.2-2-8.1-3.4-10.5C2.6 25.2 2 28.5 2 32c0 16.6 13.4 30 30 30s30-13.4 30-30c0-3.5-.6-6.8-1.7-9.9-1.4 2.5-2.6 7.3-3.4 10.5" class="Blue"/>
+                                            </svg>
+                                        </div>
+                                        <div class="dxrd-interactive-demo-extention-list-item-content" style="padding-bottom: 1.1rem">
+                                            <div class="dxrd-interactive-demo-extention-list-item-title dxd-text-accented">WAVE Validation</div>
+                                            <div class="dxrd-interactive-demo-extention-list-item-description dxd-text-info"><span>Use WAVE (Web Accessibility Evaluation Tool by WebAIM) to validate the accessibility of the Document Viewer UI.</span></div>
+                                            <div class="dxrd-interactive-demo-extention-list-item-buttons">
+                                                <div data-bind="dxButton: { text: 'Validate', onClick: $root.exploreFeaturesProperties.showWave }"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </div>
+</script>

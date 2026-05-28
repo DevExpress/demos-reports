@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <PropertyGroup>
+    <NuGetAuditMode>all</NuGetAuditMode>
+    <NoWarn>NU1507;NU1506;$(NoWarn)</NoWarn>
+    <WarningsNotAsErrors>NU1901;NU1902;NU1903;NU1904;NU1604;NU1103;NU1510;DX1000;DX1001;DX1002;$(WarningsNotAsErrors)</WarningsNotAsErrors>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,61 @@
+﻿@using DevExpress.Web.Demos
+@model ReportsDemoModel
+<script type="text/javascript" src="@this.GetUrlContentWithVersionSuffix("~/Scripts/Viewer.js")"></script>
+<a href="javascript:void(0)" class="ViewerSelectorButton" title="Current Viewer: @Model.CurrentViewer" id="ViewerSelectorPopupButton" style="margin-right: 34px">
+    @Html.DevExpress().Image(s => {
+    s.Name = "tViewerSelectorPic";
+    s.Properties.SpriteCssClass = "Icon ViewerSelectorIcon";
+}).GetHtml()
+    VIEWER
+    @Html.DevExpress().Image(s => {
+    s.Name = "tViewerSelectorGlyph";
+    s.Properties.SpriteCssClass = "Glyph";
+}).GetHtml()
+</a>
+
+@Html.DevExpress().PopupControl(
+    settings => {
+        settings.Name = "ViewerSelectorPopup";
+        settings.EnableTheming = false;
+        settings.ControlStyle.CssClass = "ViewerSelectorSelectorPopup ViewerSelectorPopup";
+        settings.ShowShadow = false;
+        settings.ShowHeader = false;
+        settings.PopupAnimationType = AnimationType.None;
+
+        settings.PopupElementID = "ViewerSelectorPopupButton";
+        settings.PopupHorizontalAlign = PopupHorizontalAlign.RightSides;
+        settings.PopupVerticalAlign = PopupVerticalAlign.TopSides;
+        settings.PopupHorizontalOffset = 24;
+        settings.PopupVerticalOffset = -19;
+        settings.PopupAlignCorrection = PopupAlignCorrection.Disabled;
+
+        settings.PopupAction = PopupAction.LeftMouseClick;
+        settings.ClientSideEvents.Init = "DXSelectorPopupContainer_Init";
+
+        settings.SetContent(() => {
+            ViewContext.Writer.Write("<div class=\"ButtonWrapper\"><div class=\"ViewerSelectorButtonBorder\"></div></div>");
+            ViewContext.Writer.Write("<div class=\"ButtonWrapperBtmBorder\"></div><b class=\"Clear\"></b>");
+            ViewContext.Writer.Write("<div class=\"ContainerWrapper ViewerSelectorContainerWrapper\"><div class=\"ViewerSelectorContainer ViewerSelectorContainer\">");
+
+            Html.DevExpress().Menu(menuSettings => {
+                menuSettings.Name = "ViewerSelectorMenu";
+                menuSettings.ControlStyle.CssClass = "ViewerSelectorGroupMenu";
+                menuSettings.Orientation = Orientation.Vertical;
+                menuSettings.EnableTheming = false;
+                menuSettings.ItemImagePosition = ImagePosition.Left;
+                foreach(ViewerSelectorState.Item selectorItem in ViewerSelectorState.Items) {
+                    menuSettings.Items.Add(menuItem => {
+                        menuItem.Name = selectorItem.Name;
+                        menuItem.Selected = selectorItem.Name == Model.CurrentViewer;
+                        menuItem.NavigateUrl = selectorItem.GenerateUrl(Request.Url);
+                        menuItem.Image.Url = @Url.Content("~/Content/1x1.gif");
+                    });
+                }
+                menuSettings.SetItemTextTemplateContent(c => {
+                    var selectorItem = ViewerSelectorState.GetByName(c.Item.Name);
+                    ViewContext.Writer.Write(string.Format("<div class=\"ViewerSelectorIco {0}\"></div>{1}", selectorItem.CssClass, selectorItem.Text));
+                });
+            }).Render();
+            ViewContext.Writer.Write("<b class=\"Clear\"></b></div></div>");
+        });
+    }).GetHtml()

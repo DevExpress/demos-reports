@@ -1,0 +1,55 @@
+﻿@model string
+
+<script src="~/js/report-viewer.js" asp-append-version="true"></script>
+<script type="text/javascript">
+    function BeforeRender(s, e) {
+        DevExpress.Reporting.Viewer.Settings.AIServicesEnabled(false);
+        disposeOnUnload(s, e);
+    }
+    function HideExportFormatsExceptPdf(s, e) {
+        ['XLS', 'XLSX', 'Text', 'MHT', 'HTML', 'Image', 'DOCX', 'CSV', 'RTF'].forEach(function(format) { e.HideFormat(DevExpress.Reporting.Viewer.ExportFormatID[format]); });
+    }
+    function CustomizeViewerMenuActions(s, e) {
+        UsePdfExportOnly(s, e);
+        DevExpress.Reporting.Viewer.Settings.EditablePreviewEnabled(false);
+    }
+    function UsePdfExportOnly(s, e) {
+        var exportAction = e.GetById(DevExpress.Reporting.Viewer.ActionId.ExportTo);
+        if(!exportAction)
+            return;
+        exportAction.imageTemplateName = "dxrd-svg-preview-export-export-to-pdf";
+        exportAction.templateName = undefined;
+        exportAction.clickAction = function(_args) {
+            s.ExportTo('pdf');
+        }
+    }
+</script>
+
+<div class="wrapper">
+    @{
+        var viewerRender = Html.DevExpress().WebDocumentViewer("viewer")
+            .Height("1000px")
+            .ClientSideModelSettings(x => {
+                x.IncludeCldrData = false;
+                x.IncludeCldrSupplemental = false;
+            })
+            .ClientSideEvents(events => {
+                events.BeforeRender("BeforeRender");
+                events.CustomizeExportOptions("HideExportFormatsExceptPdf");
+                events.CustomizeMenuActions("CustomizeViewerMenuActions");
+            })
+            .Bind(Model);
+        @viewerRender.RenderHtml()
+    }
+</div>
+
+@await Html.PartialAsync("_ReportDesignerButton", Model)
+
+@section Scripts {
+    <link rel="stylesheet" href="~/css/viewer.part.bundle.min.css" asp-append-version="true" />
+
+    <script src="~/js/reporting.thirdparty.bundle.min.js" asp-append-version="true"></script>
+    <script src="~/js/viewer.part.bundle.min.js" asp-append-version="true"></script>
+
+    @viewerRender.RenderScripts()
+}

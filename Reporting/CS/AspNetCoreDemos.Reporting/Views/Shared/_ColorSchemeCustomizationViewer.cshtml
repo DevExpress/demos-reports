@@ -1,0 +1,80 @@
+﻿@using System.IO
+@using Microsoft.AspNetCore.Hosting
+@using Microsoft.AspNetCore.Http.Extensions;
+@using Microsoft.Extensions.Primitives;
+@inject IWebHostEnvironment hosting
+@model string
+
+@{
+    bool isDesigner = Context.Request.Query.ContainsKey("ShowDesigner");
+    var designerRender = Html.DevExpress().ReportDesigner("reportDesigner")
+        .ClientSideModelSettings(x => {
+            x.IncludeCldrData = false;
+            x.IncludeCldrSupplemental = false;
+        })
+        .ClientSideEvents(events => {
+            events.CustomizeElements("customizeDesignerElements");
+            events.BeforeRender("disposeOnUnload");
+        })
+        .Height("1000px")
+        .Bind(Model);
+    var viewerRender = Html.DevExpress().WebDocumentViewer("viewer")
+        .Height("1000px")
+        .ClientSideModelSettings(x => {
+            x.IncludeCldrData = false;
+            x.IncludeCldrSupplemental = false;
+        })
+        .ClientSideEvents(events => {
+            events.BeforeRender("disposeOnUnload");
+            events.CustomizeElements("customizeViewerElements");
+
+        })
+        .Bind(Model);
+}
+
+<script src="@Url.Content("~/js/report-viewer.js")" asp-append-version="true"></script>
+<link rel="stylesheet" type="text/css" href="@Url.Content("~/js/theming/index.css")" />
+
+@Html.Raw(File.ReadAllText(hosting.WebRootPath + "/js/theming/ThemingTemplates.html"))
+
+<div class="wrapper">
+    <div class="report-designer-preview" style="position: relative; min-height: 900px; overflow: hidden;">
+        <div id="theming_demo_load_panel"></div>
+        @if(isDesigner) {
+            @designerRender.RenderHtml()
+        } else {
+            @viewerRender.RenderHtml()
+        }
+    </div>
+</div>
+
+
+@await Html.PartialAsync("_ReportDesignerViewerToggleButton", ViewContext.RouteData.Values["action"])
+
+@section Scripts {
+    <script type="text/javascript">
+    (function() {
+        window.LESS_RESOURCE_PATH = "@Url.Content("~/js/theming/Less_themes/")";
+        window.ICONS_RESOURCE_PATH = "@Url.Content("~/Content/ThemeIcons/")";
+    })();
+    </script>
+    <script src="@Url.Content("~/js/theming/less.min.js")" asp-append-version="true"></script>
+    <script src="@Url.Content("~/js/theming/beautify-css.js")" asp-append-version="true"></script>
+    <script src="@Url.Content("~/js/jszip.min.js")" asp-append-version="true"></script>
+    <script src="@Url.Content("~/js/theming/index.js")" asp-append-version="true"></script>
+
+    <link rel="stylesheet" href="~/css/viewer.part.bundle.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/designer.part.bundle.min.css" asp-append-version="true" />
+
+    <script src="~/js/reporting.thirdparty.bundle.min.js" asp-append-version="true"></script>
+    <script src="~/js/viewer.part.bundle.min.js" asp-append-version="true"></script>
+    <script src="~/js/designer.part.bundle.min.js" asp-append-version="true"></script>
+
+    @if(isDesigner) {
+        @designerRender.RenderScripts();
+    } else {
+        @viewerRender.RenderScripts();
+    }
+
+    <script src="@Url.Content("~/js/theming/loadPanel.js")" asp-append-version="true"></script>
+}

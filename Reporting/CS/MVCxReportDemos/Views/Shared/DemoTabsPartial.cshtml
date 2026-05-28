@@ -1,0 +1,174 @@
+﻿@functions{
+    protected bool IsOpenLocalDemoEnabled {
+        get {
+            string openLocalDemoEnabledValue = System.Configuration.ConfigurationManager.AppSettings["OpenLocalDemo"];
+            return openLocalDemoEnabledValue != null && openLocalDemoEnabledValue.Equals("true", StringComparison.InvariantCultureIgnoreCase);
+        }
+    }
+
+    private string GenerateOpenSolutionLink() {
+        DevExpress.Web.Demos.DemoPageModel pageModel = Utils.CurrentDemoPage;
+        List<string> viewsWithSeparatePages = new List<string>() { "adaptivelayout", "responsivelayout", "floatingactionbuttonforgridview" };
+        string viewName = viewsWithSeparatePages.Contains(pageModel.Key.ToLower()) ? pageModel.Key + "Page" : pageModel.Key;
+
+        return String.Format("dxdemo://{0}/{1}/MainDemo/Views/{2}/{3}",
+            pageModel.Product.Key.ToLower() == "officefileapimvc" ? "Docs" : "Mvc",
+            pageModel.Product.Key.ToLower() == "officefileapimvc" ? "DocumentServerForAspMVC" : pageModel.Product.Key.Replace(".", ""),
+            pageModel.Group.Key,
+            viewName);
+    }
+
+    protected ButtonSettings GetOpenSolutionButtonSettings() {
+        ButtonSettings settings = new ButtonSettings();
+        settings.Name = "btnOpenSolution";
+        settings.UseSubmitBehavior = false;
+        settings.Text = String.Format("Open CS Solution");
+        settings.ControlStyle.CssClass = "btnOpenSolution";
+        settings.EnableTheming = false;
+        settings.Width = Unit.Pixel(160);
+        settings.Height = Unit.Pixel(32);
+        settings.Init = (send, evargs) => {
+            if(Utils.CurrentDemoPage == null) return;
+            DevExpress.Web.Mvc.MVCxButton button = send as DevExpress.Web.Mvc.MVCxButton;
+            if(Utils.CurrentDemoPage.Product.Key.ToLower().Contains("report"))
+                button.Visible = false;
+            else
+                button.ClientSideEvents.Click = "function (s, e) { window.open('" + GenerateOpenSolutionLink() + "', '_self'); }";
+        };
+        return settings;
+    }
+
+    private LabelSettings GetLocalPathLabelSettings() {
+        LabelSettings settings = new LabelSettings();
+        settings.Name = "lblPath";
+        settings.ControlStyle.Font.Bold = true;
+        settings.Init = (send, evargs) => {
+            if(Utils.CurrentDemoPage == null) return;
+            DevExpress.Web.Mvc.MVCxLabel lbl = (DevExpress.Web.Mvc.MVCxLabel)send;
+            if(Utils.CurrentDemoPage.Product.Key.ToLower().Contains("report")) {
+                var pathSuffix = DevExpress.Web.Demos.Utils.CurrentDemoPage.Group.Key == "WebSpecificFeatures" ? @"MVCxReportDemos\Views\WebSpecificFeatures" : @"DevExpress.DemoReports";
+                lbl.Text = string.Format(@"\Users\Public\Documents\DevExpress Demos XX.X\Components\Reporting\CS\{0}",  pathSuffix);
+            } else {
+                lbl.Text = String.Format(@"\Users\Public\Documents\DevExpress Demos XX.X\Components\ASP.NET\CS\{0}", DevExpress.Web.Demos.Utils.CurrentDemoPage.Product.Url);
+            }
+        };
+        return settings;
+    }
+}
+@Html.DevExpress().PageControl(settings => {
+    settings.Name = "DemoPageControl";
+    settings.CallbackRouteValues = new { Controller = "Home", Action = "DemoTabsPartial", Group = Utils.GetDemoGroupKey(Utils.CurrentDemoPage), Demo = Utils.CurrentDemoPage.Key };
+    settings.ControlStyle.CssClass = "page-control";
+    settings.EnableTheming = false;
+    settings.Width = Unit.Percentage(100);
+    settings.EnableTabScrolling = true;
+    settings.TabAlign = TabAlign.Justify;
+    settings.ControlStyle.Paddings.Padding = 0;
+    settings.Styles.Content.CssClass = "tabs-content";
+    settings.Styles.Tab.CssClass = "tab";
+    settings.Styles.ActiveTab.CssClass = "tab-active";
+    settings.ClientSideEvents.ActiveTabChanged = "DXDemo.HightlightedCode.DemoPageControl_OnActiveTabChanged";
+
+    settings.TabPages.Add(t => {
+        t.Name = "Description";
+        t.Text = "Description";
+        t.SetContent(() => {
+            string seeAlsoList = "";
+            if(Utils.CurrentDemoPage.SeeAlsoLinks.Count > 0) {
+                seeAlsoList += "<br /> <span>See Also:</span> ";
+                seeAlsoList += "<ul>";
+                foreach(var sa in Utils.CurrentDemoPage.SeeAlsoLinks) {
+                    seeAlsoList += string.Format("<li><a href=\"{0}\">{1}</a></li>", sa.Url, sa.Title);
+                }
+                seeAlsoList += "</ul>";
+            }
+            ViewContext.Writer.Write(
+                "<article class=\"description-section text-content\">" +
+                    "<div class=\"responsive-text\">" +
+                        Utils.CurrentDemo.Description +
+                        seeAlsoList +
+                    "</div>");
+            if(IsOpenLocalDemoEnabled && DevExpress.Web.Internal.RenderUtils.Browser.Platform.IsWindows) {
+                ViewContext.Writer.Write(
+                    "<div class=\"localDemoContainer\">"
+                );
+                Html.DevExpress().RoundPanel(panelSettings => {
+                    panelSettings.Name = "panelLocalDemo";
+                    panelSettings.ShowCollapseButton = true;
+                    panelSettings.ShowHeader = true;
+                    panelSettings.EnableTheming = false;
+                    panelSettings.Collapsed = true;
+                    panelSettings.ControlStyle.CssClass = "localDemoPanel localDemoPanelContent";
+                    panelSettings.ContentPaddings.PaddingLeft = 0;
+                    panelSettings.Styles.Header.CssClass = "localDemoPanel localDemoPanelContent";
+                    panelSettings.ExpandButtonImage.SpriteProperties.CssClass = "headerImage expandButtonImage";
+                    panelSettings.CollapseButtonImage.SpriteProperties.CssClass = "headerImage collapseButtonImage";
+                    panelSettings.Styles.CollapseButton.CssClass = "headerExpandCollapseButton";
+                    panelSettings.SetHeaderContentTemplateContent((container) => {
+                        ViewContext.Writer.Write("<span class=\"headerTitleText\">Local Copy of this Demo</span>");
+                        ViewContext.Writer.Write("<br />");
+                        ViewContext.Writer.Write("<span>To inspect the source code for this demo on your machine, you must first install our components via the </span><a href=\"https://docs.devexpress.com/GeneralInformation/15655/installation/install-devexpress-net-products/gui-install-mode\">DevExpress Component Installer</a><span>.</span>");
+                    });
+                    panelSettings.SetContent(() => {
+                        if(DevExpress.Web.Demos.Utils.CurrentDemoPage.Product.Key.ToLower().Contains("report")) {
+                            ViewContext.Writer.Write("<span>The source code files for this report are installed (by default) in the following directory:</span>");
+                        }
+                        else {
+                            ViewContext.Writer.Write("<span>You can open a local copy of this online demo directly from this webpage (if using v20.2.8, 21.1.4 or higher).</span>");
+                            ViewContext.Writer.Write("<div>");
+                            Html.DevExpress().Button(GetOpenSolutionButtonSettings()).Render();
+                            ViewContext.Writer.Write("</div>");
+                            ViewContext.Writer.Write("<span>The source code files for this demo are installed (by default) in the following directory:</span>");
+                        }
+                        ViewContext.Writer.Write("<br />");
+                        Html.DevExpress().Label(GetLocalPathLabelSettings()).Render();
+                    });
+                }).Render();
+                ViewContext.Writer.Write(
+                    "</div>"
+                );
+            }
+            ViewContext.Writer.Write(
+                "</article>"
+            );
+        });
+    });
+
+    if(!Utils.CurrentDemo.Product.HideSourceCode) {
+        foreach(SourceCodePage page in Utils.GetCurrentSourceCodePages()) {
+            settings.TabPages.Add(t => {
+                t.Name = page.Title;
+                t.Text = page.Title;
+                string additionalProperties = String.Empty;
+                if(DemosModel.Instance.DisableTextWrap)
+                    additionalProperties = "style =\"width: 920px;white-space: nowrap;\"";
+                t.SetContent(() => {
+                    ViewContext.Writer.Write("<div class=\"code\">");
+                    ViewContext.Writer.Write("<div class=\"copyContainer\">");
+                    Html.DevExpress().Hint(hintSettings => {
+                        hintSettings.Name = "copyHint";
+                        hintSettings.EnableTheming = false;
+                        hintSettings.TargetSelector = ".copyContainer a";
+                        hintSettings.Content = "Copy to clipboard";
+                        hintSettings.Width = Unit.Pixel(125);
+                        hintSettings.Position = HintPosition.Bottom;
+                    }).Render();
+                    Html.DevExpress().HyperLink(hyperLinkSettings => {
+                        hyperLinkSettings.Name = "hyperLinkCopyCode";
+                        hyperLinkSettings.Properties.EnableClientSideAPI = true;
+                        hyperLinkSettings.Properties.Text = "Copy";
+                        hyperLinkSettings.NavigateUrl = "javascript:;";
+                        hyperLinkSettings.EnableTheming = false;
+                        hyperLinkSettings.ControlStyle.CssClass = "copyLink";
+                        hyperLinkSettings.Properties.ClientSideEvents.Click = "DXDemo.HightlightedCode.CopyPage";
+                    }).Render();
+                    ViewContext.Writer.Write("</div>");
+                    ViewContext.Writer.Write("<div id=\"CodeBlock{0}\" class=\"CodeBlock\" {1}>", t.Index - 1, additionalProperties);
+                    ViewContext.Writer.Write(page.Code);
+                    ViewContext.Writer.Write("</div>");
+                    ViewContext.Writer.Write("</div>");
+                });
+            });
+        }
+    }
+}).GetHtml()

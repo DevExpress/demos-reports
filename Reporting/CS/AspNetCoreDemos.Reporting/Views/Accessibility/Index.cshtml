@@ -1,0 +1,67 @@
+﻿@model AspNetCoreDemos.Reporting.Models.AccessibilityModel
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Accessibility Reporting Demo</title>
+    <link href="~/css/accessibility.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/xtrareportsjs/css/dx-reporting-skeleton-screen.css" rel="stylesheet" asp-append-version="true" />
+</head>
+
+<body>
+    <a href="https://www.devexpress.com/" class="logo-image"><span>DevExpress</span></a>
+    <div class="body-content">
+        @await Html.PartialAsync("_Panel")
+        @{
+            var viewerRender = Html.DevExpress().WebDocumentViewer("viewer")
+            .Height("100%")
+            .ClientSideModelSettings(x =>
+            {
+                x.IncludeCldrData = false;
+                x.IncludeCldrSupplemental = false;
+                x.IncludeLocalization = false;
+            })
+            .ClientSideEvents(events =>
+            {
+                events.CustomizeElements("customizeElements");
+            })
+            .AccessibilityCompliant(true)
+            .Bind("AccessibilityMasterDetailReport");
+
+            @viewerRender.RenderHtml()
+        }
+    </div>
+
+    <link href="~/css/viewer.part.bundle.min.css" rel="stylesheet" asp-append-version="true" />
+    <script src="~/js/jquery.min.js" asp-append-version="true"></script>
+    <script src="~/js/knockout.js" asp-append-version="true"></script>
+    <script src="~/js/viewer.part.bundle.min.js" asp-append-version="true"></script>
+    <script src="~/js/accessibilityViewer.customize.elements.js" asp-append-version="true"></script>
+    <script type="text/javascript">
+        initializeArgsData(@Model.IsContrast.ToString().ToLower(), @Model.Zoom, @Model.ExploreFeatures.ToString().ToLower());
+    </script>
+
+    @if (Model.IsContrast)
+    {
+        <style>
+            .dx-designer-viewport .dxrd-interactive-demo-extention .dxd-text-info {
+                color: #fff;
+            }
+        </style>
+        <link href="~/css/contrast.theme.bundle.css" rel="stylesheet" asp-append-version="true" />
+    }
+    else
+    {
+        <link href="~/css/light.theme.bundle.css" rel="stylesheet" asp-append-version="true" />
+    }
+
+    @viewerRender.RenderScripts()
+</body>
+
+</html>

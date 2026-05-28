@@ -1,0 +1,19 @@
+﻿@using DevExpress.Web.Demos.Code.Designer
+@model ReportsDemoModel
+
+<script src="@this.GetUrlContentWithVersionSuffix("~/Scripts/Designer.js")"></script>
+<script type="text/javascript">
+    function OnInit(s, e) {
+        onDesignerInit(s, e);
+        RegisterNationalityEditor("@Url.Content("~/Content/")");
+        RegisterDamageDiagramEditor();
+    }
+</script>
+
+@Html.DevExpress().ReportDesigner(settings => {
+    settings.Name = "reportDesigner";
+    settings.ControlStyle.CssClass = "fullscreen";
+    settings.ClientSideEvents.Init = "OnInit";
+    settings.Height = Unit.Empty;
+}).BindToUrl(Model.ReportID).GetHtml()
+<input type="hidden" id="redirectValue" value="@Model.RedirectUrl" />

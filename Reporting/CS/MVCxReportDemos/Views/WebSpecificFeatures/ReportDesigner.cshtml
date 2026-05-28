@@ -1,0 +1,10 @@
+﻿@model ReportsDemoModel
+
+@section AdditionalResources {
+    <link rel="stylesheet" type="text/css" href="@this.GetUrlContentWithVersionSuffix("~/Content/Designer.css")" />
+}
+<div style="border:1px solid #cccccc; position: relative; min-height:900px;">
+    @Html.Partial("ReportDesignerPartial", Model)
+</div>
+
+

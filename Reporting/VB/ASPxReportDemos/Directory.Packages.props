@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <PropertyGroup Condition="'$(DXDisableCentral)' != 'true'">
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <PropertyGroup>
+    <NuGetAuditMode>all</NuGetAuditMode>
+    <NoWarn>NU1507;NU1506</NoWarn>
+    <WarningsAsErrors>NU1604;NU1603;$(WarningsAsErrors)</WarningsAsErrors>
+    <WarningsNotAsErrors>NU1301;NU1801;NU1901;NU1902;NU1903;NU1904;NU1510;DX1000;DX1001;DX1002;$(WarningsNotAsErrors)</WarningsNotAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="System.Configuration.ConfigurationManager" Version="8.0.1" />
+    <PackageVersion Include="Microsoft.VisualBasic" Version="10.0.0.0" />
+    <PackageVersion Include="Azure.AI.OpenAI" Version="2.9.0-beta.1" />
+    <PackageVersion Include="Azure.Identity" Version="1.17.1" />
+    <PackageVersion Include="CommonMark.NET" Version="0.15.1" />
+    <PackageVersion Include="Microsoft.AspNet.EntityDataSource" Version="6.0.0" />
+    <PackageVersion Include="Microsoft.AspNet.Mvc" Version="5.2.3" />
+    <PackageVersion Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform" Version="2.0.1" />
+    <PackageVersion Include="Microsoft.EntityFramework.SqlServer" Version="6.5.1" />
+    <PackageVersion Include="Microsoft.Agents.AI.Workflows" Version="1.5.0" />
+    <PackageVersion Include="Microsoft.Extensions.AI" Version="10.5.1" />
+    <PackageVersion Include="Microsoft.Extensions.AI.OpenAI" Version="10.5.1" />
+    <PackageVersion Include="Microsoft.SqlServer.SqlManagementObjects" Version="171.30.0" />
+    <PackageVersion Include="NUnit3TestAdapter" Version="4.5.0" />
+    <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageVersion Include="SkiaSharp.HarfBuzz" Version="3.119.1" />
+    <PackageVersion Include="System.Drawing.Common" Version="8.0.15" />
+    <PackageVersion Include="System.Security.AccessControl" Version="6.0.1" />
+    <PackageVersion Include="System.Security.Permissions" Version="8.0.0" />
+    <PackageVersion Include="Azure.Identity" Version="1.17.1" />
+    <PackageVersion Include="EntityFramework" Version="6.5.1" />
+    <PackageVersion Include="System.Text.Json" Version="8.0.6" />
+    <PackageVersion Include="Microsoft.Data.Sqlite" Version="9.0.8" />
+    <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.1.2" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="8.0.18" />
+    <PackageVersion Include="Microsoft.Identity.Client" Version="4.78.0" />
+    <PackageVersion Include="NUnit" Version="3.14.0" />
+    <PackageVersion Include="BuildBundlerMinifier" Version="3.2.449" />
+    <PackageVersion Include="MSBuild.WebApplication.CopyContentLinkedFiles" Version="1.0.0" />
+    <PackageVersion Include="System.Data.SQLite.EF6" Version="2.0.2" />
+    <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.1" />
+  </ItemGroup>
+</Project>

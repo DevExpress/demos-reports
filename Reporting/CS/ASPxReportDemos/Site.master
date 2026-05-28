@@ -1,0 +1,300 @@
+﻿<%@ Master Language="C#" %>
+<!DOCTYPE html>
+<script runat="server">
+    protected void Page_Init(object sender, EventArgs e) {
+        Page.Header.Title = Utils.GetCurrentDemoPageTitle();
+        
+        if(TopRightMenuRegion.Controls.Count > 0)
+            TopRightMenuRegionWrapper.Visible = true;
+        if(ControlOptionsTopHolder.Controls.Count > 0)
+            ControlOptionsTopContainer.Visible = true;
+        if(ControlOptionsHolder.Controls.Count > 0)
+            ControlOptionsContainer.Visible = true;
+        if(DemoInfoHolder.Controls.Count > 0) 
+            DemoInfoContainer.Visible = true;
+        if(deviceViewertHolder.Controls.Count > 0)
+            DemoArea.Visible = false;
+    }
+    protected void Page_Load(object sender, EventArgs e) {
+        if(DemoHelper.Instance.ControlAreaMaxWidth != Unit.Percentage(100)) {
+            ControlAreaBlock.Style["max-width"] = DemoHelper.Instance.ControlAreaMaxWidth.ToString();
+            HeaderWrapper.Style["max-width"] = DemoHelper.Instance.ControlAreaMaxWidth.ToString();
+        }
+        if(DemoHelper.Instance.ControlAreaMinWidth != Unit.Pixel(0)) {
+            ControlAreaBlock.Style["min-width"] = DemoHelper.Instance.ControlAreaMinWidth.ToString();
+        }
+        var controlOptionsRightBlockWidth = DemoHelper.Instance.ControlOptionsRightBlockWidth;
+        if(controlOptionsRightBlockWidth != 0) {
+            ControlOptionsContainer.Attributes["data-initialWidth"] = controlOptionsRightBlockWidth.ToString();
+            ControlOptionsContainer.Style["width"] = controlOptionsRightBlockWidth.ToString();
+        } else
+            ControlOptionsContainer.Attributes["class"] += " bottom-block";
+        if(DemoHelper.Instance.ControlAreaMinHeight != 0)
+            ControlAreaBlock.Style["min-height"] = DemoHelper.Instance.ControlAreaMinHeight.ToString();
+        if(DemoInfoHolder.Controls.Count > 0) {
+            if(DemoHelper.Instance.ControlAreaMaxWidth.Type != UnitType.Percentage && controlOptionsRightBlockWidth != 0)
+                DemoInfoContainer.Style["max-width"] = (DemoHelper.Instance.ControlAreaMaxWidth.Value + controlOptionsRightBlockWidth.Value).ToString() + "px";
+        }
+        if(Utils.IsIntro) {
+            rptFeaturedDemos.DataSource = FeaturedDemos;
+            rptFeaturedDemos.DataBind();
+        }
+        if(!Utils.CurrentDemo.IsErrorPage) {
+            int collapseAtWindowInnerWidth = 1200;
+            NavigationPanel.ClientVisible = !DemosModel.Current.IsRootDemo;
+            NavigationPanel.SettingsAdaptivity.CollapseAtWindowInnerWidth = collapseAtWindowInnerWidth;
+            NavigationPanel.JSProperties["cpCollapseAtWindowInnerWidth"] = collapseAtWindowInnerWidth;
+        }
+    }
+    List<FeaturedDemoInfo> feauturedDemos;
+    protected List<FeaturedDemoInfo> FeaturedDemos {
+        get {
+            if(feauturedDemos == null)
+                feauturedDemos = Utils.GenerateFeaturedDemos();
+            return feauturedDemos;
+        }
+    }
+    protected bool IsFeedbackEnabled {
+        get {
+            string feedbackEnabledValue = ConfigurationManager.AppSettings["FeedbackEnabled"];
+            return feedbackEnabledValue != null && feedbackEnabledValue.Equals("true", StringComparison.InvariantCultureIgnoreCase);
+        }
+    }
+</script>
+<html lang="en">
+<head runat="server">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title></title>
+    <asp:ContentPlaceHolder ID="CustomTopHeadHolder" runat="server" />
+    <dx:CustomResources runat="server" ID="CustomResources" />
+    <dx:Head ID="Head" runat="server" />
+    <asp:ContentPlaceHolder ID="CustomHeadHolder" runat="server" />
+</head>
+<body class="defaultFont">
+    <form id="form1" runat="server" autocomplete="off">
+        <script>
+            window.addEventListener('load', function(e) {
+                DXDemo.adjustDemoSettingsBlock();
+                window.addEventListener('resize', function(e) {
+                    DXDemo.adjustDemoSettingsBlock();
+                });
+            });
+        </script>
+        <asp:ContentPlaceHolder ID="CustomTopAreaHolder" runat="server" />
+        <header>
+            <dx:ASPxPanel runat="server" ClientInstanceName="TopPanel" CssClass="header-panel" FixedPosition="WindowTop" EnableTheming="false" FixedPositionOverlap="true">
+                <PanelCollection>
+                    <dx:PanelContent>
+                        <dx:ASPxButton runat="server" Text="" CssClass="menu-button" AutoPostBack="false" UseSubmitBehavior="false" Width="60px" Height="60px">
+                            <FocusRectBorder BorderWidth="0" />
+                            <ClientSideEvents Click="DXDemo.toggleNavigationPanel" />
+                            <Image>
+                                <SpriteProperties CssClass="icon menu" />
+                            </Image>
+                        </dx:ASPxButton>
+                        <a href="https://www.devexpress.com/products/net/controls/asp/" target="_blank">
+                            <div class="logo">
+                                <span class="primary-text">DevExpress</span>
+                                <span class="secondary-text">ASP.NET AJAX CONTROLS</span>
+                            </div>
+                        </a>
+                        <% if(Utils.CanChangeTheme) { %>
+                        <a class="right-button right-button-toggle-themes-panel" href="javascript:void(0)" onclick="DXDemo.toggleThemeSettingsPanel(); return false;" id="toggleThemeSettingsButton" role="button" aria-pressed="false"><dx:ASPxImage runat="server" AlternateText="Show theme settings" CssClass="icon cog"></dx:ASPxImage></a>
+                        <% } %>
+                        <a class="right-button" href="<%: AssemblyInfo.DXLinkBuyNowASP %>" role="button"><dx:ASPxImage runat="server" AlternateText="Shopping cart" CssClass="icon shopping-cart"></dx:ASPxImage></a>
+                        <a class="right-button" href="<%: AssemblyInfo.DXLinkTrial %>" role="button"><dx:ASPxImage runat="server" AlternateText="Download trial" CssClass="icon download"></dx:ASPxImage><span>Free Trial</span></a>
+                    </dx:PanelContent>
+                </PanelCollection>
+            </dx:ASPxPanel>
+        </header>
+        <% if(!Utils.CurrentDemo.IsErrorPage) { %>
+        <dx:ASPxPanel runat="server" ID="NavigationPanel" ClientInstanceName="NavigationPanel" FixedPosition="WindowLeft"
+            CssClass="navigation-panel" Collapsible="true" ScrollBars="Auto" Theme="Default">
+            <SettingsCollapsing Modal="true" ExpandEffect="PopupToRight" AnimationType="Slide" ExpandButton-Visible="false" />
+            <ClientSideEvents Collapsed="DXDemo.onVerticalPanelCollapsed" />
+            <Styles>
+                <ExpandBar Width="0" />
+                <ModalBackground CssClass="dx-modal-background"></ModalBackground>
+            </Styles>
+            <PanelCollection>
+                <dx:PanelContent>
+                    <% if(!DemosModel.Current.IsRootDemo) { %>
+                        <dx:Search runat="server" />
+                    <% } %>
+                    <dx:Navigation ID="Navigation" runat="server" />
+                    <div class="footer">
+                        <div class="info-wrapper" role="contentinfo">
+                            <div class="version">Version: <%: Utils.GetVersionText() %></div>
+                            <div class="copyright">
+                                Copyright &copy; 2006-<%: DateTime.Now.Year %>
+                                Developer Express Inc
+                            </div>
+                        </div>
+                        <a class="footer-button" href="<%: AssemblyInfo.DXLinkBuyNowASP %>">Buy Now</a>
+                        <a class="footer-button" href="<%: AssemblyInfo.DXLinkTrial %>">Free Trial</a>
+                    </div>
+                </dx:PanelContent>
+            </PanelCollection>
+        </dx:ASPxPanel>
+        <% } %>
+        <% if (DemosModel.Current.IsRootDemo && !Utils.CurrentDemo.IsErrorPage) { %>
+        <div class="root-intro">
+            <div class="slogan">
+                <h1>When only the best will do</h1>
+                <h2>Over 100 ASP.NET AJAX Controls</h2>
+            </div>
+            <dx:Search runat="server" FocusOnLoad="true"/>
+            <dx:Products runat="server" ID="Products"></dx:Products>
+            <section class="footer-text" role="complementary">
+                <dx:FooterText runat="server" ID="FooterText1" />
+            </section>
+        </div>
+        <% } else if (Utils.CurrentDemo.IsErrorPage) { %>
+            <asp:ContentPlaceHolder ID="ErrorHolder" runat="server"></asp:ContentPlaceHolder>
+            <section class="footer-text horizontal-center-aligned error-page-footer" role="complementary">
+                <dx:FooterText runat="server" ID="FooterText2" />
+            </section>
+        <% } else { %>
+        <div class="main-content-wrapper">
+            <section class="top-panel clearfix top-panel-dark">
+                <% if(Utils.CanChangeTheme) { %>
+                <dx:ASPxButton runat="server" Text="Change Theme Settings" CssClass="theme-settings-menu-button adaptive"
+                    EnableTheming="false" AutoPostBack="false" ImagePosition="Right" UseSubmitBehavior="false">
+                    <Image SpriteProperties-CssClass="icon angle-down theme-settings-menu-button-image" />
+                    <FocusRectBorder BorderWidth="0" />
+                    <ClientSideEvents Click="DXDemo.toggleThemeSettingsPanel" />
+                </dx:ASPxButton>
+                <% } %>
+                <ul class="breadcrumbs clearfix">
+                    <% if(Utils.IsSiteMode && Utils.RootProduct != null) { %>
+                        <li><a href="<%: ResolveClientUrl(Utils.GenerateDemoUrl(Utils.RootProduct.Intro)) %>">Home</a><span class="icon angle-right"></span></li>
+                    <% } %>
+                    <li>
+                        <% if(!Utils.IsIntro) { %>
+                            <a href="<%: ResolveClientUrl(Utils.GenerateDemoUrl(Utils.CurrentDemo.Product.Intro))%>"><%: Utils.CurrentDemo.Product.NavItemTitle %></a>
+                            <span class="icon angle-right"></span>
+                        <% } else { %>
+                            <span class="last-breadcrumbs-item"><%: Utils.CurrentDemo.Product.NavItemTitle %></span>
+                        <% } %>
+                    </li>
+                    <% if(!Utils.IsIntro && Utils.CurrentDemo != null) { %>
+                        <li><span class="last-breadcrumbs-item"><%: Utils.CurrentDemo.Title %></span></li>
+                    <% } %>
+                </ul>
+            </section>
+            <% if(Utils.CanChangeTheme) { %>
+            <dx:ASPxPanel runat="server" ClientInstanceName="ThemeSettingsPanel" CssClass="theme-settings-panel" 
+                FixedPosition="WindowRight" Collapsible="true" EnableTheming="false" ScrollBars="Auto" FixedPositionOverlap="true">
+                <SettingsCollapsing Modal="true" AnimationType="Slide" ExpandEffect="PopupToLeft" ExpandButton-Visible="false" />
+                <ClientSideEvents Collapsed="DXDemo.onVerticalPanelCollapsed" />
+                <Styles>
+                    <ExpandBar Width="0" />
+                    <ExpandedPanel CssClass="theme-settings-panel-expanded"></ExpandedPanel>
+                    <ModalBackground CssClass="dx-modal-background"></ModalBackground>
+                </Styles>
+                <PanelCollection>
+                    <dx:PanelContent>
+                        <div class="top-panel top-panel-dark clearfix">
+                            <dx:ASPxButton runat="server" Text="Change Theme Settings" CssClass="theme-settings-menu-button"
+                                EnableTheming="false" AutoPostBack="false" ImagePosition="Right" HorizontalAlign="Left" UseSubmitBehavior="false">
+                                <Image SpriteProperties-CssClass="icon angle-down theme-settings-menu-button-image" />
+                                <FocusRectBorder BorderWidth="0" />
+                                <ClientSideEvents Click="DXDemo.toggleThemeSettingsPanel" />
+                            </dx:ASPxButton>
+                        </div>
+                        <div class="theme-settings-panel-content">
+                            <dx:ThemeSelector ID="ThemeSelector" runat="server" />
+                            <% if(Utils.CanApplyThemeParameters) { %>
+                            <dx:ThemeParametersSelector ID="ThemeParametersSelector" runat="server" />
+                            <% } %>
+                        </div>
+                    </dx:PanelContent>
+                </PanelCollection>
+            </dx:ASPxPanel>
+            <% } %>
+            <main>
+                <% if(Utils.IsIntro) { %>
+                <div class="intro-wrapper">
+                    <h1>Introduction</h1>
+                    <section class="featured-demos clearfix">
+                        <div class="video-item-wrapper">
+                            <div class="video-item clearfix">
+                                <h2><a href="<%: Utils.CurrentIntro.BannerUrl %>" target="_blank"><%: Utils.CurrentIntro.BannerTitle %></a></h2> 
+                                <a href="<%: Utils.CurrentIntro.BannerUrl %>" target="_blank">
+                                    <img src="<%: this.GetUrlWithVersionSuffix(Utils.CurrentIntro.BannerImageUrl) %>" alt="See overview video" />
+                                    <img src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" class="icon play-button" alt="See overview video" />
+                                </a><div class="annotation" onclick="DXDemo.Intro.onFeaturedDemoAnnotatonClick(this)">
+                                    <% if(string.IsNullOrEmpty(Utils.CurrentIntro.BannerHeaderUrl)) { %>
+                                    <h2><%: Utils.CurrentIntro.BannerTitle %></h2>
+                                    <% } else { %>
+                                    <h2><a href="<%: Utils.CurrentIntro.BannerHeaderUrl %>" target="_blank"><%: Utils.CurrentIntro.BannerTitle %></a></h2>
+                                    <% } %>
+                                    <%= Utils.CurrentIntro.BannerText %>
+                                    <div>
+                                        <a href="<%: AssemblyInfo.DXLinkTrial %>" class="see-demo" target="_blank">Free 30-Day Trial</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <hr class="video-separator" />
+                        <asp:Repeater runat="server" ID="rptFeaturedDemos">
+                            <ItemTemplate>
+                                <div class="featured-demo-item-wrapper">
+                                    <div class="featured-demo-item clearfix">
+                                        <h2><a href="<%#: ResolveUrl((string)Eval("NavigateUrl")) %>"><%# Eval("Title") %></a></h2>
+                                        <a href="<%#: ResolveUrl((string)Eval("NavigateUrl")) %>">
+                                            <img src="<%#: this.GetUrlWithVersionSuffix((string)Eval("ImageUrl")) %>" alt="<%# Eval("Title") %>" class="background-img" />
+                                        </a><div class="annotation" onclick="DXDemo.Intro.onFeaturedDemoAnnotatonClick(this)">
+                                            <h2><a href="<%#: ResolveUrl((string)Eval("NavigateUrl")) %>"><%# Eval("Title") %></a></h2>
+                                            <p><%#: Eval("Description") %></p>
+                                            <div>
+                                                <a href="<%#: ResolveUrl((string)Eval("NavigateUrl")) %>" class="see-demo">See demo</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <hr />
+                                </div>
+                            </ItemTemplate>
+                        </asp:Repeater>
+                    </section>
+                </div>
+                <% } else { /* Demo Page || Overview */ %>
+                <section id="controlSection" runat="server" class="control-section">
+                    <div runat="server" id="HeaderWrapper" class="header-wrapper clearfix">
+                        <h1><%: Utils.CurrentDemo.Title %></h1>
+                        <div runat="server" id="TopRightMenuRegionWrapper" class="top-right-menu-region clearfix" visible="false">
+                            <asp:ContentPlaceHolder ID="TopRightMenuRegion" runat="server" />
+                        </div>
+                    </div>
+                    <asp:ContentPlaceHolder ID="deviceViewertHolder" runat="server" />
+                    <div id="DemoArea" runat="server">
+                        <div id="ControlOptionsTopContainer" class="options-top-container" runat="server" visible="false">
+                            <asp:ContentPlaceHolder ID="ControlOptionsTopHolder" runat="server" />
+                        </div>
+                        <div runat="server" id="DemoInfoContainer" class="demo-info" visible="false">
+                            <asp:ContentPlaceHolder ID="DemoInfoHolder" runat="server" />
+                        </div>
+                        <div runat="server" id="ControlAreaBlock" class="control-area">
+                            <asp:ContentPlaceHolder ID="ContentHolder" runat="server" />
+                        </div><div id="ControlOptionsContainer" class="options-container" style="width: 100%" runat="server" visible="false">
+                            <asp:ContentPlaceHolder ID="ControlOptionsHolder" runat="server" />
+                        </div>
+                    </div>
+                    <% if(IsFeedbackEnabled) { %>
+                    <dx:FeedbackPanel runat="server" ID="FeedbackPanel" />
+                    <% } %>
+                </section>
+                <section class="tabs-section">
+                    <dx:DemoTabs runat="server" ID="DemoTabs" />
+                </section>
+                <% } %>
+                <section class="footer-text" role="complementary">
+                    <dx:FooterText runat="server" ID="FooterText" />
+                </section>
+            </main>
+        </div>
+        <% } %>
+    </form>
+</body>
+</html>
