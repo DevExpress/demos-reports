@@ -1,5 +1,5 @@
 ﻿// Write your JavaScript code.
-const docURL = 'http://docs.devexpress.com/XtraReports/402561/web-reporting/accessibility';
+const docURL = 'https://docs.devexpress.com/XtraReports/402561/web-reporting/accessibility';
 const accessibilityCheckerURL = new URL("http://wave.webaim.org/report");
 accessibilityCheckerURL.hash = `/${location.href}`;
 

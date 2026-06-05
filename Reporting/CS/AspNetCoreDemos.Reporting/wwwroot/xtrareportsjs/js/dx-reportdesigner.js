@@ -1,7 +1,7 @@
 ﻿/**
 * DevExpress HTML/JS Reporting (dist\js\dx-reportdesigner.js)
 * Version:  26.1.0
-* Build date: May 27, 2026
+* Build date: Jun 4, 2026
 * Copyright (c) 2012 - 2026 Developer Express Inc. ALL RIGHTS RESERVED
 * License: https://www.devexpress.com/Support/EULAs/universal.xml
 */
@@ -36762,9 +36762,6 @@ class FullscreenReportWizard extends external_DevExpress_Analytics_Wizard_namesp
         }
         else if (this._reportWizardOptions.mongoDBDataSourceAvailable || !(0,external_DevExpress_Analytics_Internal_namespaceObject.isEmptyObject)(state.mongoDBDataSourceWizard)) {
             state.dataSourceType = external_DevExpress_Analytics_Wizard_namespaceObject.DataSourceType.MongoDB;
-        }
-        else if (this._reportWizardOptions.federationDataSourceAvailable) {
-            state.dataSourceType = external_DevExpress_Analytics_Wizard_namespaceObject.DataSourceType.Federation;
         }
         else {
             state.dataSourceType = external_DevExpress_Analytics_Wizard_namespaceObject.DataSourceType.NoData;

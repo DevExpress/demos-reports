@@ -1,7 +1,7 @@
 ﻿/**
 * DevExpress HTML/JS Reporting (dist\js\dx-reporting.d.ts)
 * Version:  26.1.0
-* Build date: May 27, 2026
+* Build date: Jun 4, 2026
 * Copyright (c) 2012 - 2026 Developer Express Inc. ALL RIGHTS RESERVED
 * License: https://www.devexpress.com/Support/EULAs/universal.xml
 */
@@ -6509,7 +6509,6 @@ declare module DevExpress.Reporting.Export.Metadata {
     export const docxTableLayout: DevExpress.Analytics.Utils.ISerializationInfo;
     export const rasterizationResolution: DevExpress.Analytics.Utils.ISerializationInfo;
     export const rasterizeImages: DevExpress.Analytics.Utils.ISerializationInfo;
-    export const useHRefHyperlinks: DevExpress.Analytics.Utils.ISerializationInfo;
     export const exportWatermarks: DevExpress.Analytics.Utils.ISerializationInfo;
     export const inlineCss: DevExpress.Analytics.Utils.ISerializationInfo;
     export const allowFloatingPictures: DevExpress.Analytics.Utils.ISerializationInfo;

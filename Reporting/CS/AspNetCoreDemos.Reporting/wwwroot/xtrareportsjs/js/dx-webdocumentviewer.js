@@ -1,7 +1,7 @@
 ﻿/**
 * DevExpress HTML/JS Reporting (dist\js\dx-webdocumentviewer.js)
 * Version:  26.1.0
-* Build date: May 27, 2026
+* Build date: Jun 4, 2026
 * Copyright (c) 2012 - 2026 Developer Express Inc. ALL RIGHTS RESERVED
 * License: https://www.devexpress.com/Support/EULAs/universal.xml
 */
@@ -161,7 +161,6 @@ __webpack_require__.d(reporting_export_metadata_namespaceObject, {
   textExportMode: () => (textExportMode),
   textExportOptionsSerializationInfo: () => (textExportOptionsSerializationInfo),
   useCustomSeparator: () => (useCustomSeparator),
-  useHRefHyperlinks: () => (useHRefHyperlinks),
   xlsExportHyperlinks: () => (xlsExportHyperlinks),
   xlsExportMode: () => (xlsExportMode),
   xlsExportOptionsSerializationInfo: () => (xlsExportOptionsSerializationInfo),
@@ -1389,7 +1388,6 @@ const htmlTableLayout = { propertyName: 'tableLayout', modelName: '@TableLayout'
 const docxTableLayout = { propertyName: 'tableLayout', modelName: '@TableLayout', displayName: 'Table Layout', localizationId: 'DevExpress.XtraPrinting.DocxExportOptions.TableLayout', editor: external_DevExpress_Analytics_Widgets_namespaceObject.editorTemplates.getEditor('bool'), from: external_DevExpress_Analytics_Utils_namespaceObject.parseBool, defaultVal: false };
 const rasterizationResolution = { propertyName: 'rasterizationResolution', modelName: '@RasterizationResolution', displayName: 'Rasterization Resolution', localizationId: 'DevExpress.XtraPrinting.PageByPageExportOptionsBase.RasterizationResolution', editor: external_DevExpress_Analytics_Widgets_namespaceObject.editorTemplates.getEditor('numeric'), defaultVal: 96 };
 const rasterizeImages = { propertyName: 'rasterizeImages', modelName: '@RasterizeImages', displayName: 'Rasterize Images', localizationId: 'DevExpress.XtraPrinting.PageByPageExportOptionsBase.RasterizeImages', defaultVal: false, editor: external_DevExpress_Analytics_Widgets_namespaceObject.editorTemplates.getEditor('bool'), from: external_DevExpress_Analytics_Utils_namespaceObject.parseBool };
-const useHRefHyperlinks = { propertyName: 'useHRefHyperlinks', modelName: '@UseHRefHyperlinks', displayName: 'Use HRef Hyperlinks', localizationId: 'DevExpress.XtraPrinting.HtmlExportOptionsBase.UseHRefHyperlinks', editor: external_DevExpress_Analytics_Widgets_namespaceObject.editorTemplates.getEditor('bool'), from: external_DevExpress_Analytics_Utils_namespaceObject.parseBool, defaultVal: false };
 const exportWatermarks = { propertyName: 'exportWatermarks', modelName: '@ExportWatermarks', displayName: 'Export Watermarks', localizationId: 'DevExpress.XtraPrinting.HtmlExportOptionsBase.ExportWatermarks', defaultVal: true, editor: external_DevExpress_Analytics_Widgets_namespaceObject.editorTemplates.getEditor('bool'), from: external_DevExpress_Analytics_Utils_namespaceObject.parseBool };
 const inlineCss = { propertyName: 'inlineCss', modelName: '@InlineCss', displayName: 'Inline CSS', localizationId: 'DevExpress.XtraPrinting.HtmlExportOptionsBase.InlineCss', defaultVal: false, editor: external_DevExpress_Analytics_Widgets_namespaceObject.editorTemplates.getEditor('bool'), from: external_DevExpress_Analytics_Utils_namespaceObject.parseBool };
 const allowFloatingPictures = {
@@ -1674,7 +1672,6 @@ const htmlExportOptionsSerializationInfoBase = [
     rasterizationResolution,
     expotOptionsTitle,
     htmlTableLayout,
-    useHRefHyperlinks,
     removeSecondarySymbols,
     exportWatermarks,
     characterSet
@@ -1767,7 +1764,6 @@ const mhtExportOptionsSerializationInfoBase = [
     expotOptionsTitle,
     characterSet,
     htmlTableLayout,
-    useHRefHyperlinks,
     removeSecondarySymbols,
     exportWatermarks
 ];

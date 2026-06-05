@@ -45,7 +45,7 @@ Namespace DevExpress.Web.Demos
                 attributes(am.Groups(1).Value) = am.Groups(2).Value
             Next am
             If Not attributes.ContainsKey("href") Then
-                attributes("href") = "http://help.devexpress.com/"
+                attributes("href") = "https://help.devexpress.com/"
             End If
 '#pragma warning disable DX0025 ' not a path (and no traversal here)
             Return String.Format("<a href=""{0}"" class=""{1}"">{2}</a>", attributes("href"), "helplink", match.Groups(2).Value)
