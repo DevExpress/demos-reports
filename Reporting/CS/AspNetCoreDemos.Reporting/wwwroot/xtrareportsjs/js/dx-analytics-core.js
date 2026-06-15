@@ -1,7 +1,7 @@
 ﻿/**
 * DevExpress Analytics (dist\js\dx-analytics-core.js)
-* Version:  26.1.0
-* Build date: Jun 4, 2026
+* Version:  26.1.3
+* Build date: Jun 10, 2026
 * Copyright (c) 2012 - 2026 Developer Express Inc. ALL RIGHTS RESERVED
 * License: https://www.devexpress.com/Support/EULAs/universal.xml
 */
@@ -4975,7 +4975,7 @@ class WizardDragDropHandler extends DragDropHandler {
 ;// external "DevExpress.VERSION"
 const external_DevExpress_VERSION_namespaceObject = DevExpress.VERSION;
 ;// ./dist/analytics-version.js
-const version = '26.1.0';
+const version = '26.1.3';
 
 ;// ./dist/core/internal/dxtTemplate.js
 function dxtTemplate() {

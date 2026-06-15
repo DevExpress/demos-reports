@@ -1,7 +1,7 @@
 ﻿/**
 * DevExpress HTML/JS Reporting (dist\js\dx-reportdesigner.js)
-* Version:  26.1.0
-* Build date: Jun 4, 2026
+* Version:  26.1.3
+* Build date: Jun 10, 2026
 * Copyright (c) 2012 - 2026 Developer Express Inc. ALL RIGHTS RESERVED
 * License: https://www.devexpress.com/Support/EULAs/universal.xml
 */
@@ -6035,7 +6035,7 @@ class ChartDependencyEditor extends external_DevExpress_Analytics_Widgets_namesp
 class CollectionLookupEditorModel extends external_DevExpress_Analytics_Widgets_namespaceObject.Editor {
     constructor(info, level, parentDisabled, textToSearch) {
         super(info, level, parentDisabled, textToSearch);
-        this.array = external_ko_namespaceObject.computed(() => { return this.value() || []; });
+        this.array = external_ko_namespaceObject.computed(() => { return external_ko_namespaceObject.unwrap(this.value()) || []; });
         this.selectedItem = external_ko_namespaceObject.observable();
         this._disposables.push(this.array);
     }
