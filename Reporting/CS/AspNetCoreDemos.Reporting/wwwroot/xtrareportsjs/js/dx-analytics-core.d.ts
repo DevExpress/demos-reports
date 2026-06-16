@@ -1,7 +1,7 @@
 ﻿/**
 * DevExpress Analytics (dist\js\dx-analytics-core.d.ts)
 * Version:  26.1.3
-* Build date: Jun 10, 2026
+* Build date: Jun 16, 2026
 * Copyright (c) 2012 - 2026 Developer Express Inc. ALL RIGHTS RESERVED
 * License: https://www.devexpress.com/Support/EULAs/universal.xml
 */
@@ -8746,6 +8746,7 @@ declare module DevExpress.Analytics.Wizard {
     import IWizardPage = DevExpress.Analytics.Wizard.IWizardPage;
     import IWizardPageMetadata = DevExpress.Analytics.Wizard.IWizardPageMetadata;
     import Disposable = DevExpress.Analytics.Utils.Disposable;
+    import __finishActionFunctionName = DevExpress.Analytics.Wizard.__finishActionFunctionName;
     import __loadingStateFunctionName = DevExpress.Analytics.Wizard.__loadingStateFunctionName;
     import __nextActionFunctionName = DevExpress.Analytics.Wizard.__nextActionFunctionName;
     import __previousActionFunctionName = DevExpress.Analytics.Wizard.__previousActionFunctionName;
@@ -8837,6 +8838,7 @@ declare module DevExpress.Analytics.Wizard {
     export const __loadingStateFunctionName = "__loadingState";
     export const __nextActionFunctionName = "__nextAction";
     export const __previousActionFunctionName = "__previousActionFunctionName";
+    export const __finishActionFunctionName = "__finishActionFunctionName";
     /// <reference types="jquery" />
     export interface IWizardPage extends IDisposable {
         commit: () => JQueryPromise<any>;
@@ -8936,6 +8938,7 @@ declare module DevExpress.Analytics.Wizard {
         [__nextActionFunctionName]: () => void;
         [__previousActionFunctionName]: () => void;
         [__loadingStateFunctionName]: (active: boolean) => void;
+        [__finishActionFunctionName]: () => void;
     }
     /// <reference types="jquery" />
     export interface ITypeItem {
@@ -9340,6 +9343,7 @@ declare module DevExpress.Analytics.Wizard {
         protected _createLoadingState(page: DevExpress.Analytics.Wizard.IWizardPage): void;
         protected _createNextAction(page: DevExpress.Analytics.Wizard.IWizardPage): void;
         private _createPreviousAction;
+        private _createFinishAction;
         private _loadingTimeout;
         private _currentActivateCount;
         protected _loadingState(active: boolean): void;

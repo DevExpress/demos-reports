@@ -1,7 +1,7 @@
 ﻿/**
 * DevExpress Analytics (dist\js\dx-querybuilder.js)
 * Version:  26.1.3
-* Build date: Jun 10, 2026
+* Build date: Jun 16, 2026
 * Copyright (c) 2012 - 2026 Developer Express Inc. ALL RIGHTS RESERVED
 * License: https://www.devexpress.com/Support/EULAs/universal.xml
 */
@@ -277,6 +277,7 @@ __webpack_require__.d(analytics_wizard_namespaceObject, {
   _MultiQueryDataSourceWizardOptions: () => (_MultiQueryDataSourceWizardOptions),
   _SqlDataSourceWrapper: () => (_SqlDataSourceWrapper),
   _WrappedWizardPage: () => (_WrappedWizardPage),
+  __finishActionFunctionName: () => (__finishActionFunctionName),
   __loadingStateFunctionName: () => (__loadingStateFunctionName),
   __nextActionFunctionName: () => (__nextActionFunctionName),
   __previousActionFunctionName: () => (__previousActionFunctionName),
@@ -4548,6 +4549,7 @@ const AutoQueryPreload = (0,external_DevExpress_Analytics_Internal_namespaceObje
 const __loadingStateFunctionName = '__loadingState';
 const __nextActionFunctionName = '__nextAction';
 const __previousActionFunctionName = '__previousActionFunctionName';
+const __finishActionFunctionName = '__finishActionFunctionName';
 
 ;// ./dist/query-builder/wizard/pages/wizardPageBase.js
 
@@ -8961,6 +8963,11 @@ class BaseWizard extends external_DevExpress_Analytics_Utils_namespaceObject.Dis
             page[__previousActionFunctionName] = () => this.previousAction();
         }
     }
+    _createFinishAction(page) {
+        if (!page[__finishActionFunctionName]) {
+            page[__finishActionFunctionName] = () => this.finishAction();
+        }
+    }
     _loadingState(active) {
         if (active) {
             if (!this._currentActivateCount) {
@@ -9022,6 +9029,7 @@ class BaseWizard extends external_DevExpress_Analytics_Utils_namespaceObject.Dis
         this._createLoadingState(page.page);
         this._createNextAction(page.page);
         this._createPreviousAction(page.page);
+        this._createFinishAction(page.page);
         return page.initialize(this.stateManager.getPageState(page.pageId));
     }
     start() {

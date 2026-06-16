@@ -1,12 +1,12 @@
 # DevExpress Reports Demos
 
-[DevExpress Reports](https://www.devexpress.com/subscriptions/reporting/) is a reporting platform for .NET that allows you and your end users to build, view, print, and export richly formatted documents. It includes designers and viewers for WinForms, WPF, Blazor (Server, WebAssembly), ASP.NET (Web Forms, MVC) and ASP.NET Core (Razor Pages, MVC), Angular, React, and a wide range of report controls such as charts, cross tabs, bar codes, and more.
+[DevExpress Reports](https://www.devexpress.com/subscriptions/reporting/) — our award-winning .NET reporting platform — allows you and your end users to build, view, print, and export fully formatted documents with ease. It includes designers and viewers for WinForms, WPF, Blazor (Server, WebAssembly), ASP.NET (Web Forms, MVC) and ASP.NET Core (Razor Pages, MVC), Angular, React, alongside a broad range of report controls/elements such as charts, cross tabs, bar codes, and more.
 
-Visit our website to learn more about product features, capabilities, and pricing options. To try DevExpress controls and libraries in your projects, download our fully-functional trial version today: [Free 30-day Trial Version](https://go.devexpress.com/devexpressdownload_universaltrial.aspx).
+Visit our website to learn more about product features, capabilities, and pricing options. To evaluate DevExpress controls and libraries in your projects, download our fully-functional trial version today: [Free 30-day Trial Version](https://go.devexpress.com/devexpressdownload_universaltrial.aspx).
 
-## What's Inside
+## What's Inside
 
-Interactive demos with source code that illustrate DevExpress Reports features across supported platforms:
+Interactive DevExpress demos with source code for supported platforms:
 
 * **Sample reports** — Invoices, catalogs, financial statements, and inspection forms in master-detail, hierarchical, multi-column, table, and cross-band layouts. 
 * **Report controls** — Charts, sparklines, bar codes, Swiss QR bills, and conditional formatting. 
@@ -19,7 +19,10 @@ Interactive demos with source code that illustrate DevExpress Reports features a
 
 Refer to the following DevExpress Reports help topic for information on system requirements (v{version}): [Prerequisites](https://docs.devexpress.com/XtraReports/400127/product-information/devexpress-reporting-prerequisites). 
 
-Demo projects targeting .NET Framework 4.6.2+ require the use of the DevExpress Unified Installer on your local machine.
+Demo projects targeting .NET Framework 4.6.2+ require installation via the DevExpress Unified Installer on a local machine.
+
+> Note: AI services used for this demo have been rate limited. As such, you may experience performance-related delays when exploring the capabilities of DevExpress AI-powered Extensions.
+> When connected to your own AI model/service without rate limits, DevExpress AI-powered Extensions will perform seamlessly, without artificial delays.
 
 ## Run Demos Locally 
 
@@ -86,10 +89,10 @@ Demo projects targeting .NET Framework 4.6.2+ require the use of the DevExpress 
     * [Reporting/BlazorDemo.ServerSide/CS/BlazorDemo.ServerSide.sln](https://github.com/DevExpress/demos-reports/tree/main/Reporting/BlazorDemo.ServerSide/CS)
     * [Reporting/BlazorDemo.Wasm/CS/BlazorDemo.Wasm.sln](https://github.com/DevExpress/demos-reports/tree/main/Reporting/BlazorDemo.Wasm/CS)
 
-3. _Only for the BlazorDemo.Wasm demo_, ensure that the _BlazorDemo.ServerSide_ project is set as the solution’s startup project. 
+3. For our _BlazorDemo.Wasm_ demo, ensure that the _BlazorDemo.ServerSide_ project is set as the solution’s startup project. 
 4. Run the application in a [supported browser](https://docs.devexpress.com/Blazor/401588/supported-browsers).
 
-Note that Blazor WebAssembly includes fewer demos since it supports only JSON and Object data sources.
+Note that Blazor WebAssembly includes fewer demos since it only supports JSON and Object data sources.
 
 ### ASP.NET Core
 

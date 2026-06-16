@@ -1,7 +1,7 @@
 ﻿/**
 * DevExpress Analytics (dist\js\dx-analytics-core.js)
 * Version:  26.1.3
-* Build date: Jun 10, 2026
+* Build date: Jun 16, 2026
 * Copyright (c) 2012 - 2026 Developer Express Inc. ALL RIGHTS RESERVED
 * License: https://www.devexpress.com/Support/EULAs/universal.xml
 */
@@ -4979,7 +4979,7 @@ const version = '26.1.3';
 
 ;// ./dist/core/internal/dxtTemplate.js
 function dxtTemplate() {
-    const template = 'eyJsaWNlbnNlS2V5IjoiTENQdjE+eWUzLGp0LWNfVmZwK2Q0Y3BGOyhqbWQyPjl5PjdEOGNqWG9JeSUxN2JSZz5SPG4zYis3JUhkTDpRZVFaUUZKN2I6SiU8WHlWaSFvMlJjejllUjlJb2RZIW8peSw8ZXooN2E2JSVMMSgrVmRJPHktU29TIWVZKUo3UlMzKCtkejpRVnQhUVMhZUwtYUdMcm9waWROSWlSUjpvPDEsbmFlKExtZ0dMNEtwZWQ6Pkh0LTNlUW1rJSk7cEtGITY8ISk2JUZRJWUrPHBRZCk+Sy1AMnAhJD5qei1TUTgtMmlYOz4lWDwycEBAIVE0QDJfQEYhUWQ6SXAhQEk8NClhS0BAIVE0QDJfQEYhUWQ6SXAhQEk8NClhS3o8SV95QEliUnZJPC0pOU5YPD5RNDo+UTh2SWJSKTlqejshakw7OWp5Rkk3eUZJN3lGSSV5NjlRWHYyJSE6cGItJEliUik5akA2MnAhKTIlWHYyJSE6MmktdkklISk+akw8MjdAOjlLOXZhakBGMjdAQElfQDY5UWQkYVE0Oj5RNDpHX0BAOVFkdjY8IUY2PGRGSTd5Rkk3eUZJN0xsIn0=';
+    const template = 'eyJsaWNlbnNlS2V5IjoiTENQdjE5eSw6ZU4sTD5RLHZjTFYlVmphRyU8dEUlPGNAOkpGb1NvUyE3WVNlOkpYTCgrYzEsNyszVnlkU3BfPEolakBmZUhWcHBZUzFweWVTNkxFSiw3LVYlPlNuR29lUTJRPExTXyw0cE5FTDNMUzksPDRAIWUlbz5MOUAzUjlAZUwhaTl5JTE6ZTk0YyszNHBIY29HSlZpYyshYlNwbXoyXytZVk5heVZ5YT46S0ZlVl9hU0lMUW1rZSs6MnBmLT5qQEdJZSskOVE5PGFRRjY2aTw8Pmp6PHBnRnY2X0BFcFE0dj4lWDwycEBAIVE0NjJiLXYyJWQpSTwtQGFRZEBwZ0BAIVE0QDJfQEYhUWQ6SXAhQEk8NClhS3o8SV95QEliUnZJPC0pOU5YPD5RNDo+UTh2SWJSKTlqejshakw7OWp5Rkk3eUZJN3lGSTlsbCJ9';
     return template ? JSON.parse(atob(template)) : null;
 }
 
