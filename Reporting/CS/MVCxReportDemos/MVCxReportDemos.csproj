@@ -40,6 +40,7 @@
     <PackageReference Include="EntityFramework" />
     <PackageReference Include="System.Data.SQLite.EF6" />
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
+    <PackageReference Include="BouncyCastle.Cryptography" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="DevExpress.CodeParser.v26.1">

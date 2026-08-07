@@ -4,6 +4,7 @@
 <script type="text/javascript">
     function BeforeRender(s, e) {
         disposeOnUnload(s, e);
+        DevExpress.Reporting.Viewer.Settings.AIServicesEnabled(false);
         s.previewModel.reportPreview.zoom = @Model.ZoomFactor;
         s.previewModel.reportPreview.showMultipagePreview = @Model.UseMultiPage.ToString().ToLower();
     }

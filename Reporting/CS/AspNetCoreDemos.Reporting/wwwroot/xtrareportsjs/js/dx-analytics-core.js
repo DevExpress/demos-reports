@@ -1,7 +1,7 @@
 ﻿/**
-* DevExpress Analytics (dist\js\dx-analytics-core.js)
-* Version:  26.1.3
-* Build date: Jun 16, 2026
+* DevExpress Analytics (js\dx-analytics-core.js)
+* Version:  26.1.4
+* Build date: Jul 27, 2026
 * Copyright (c) 2012 - 2026 Developer Express Inc. ALL RIGHTS RESERVED
 * License: https://www.devexpress.com/Support/EULAs/universal.xml
 */
@@ -106,7 +106,6 @@ __webpack_require__.d(analytics_internal_namespaceObject, {
   DxDeferred: () => (DxDeferred),
   EditorAddOn: () => (EditorAddOn),
   EditorWithIcons: () => (EditorWithIcons),
-  ExpressionType: () => (ExpressionType),
   FetchRequestManager: () => (FetchRequestManager),
   FieldListProvider: () => (FieldListProvider),
   GetWindowKeyDownHandlersManager: () => (GetWindowKeyDownHandlersManager),
@@ -151,6 +150,7 @@ __webpack_require__.d(analytics_internal_namespaceObject, {
   SnapLinesCollector: () => (SnapLinesCollector),
   SnapLinesHelper: () => (SnapLinesHelper),
   SortedArrayStore: () => (SortedArrayStore),
+  SpecificTypes: () => (SpecificTypes),
   StringId: () => (StringId),
   SurfaceSelection: () => (SurfaceSelection),
   ToolbarKeyboardHelper: () => (ToolbarKeyboardHelper),
@@ -164,6 +164,8 @@ __webpack_require__.d(analytics_internal_namespaceObject, {
   _definePropertyByString: () => (_definePropertyByString),
   _errorProcessor: () => (_errorProcessor),
   _getFileContent: () => (_getFileContent),
+  _isDateTypeSpecific: () => (_isDateTypeSpecific),
+  _isNumericTypeSpecific: () => (_isNumericTypeSpecific),
   _muteWarnings: () => (_muteWarnings),
   _processError: () => (_processError),
   _replaceUploadFile: () => (_replaceUploadFile),
@@ -3003,24 +3005,32 @@ class AccessibilityKeyboardHelperBase extends KeyboardHelperBase {
         this.focusFirstFocusableDescendant = false;
         this.controlElements = [];
         this._eventListeners = [];
+        this._liveRegions = {};
         this.setTabIndexes = (index) => {
             this.controlElements.forEach(button => button.setTabIndex(index));
         };
-        this.liveRegion = () => {
+        this.liveRegion = (isAssertive = false) => {
             if (!this.liveRegionId)
                 return null;
-            if (!this._liveRegion || !this._liveRegion.element) {
-                this._liveRegion = {
-                    element: document.getElementById(this.liveRegionId),
+            const id = isAssertive ? this.liveRegionId + '-assertive' : this.liveRegionId;
+            if (!this._liveRegions[id] || !this._liveRegions[id].element) {
+                const region = {
+                    element: document.getElementById(id),
                     changeText: (text, timeout = 200) => {
-                        return setTimeout(() => {
-                            if (this._liveRegion.element)
-                                this._liveRegion.element.textContent = text;
-                        }, timeout);
+                        const setText = () => {
+                            if (region.element)
+                                region.element.textContent = text;
+                        };
+                        if (!timeout) {
+                            setText();
+                            return undefined;
+                        }
+                        return setTimeout(setText, timeout);
                     }
                 };
+                this._liveRegions[id] = region;
             }
-            return this._liveRegion;
+            return this._liveRegions[id];
         };
         this.onInitialized = (element, accessibilityCompliant) => {
             if (accessibilityCompliant)
@@ -3225,11 +3235,11 @@ class AccessibilityKeyboardHelperBase extends KeyboardHelperBase {
         this._prevActiveElement = null;
         this._handlersManager?.dispose();
         this._handlersManager = null;
-        if (this._liveRegion) {
-            this._liveRegion.element = null;
-            this._liveRegion.changeText = null;
-            this._liveRegion = null;
-        }
+        Object.keys(this._liveRegions).forEach((id) => {
+            this._liveRegions[id].element = null;
+            this._liveRegions[id].changeText = null;
+        });
+        this._liveRegions = {};
     }
     addListener(element, index, eventType, handler) {
         const listener = (e) => {
@@ -3581,7 +3591,16 @@ class ToolbarKeyboardHelper extends KeyboardHelperWithArrowButtonBase {
     createControlElement(element, index) {
         const action = this.buttonModels[index];
         if (action.getVisible && action.getVisible() || koUtils.unwrap(action.visible))
-            return new ToolbarItemElement(element, this.getContainer(), action, this.liveRegion.bind(this));
+            return new ToolbarItemElement(element, this.getContainer(), action, this.liveRegion.bind(this), this._moveFocusToSibling.bind(this));
+    }
+    _moveFocusToSibling(item, offset) {
+        const index = this.controlElements.indexOf(item);
+        if (index < 0)
+            return;
+        if (offset < 0)
+            this.setFocusToPrevious(index);
+        else
+            this.setFocusToNext(index);
     }
     constructor(_buttonModels) {
         super();
@@ -3636,7 +3655,7 @@ class ToolbarKeyboardHelper extends KeyboardHelperWithArrowButtonBase {
     }
 }
 class ToolbarItemElement extends ControlElementWithParentHighlight {
-    _complexItem() {
+    _isComplexItem() {
         if (this._selectBox || this._menu)
             return true;
         return false;
@@ -3646,40 +3665,74 @@ class ToolbarItemElement extends ControlElementWithParentHighlight {
         this._menu = null;
         this._selectBox = null;
     }
-    constructor(element, _toolbarElement, _toolbarItemModel, _liveRegion) {
+    constructor(element, _toolbarElement, _toolbarItemModel, _liveRegion, _moveFocusToSibling) {
         super(element, _toolbarElement);
         this.element = element;
         this._toolbarItemModel = _toolbarItemModel;
         this._liveRegion = _liveRegion;
+        this._moveFocusToSibling = _moveFocusToSibling;
         this._selectBox = external_DevExpress_ui_dxSelectBox_default().getInstance(element.children[0]);
         this._menu = external_DevExpress_ui_dxMenu_default().getInstance(element.children[0]);
+        if (this._menu) {
+            if (this._moveFocusToSibling) {
+                this._menu.registerKeyHandler('leftArrow', (e) => this._menuArrowKeyHandler(e, -1));
+                this._menu.registerKeyHandler('rightArrow', (e) => this._menuArrowKeyHandler(e, 1));
+            }
+            this.addListener(element, 'focus', (e) => {
+                if (!this.element.contains(e.relatedTarget))
+                    this._focusMenu();
+            });
+            const menuElement = element.children[0];
+            this.addListener(menuElement, 'focus', this.toolbarItemHandleFocus);
+            this.addListener(menuElement, 'blur', this.toolbarItemHandleBlur);
+        }
+    }
+    _menuArrowKeyHandler(e, offset) {
+        e.preventDefault();
+        e.stopPropagation();
+        this._moveFocusToSibling?.(this, offset);
+    }
+    _focusMenu() {
+        if (this._menu.option('disabled'))
+            return super.setFocus();
+        this._menu.focus();
     }
     setFocus() {
-        if (this._complexItem() && this.element.getAttribute('aria-disabled') !== 'true')
+        if (this._menu) {
+            this._liveRegion().changeText('');
+            if (this.element.contains(document.activeElement))
+                return;
+            return this._focusMenu();
+        }
+        if (this._selectBox && this.element.getAttribute('aria-disabled') !== 'true')
             this._liveRegion().changeText(localization_utils_getLocalization('press Enter or Space to activate the editor', 'ASPxReportsStringId.WebDocumentViewer_AriaActivateEditor'), 200);
         else
             this._liveRegion().changeText('');
-        if (this._complexItem() && this.element.contains(document.activeElement))
+        if (this._selectBox && this.element.contains(document.activeElement))
             return;
         return super.setFocus();
     }
     actionExecute() {
-        if (this._complexItem()) {
+        if (this._isComplexItem()) {
             this._liveRegion().changeText(localization_utils_getLocalization('Press Alt ↓ or Alt  ↑ to navigate the editor. Press Esc to exit navigation mode.', 'ASPxReportsStringId.WebDocumentViewer_AriaEditorKeyboardNavigation'), 500);
+        }
+        if (this._menu) {
+            this._focusMenu();
+            return;
         }
         if (this._selectBox) {
             this._selectBox.focus();
             return;
         }
-        if (this._menu) {
-            this._menu.focus();
-            return;
+        if (!koUtils.unwrap(this._toolbarItemModel.disabled)) {
+            this._toolbarItemModel.clickAction?.();
+            const activationMessage = this._toolbarItemModel.getAccessibilityActivationMessage?.();
+            if (activationMessage)
+                this._liveRegion(true).changeText(activationMessage, 0);
         }
-        if (!koUtils.unwrap(this._toolbarItemModel.disabled))
-            this._toolbarItemModel.clickAction();
     }
     cancelAction() {
-        if (this._complexItem()) {
+        if (this._selectBox) {
             super.setFocus();
             return true;
         }
@@ -4093,7 +4146,8 @@ class FetchRequestManager {
                     responseDeferred.reject({ ...responseDeferred.promise(), statusText: response.statusText, status: response.status }, response.statusText);
                 }
             }, (error) => {
-                responseDeferred.reject({ ...responseDeferred.promise(), statusText: error.message, status: 0 }, error.message);
+                const statusText = typeof error === 'string' ? error : (error?.message ?? error?.name ?? 'error');
+                responseDeferred.reject({ ...responseDeferred.promise(), statusText, status: 0 }, statusText);
             });
             return responseDeferred.promise();
         };
@@ -4975,7 +5029,7 @@ class WizardDragDropHandler extends DragDropHandler {
 ;// external "DevExpress.VERSION"
 const external_DevExpress_VERSION_namespaceObject = DevExpress.VERSION;
 ;// ./dist/analytics-version.js
-const version = '26.1.3';
+const version = '26.1.4';
 
 ;// ./dist/core/internal/dxtTemplate.js
 function dxtTemplate() {
@@ -5956,9 +6010,8 @@ CssCalculator.DEFAULT_BORDER = 'none';
 ;// ./dist/core/internal/_editorTypeMapper.js
 
 
-const ExpressionType = 'DevExpress.DataAccess.Expression';
 function IsDataAccessExpression(type) {
-    return type === ExpressionType;
+    return type === DotnetTypes.DevExpressExpression;
 }
 const editorTypeMapper = {
     [DotnetTypes.Enum]: editorTemplates.getEditor('combobox'),
@@ -7679,6 +7732,7 @@ function updateTreeListItemViewModel(args) {
     viewModel.isHovered = this.isHovered;
     viewModel.isSelected = this.isSelected;
     viewModel.isMultiSelected = this.isMultiSelected;
+    viewModel.isLoading = this.isLoading;
     if (args.propertyName === 'isSelected' || args.propertyName === 'isMultiSelected') {
         viewModel.cssRules = this._getCssRules();
     }
@@ -7753,6 +7807,7 @@ function createTreeListItemViewModel(base) {
         .generateProperty('isHovered', this.isHovered)
         .generateProperty('isSelected', this.isSelected)
         .generateProperty('isMultiSelected', this.isMultiSelected)
+        .generateProperty('isLoading', this.isLoading)
         .generateProperty('treeListEditAction', treeListEditAction)
         .generateProperty('resolver', this.resolver)
         .getViewModel();
@@ -7912,14 +7967,22 @@ class TreeListItemViewModel extends BaseRenderingModel {
         this._disposables.reverse().forEach(x => x.dispose && x.dispose());
         this._disposables.splice(0);
         const processItemsResult = (value) => {
-            if (!value)
+            if (!value) {
+                this.isLoading = false;
                 return;
+            }
+            value.fail(() => {
+                this.isLoading = false;
+                deferred.reject();
+            });
             value.done((data) => {
                 if (this.isDisposing) {
+                    this.isLoading = false;
                     deferred.reject();
                     return;
                 }
                 this.isLoaded = true;
+                this.isLoading = false;
                 const _data = data || [];
                 const items = this.items;
                 let dataObj = this._createItemsObj(_data);
@@ -8013,6 +8076,7 @@ class TreeListItemViewModel extends BaseRenderingModel {
             });
         };
         const getPath = () => new PathRequest(this.path, this.pathParts);
+        this.isLoading = true;
         if (this.itemsProvider.subscribeOnItemsChanged) {
             this._itemsSubscriptionDispose = this.itemsProvider.subscribeOnItemsChanged(this, processItemsResult);
         }
@@ -8274,6 +8338,7 @@ class TreeListItemViewModel extends BaseRenderingModel {
     }
     dispose() {
         super.dispose();
+        this.isLoading = false;
         this._actionsSubscriptionDispose && this._actionsSubscriptionDispose();
         this._itemsSubscriptionDispose && this._itemsSubscriptionDispose();
         this._pathSubscriptionDispose && this._pathSubscriptionDispose();
@@ -8308,6 +8373,9 @@ _treelistItem_decorate([
 _treelistItem_decorate([
     mutable(false)
 ], TreeListItemViewModel.prototype, "isLoaded", void 0);
+_treelistItem_decorate([
+    mutable(false)
+], TreeListItemViewModel.prototype, "isLoading", void 0);
 _treelistItem_decorate([
     mutable(true)
 ], TreeListItemViewModel.prototype, "hasItems", void 0);
@@ -9100,6 +9168,12 @@ class UndoEngine extends Disposable {
         }
         return subscribtions;
     }
+    _triggerOnAdd(items) {
+        items?.forEach(item => item?.onAdd?.());
+    }
+    _triggerOnDelete(items) {
+        items?.forEach(item => item?.onDelete?.());
+    }
     undoChangeSet(changeSet) {
         if (changeSet.propertyChanged) {
             changeSet.observable(changeSet.propertyChanged.oldVal);
@@ -9109,13 +9183,15 @@ class UndoEngine extends Disposable {
             for (let i = 0; i < changeSet.arrayChanges.length; i++) {
                 if (changeSet.arrayChanges[i].status === 'added') {
                     const addedIndex = array.indexOf(changeSet.arrayChanges[i].value);
-                    if (addedIndex != -1)
-                        array.splice(addedIndex, 1);
+                    if (addedIndex != -1) {
+                        this._triggerOnDelete(array.splice(addedIndex, 1));
+                    }
                 }
             }
             for (let i = 0; i < changeSet.arrayChanges.length; i++) {
                 if (changeSet.arrayChanges[i].status === 'deleted') {
                     array.splice(changeSet.arrayChanges[i].index, 0, changeSet.arrayChanges[i].value);
+                    this._triggerOnAdd([changeSet.arrayChanges[i].value]);
                 }
             }
             if (external_ko_namespaceObject.isObservable(changeSet.observable)) {
@@ -9131,12 +9207,16 @@ class UndoEngine extends Disposable {
             const array = changeSet.observable();
             for (let i = 0; i < changeSet.arrayChanges.length; i++) {
                 if (changeSet.arrayChanges[i].status === 'deleted') {
-                    array.splice(array.indexOf(changeSet.arrayChanges[i].value), 1);
+                    const index = array.indexOf(changeSet.arrayChanges[i].value);
+                    if (index === -1)
+                        continue;
+                    this._triggerOnDelete(array.splice(index, 1));
                 }
             }
             for (let i = 0; i < changeSet.arrayChanges.length; i++) {
                 if (changeSet.arrayChanges[i].status === 'added') {
                     array.splice(changeSet.arrayChanges[i].index, 0, changeSet.arrayChanges[i].value);
+                    this._triggerOnAdd([changeSet.arrayChanges[i].value]);
                 }
             }
             if (external_ko_namespaceObject.isObservable(changeSet.observable)) {
@@ -12309,6 +12389,11 @@ function createBaseActionViewModel(action, index) {
         .generateProperty('class', getImageClass())
         .getViewModel())
         .getViewModel();
+    this.subscribe(action, 'text', () => {
+        const accessibleLabel = action.displayText && action.displayText() || action.text || '';
+        viewModelAction.displayText = accessibleLabel;
+        viewModelAction.block.attr['aria-label'] = accessibleLabel;
+    });
     this.subscribe(action, 'imageTemplateName', (newImageTemplateName) => {
         viewModelAction.image.templateName = newImageTemplateName;
     });
@@ -12433,12 +12518,20 @@ class ActionListsBase extends BaseRenderingModel {
     getActions() {
         return koUtils.unwrap(this.toolbarItems);
     }
+    actionAvailableAtTarget(action, e) {
+        return true;
+    }
     processShortcut(e) {
         const actions = this.getActions();
         const isMac = external_DevExpress_devices_default().real()['mac'];
         const processAction = (action) => {
-            e.preventDefault();
-            action.clickAction();
+            if (this.actionAvailableAtTarget(action, e)) {
+                e.preventDefault();
+                action.clickAction?.(e);
+                const activationMessage = action.getAccessibilityActivationMessage?.();
+                if (activationMessage)
+                    this.accessibilityAnnouncer?.(activationMessage);
+            }
         };
         const processHotKey = (action, hotKeyIndex) => {
             const hotKey = hotKeyIndex !== undefined ? action.hotKey[hotKeyIndex] : action.hotKey;
@@ -12515,6 +12608,9 @@ _actionListBase_decorate([
 _actionListBase_decorate([
     mutable(undefined)
 ], BaseAction.prototype, "selected", void 0);
+_actionListBase_decorate([
+    mutable(undefined)
+], BaseAction.prototype, "text", void 0);
 
 ;// ./dist/core/tools/_actionList.js
 
@@ -15360,6 +15456,39 @@ function createPasswordSerializationInfo(info, isNew = true) {
     return info;
 }
 
+;// ./dist/core/utils/_utils.specifics.js
+var SpecificTypes;
+(function (SpecificTypes) {
+    SpecificTypes["Date"] = "Date";
+    SpecificTypes["DateTime"] = "DateTime";
+    SpecificTypes["Time"] = "Time";
+    SpecificTypes["Integer"] = "Integer";
+    SpecificTypes["String"] = "String";
+    SpecificTypes["Bool"] = "Bool";
+    SpecificTypes["Float"] = "Float";
+    SpecificTypes["Enum"] = "Enum";
+    SpecificTypes["Guid"] = "guid";
+})(SpecificTypes || (SpecificTypes = {}));
+const appendExtenders = (specifics) => {
+    const extenders = ['Calc', 'Sum'];
+    return specifics.concat(...extenders.map(extender => specifics.map(type => extender + type)));
+};
+const numericTypes = new Set(appendExtenders([
+    SpecificTypes.Integer,
+    SpecificTypes.Float
+]));
+const dateTypes = new Set(appendExtenders([
+    SpecificTypes.Date,
+    SpecificTypes.DateTime,
+    SpecificTypes.Time
+]));
+function _isNumericTypeSpecific(specific) {
+    return numericTypes.has(specific);
+}
+function _isDateTypeSpecific(specific) {
+    return dateTypes.has(specific);
+}
+
 ;// ./dist/core/utils/_utils.sizeFactorType.js
 function getSizeFactor(width) {
     if (width < 768) {
@@ -17804,6 +17933,8 @@ function base64DecodeUnicode(base64string) {
 
 
 
+
+
 ;// ./dist/core/tools/_tabInfoWithPropertyGrid.js
 var _tabInfoWithPropertyGrid_decorate = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -17978,7 +18109,11 @@ class ElementViewModel extends PropertyModificationModel {
         if (this['controls']) {
             const childs = this['controls']();
             for (let i = 0; i < controls.length; i++) {
-                childs.splice(childs.indexOf(controls[i]), 1);
+                const index = childs.indexOf(controls[i]);
+                if (index === -1)
+                    continue;
+                const removedControl = childs.splice(index, 1);
+                removedControl?.[0]?.onDelete?.();
             }
             this['controls'].valueHasMutated();
         }
@@ -18002,6 +18137,7 @@ class ElementViewModel extends PropertyModificationModel {
         if (this['controls'] && this['controls']().indexOf(control) === -1) {
             control.parentModel(this);
             this['controls'].splice(0, 0, control);
+            control.onAdd();
         }
     }
     isPropertyVisible(name) {
@@ -18030,6 +18166,7 @@ class ElementViewModel extends PropertyModificationModel {
         return false;
     }
     onDelete() { }
+    onAdd() { }
 }
 
 ;// ./dist/core/utils/controlsFactory.js
@@ -18799,7 +18936,7 @@ function wrapOptions(editorViewModel) {
     const editor = editorViewModel.getModel();
     const getOptionsInfoProperty = (propertyName) => !propertyName ? editorViewModel.info
         : editorViewModel.info && editorViewModel.info[propertyName];
-    const addHandler = () => (getOptionsInfoProperty('addHandler')).call(this);
+    const addHandler = () => (getOptionsInfoProperty('addHandler')).call({ data: editorViewModel });
     return {
         values: [...editor.value],
         addHandler: () => {
@@ -18809,7 +18946,8 @@ function wrapOptions(editorViewModel) {
             editor._set('value', [...array]);
         },
         info: editorViewModel.info,
-        level: editorViewModel.level, displayName: localization_utils_getLocalization(editorViewModel.displayName)
+        level: editorViewModel.level, displayName: localization_utils_getLocalization(editorViewModel.displayName),
+        editor
     };
 }
 function createCollectionEditorViewModelItem(x, i, editor) {
@@ -19078,6 +19216,28 @@ class CollectionEditorViewModel extends BaseRenderingModel {
         this.padding = this.level * propertiesGridEditorsPaddingLeft();
         this.displayName = info ? localization_utils_getLocalization(info.displayName, info.localizationId) : options.displayName;
         this.options = options;
+        if (options.editor) {
+            let isUpdating = false;
+            const lock = (callback) => {
+                if (isUpdating)
+                    return;
+                isUpdating = true;
+                try {
+                    callback();
+                }
+                finally {
+                    isUpdating = false;
+                }
+            };
+            const onValueChanged = options.onValueChanged;
+            options.onValueChanged = (array, args) => lock(() => onValueChanged && onValueChanged(array, args));
+            this.addDisposable(options.editor.events.on('valueChanged', (args) => {
+                lock(() => {
+                    const unwrappedValue = args.newValue;
+                    this.values = Array.isArray(unwrappedValue) ? [...unwrappedValue] : [];
+                });
+            }));
+        }
         if (!options.displayName) {
             this.collapsed = false;
             this.alwaysShow = true;
@@ -22286,6 +22446,7 @@ addToBindingsCache('visible: isSelected || isHovered, click: function(s, e) { e.
 addToBindingsCache('event: events, click: function(s, e) { $root.hideContextMenu && $root.hideContextMenu(); toggleSelected(s, e); }, styleunit: padding, draggable: isDraggable ? dragDropHandler : null, css: cssRules, attr: attr', function ($context, $element) { return { 'event': function () { return $context.$data.events; }, 'click': function () { return function (s, e) { $context.$root.hideContextMenu && $context.$root.hideContextMenu(); $context.$data.toggleSelected(s, e); }; }, 'styleunit': function () { return $context.$data.padding; }, 'draggable': function () { return $context.$data.isDraggable ? $context.$data.dragDropHandler : null; }, 'css': function () { return $context.$data.cssRules; }, 'attr': function () { return $context.$data.attr; } }; });
 addToBindingsCache('style: { \'padding-left\': hasItems ? \'0px\': \'18px\' }', function ($context, $element) { return { 'style': function () { return { 'padding-left': $context.$data.hasItems ? '0px' : '18px' }; } }; });
 addToBindingsCache('searchHighlighting: { text: text, textToSearch: searchModel.textToSearch, searchOptions: searchModel.searchOptions }, attr: { title: text }', function ($context, $element) { return { 'searchHighlighting': function () { return { 'text': $context.$data.text, 'textToSearch': $context.$data.searchModel.textToSearch, 'searchOptions': $context.$data.searchModel.searchOptions }; }, 'attr': function () { return { 'title': $context.$data.text }; } }; });
+addToBindingsCache('dxLoadIndicator: { visible: true, width: 16, height: 16 }', function ($context, $element) { return { 'dxLoadIndicator': function () { return { 'visible': true, 'width': 16, 'height': 16 }; } }; });
 addToBindingsCache('css: imageClassName, template: { name: imageTemplateName, if: !!imageTemplateName }, attr: { title: text }', function ($context, $element) { return { 'css': function () { return $context.$data.imageClassName; }, 'template': function () { return { 'name': $context.$data.imageTemplateName, 'if': !!$context.$data.imageTemplateName }; }, 'attr': function () { return { 'title': $context.$data.text }; } }; });
 addToBindingsCache('if: searchModel.searchEnabled', function ($context, $element) { return { 'if': function () { return $context.$data.searchModel.searchEnabled; } }; });
 addToBindingsCache('ifnot: searchModel.searchEnabled', function ($context, $element) { return { 'ifnot': function () { return $context.$data.searchModel.searchEnabled; } }; });
@@ -22298,6 +22459,8 @@ addToBindingsCache('template: actionsTemplate', function ($context, $element) { 
 addToBindingsCache('if: actions && actions.length > 0', function ($context, $element) { return { 'if': function () { return $context.$data.actions && $context.$data.actions.length > 0; } }; });
 addToBindingsCache('template: templates.actionsContainer', function ($context, $element) { return { 'template': function () { return $context.$data.templates.actionsContainer; } }; });
 addToBindingsCache('template: templates.headerItemContent', function ($context, $element) { return { 'template': function () { return $context.$data.templates.headerItemContent; } }; });
+addToBindingsCache('if: isLoading && data && data.specifics === \'ListSource\'', function ($context, $element) { return { 'if': function () { return $context.$data.isLoading && $context.$data.data && $context.$data.data.specifics === 'ListSource'; } }; });
+addToBindingsCache('ifnot: isLoading && data && data.specifics === \'ListSource\'', function ($context, $element) { return { 'ifnot': function () { return $context.$data.isLoading && $context.$data.data && $context.$data.data.specifics === 'ListSource'; } }; });
 addToBindingsCache('template: templates.itemTextContent', function ($context, $element) { return { 'template': function () { return $context.$data.templates.itemTextContent; } }; });
 addToBindingsCache('event: events, click: toggleSelected,  draggable: isDraggable ? dragDropHandler : null, styleunit: padding, css: { \'dx-treelist-item-selected dxd-state-selected dxd-back-secondary\': isSelected || isMultiSelected }', function ($context, $element) { return { 'event': function () { return $context.$data.events; }, 'click': function () { return $context.$data.toggleSelected; }, 'draggable': function () { return $context.$data.isDraggable ? $context.$data.dragDropHandler : null; }, 'styleunit': function () { return $context.$data.padding; }, 'css': function () { return { 'dx-treelist-item-selected dxd-state-selected dxd-back-secondary': $context.$data.isSelected || $context.$data.isMultiSelected }; } }; });
 addToBindingsCache('css: nodeImageClass, template: \'dxrd-svg-collapsed\', click: toggleCollapsed, style: { \'visibility\': hasItems ? \'visible\' : \'hidden\' }', function ($context, $element) { return { 'css': function () { return $context.$data.nodeImageClass; }, 'template': function () { return 'dxrd-svg-collapsed'; }, 'click': function () { return $context.$data.toggleCollapsed; }, 'style': function () { return { 'visibility': $context.$data.hasItems ? 'visible' : 'hidden' }; } }; });
@@ -22685,7 +22848,7 @@ SvgTemplatesEngine.addTemplates({
     'dx-treelist-item-actions-container': '<div class="dx-treelist-action-container" data-bind="visible: isSelected || isHovered, click: function(s, e) { e.stopPropagation(); }"> <!-- ko template: actionsTemplate --> <!-- /ko --> </div>',
     'dx-treelist-header-item': '<div role="treeitem" class="dx-treelist-item dxd-list-item-back-color dxd-back-highlighted dx-accessibility-treelist-item dx-accessibility-focus-border-accented" data-bind="event: events, click: function(s, e) { $root.hideContextMenu && $root.hideContextMenu(); toggleSelected(s, e); }, styleunit: padding, draggable: isDraggable ? dragDropHandler : null, css: cssRules, attr: attr"> <!-- ko if: hasItems--> <div class="dx-treelist-collapsedbutton" data-bind="css: nodeImageClass, template: \'dxrd-svg-collapsed\', click: toggleCollapsed"></div> <!-- /ko --> <div class="dx-treelist-caption" data-bind="style: { \'padding-left\': hasItems ? \'0px\': \'18px\' }"> <!-- ko if: actions && actions.length > 0 --> <!-- ko template: templates.actionsContainer --> <!-- /ko  --> <!-- /ko  --> <div class="dx-treelist-selectedcontent"> <!-- ko template: templates.headerItemContent --> <!-- /ko --> </div> </div> </div>',
     'dx-treelist-item-text-content': '<div class="dx-treelist-text-wrapper"> <!--ko if: searchModel.searchEnabled --> <div class="dx-treelist-text dx-highlighted-search-text" data-bind="searchHighlighting: { text: text, textToSearch: searchModel.textToSearch, searchOptions: searchModel.searchOptions }, attr: { title: text }"></div> <!-- /ko  --> <!--ko ifnot: searchModel.searchEnabled --> <div class="dx-treelist-text" data-bind="text: text, attr: { title: text }"></div> <!-- /ko  --> </div>',
-    'dx-treelist-header-item-caption-content': '<div class="dx-treelist-image" data-bind="css: imageClassName, template: { name: imageTemplateName, if: !!imageTemplateName }, attr: { title: text }"> </div> <!-- ko template: templates.itemTextContent --> <!-- /ko -->',
+    'dx-treelist-header-item-caption-content': '<!-- ko if: isLoading && data && data.specifics === \'ListSource\' --> <div class="dx-treelist-image dx-treelist-image-loading"> <div data-bind="dxLoadIndicator: { visible: true, width: 16, height: 16 }"></div> </div> <!-- /ko --> <!-- ko ifnot: isLoading && data && data.specifics === \'ListSource\' --> <div class="dx-treelist-image" data-bind="css: imageClassName, template: { name: imageTemplateName, if: !!imageTemplateName }, attr: { title: text }"> </div> <!-- /ko --> <!-- ko template: templates.itemTextContent --> <!-- /ko -->',
     'dx-treelist-item-with-hover': '<div data-bind="visible: visible"> <!-- ko if: hasContent --> <!-- ko template: "dx-treelist-accordion-item-with-hover" --> <!-- /ko --> <!-- /ko --> <!-- ko ifnot: hasContent --> <!-- ko template: "dx-treelist-header-item-with-hover" --> <!-- /ko --> <!-- /ko --> </div>',
     'dx-treelist-accordion-item-with-hover': '<div data-bind="dxdAccordionExt: { collapsed: collapsed, lazyContentRendering: true, setCollapsedChangedEvent: setCollapsedChangedEvent }"> <!-- ko template: "dx-treelist-header-item-with-hover" --> <!-- /ko --> <div class="dx-fieldset dx-accordion-content dxd-back-primary"> <!-- ko with: data --> <!-- ko template: { name: contenttemplate } --> <!-- /ko --> <!-- /ko --> </div> </div>',
     'dx-treelist-header-item-with-hover': '<div class="dx-background-inheritor dxd-back-highlighted dxd-state-selected"> <div class="dx-treelist-item dx-fontsize-reestablished dxd-list-item-back-color" data-bind="event: events, click: toggleSelected,  draggable: isDraggable ? dragDropHandler : null, styleunit: padding, css: { \'dx-treelist-item-selected dxd-state-selected dxd-back-secondary\': isSelected || isMultiSelected }"> <div class="dx-treelist-collapsedbutton" data-bind="css: nodeImageClass, template: \'dxrd-svg-collapsed\', click: toggleCollapsed, style: { \'visibility\': hasItems ? \'visible\' : \'hidden\' }"></div> <div class="dx-treelist-caption"> <!-- ko if: actions && actions.length > 0 --> <div class="dx-treelist-action-container" data-bind="visible: isSelected || isHovered, click: function(s, e) { e.stopPropagation(); }"> <!-- ko template: actionsTemplate --> <!-- /ko --> </div> <!-- /ko  --> <div class="dx-treelist-selectedcontent"> <div class="dx-treelist-image" data-bind="css: imageClassName, template: { name: imageTemplateName, if: !!imageTemplateName }, attr: { title: text }"> </div> <div class="dx-treelist-text-wrapper"> <div class="dx-treelist-text" data-bind="text: text, attr: { title: text }"></div> </div> </div> </div> </div> </div>',
@@ -24726,7 +24889,11 @@ class SurfaceElementArea extends Disposable {
         const _rect = external_ko_namespaceObject.observable();
         this._disposables.push(external_ko_namespaceObject.computed(() => {
             if (!this._control.update()) {
-                _rect({ top: y(), left: x(), right: x() + width(), bottom: y() + height(), width: width(), height: height() });
+                const newRect = { top: y(), left: x(), right: x() + width(), bottom: y() + height(), width: width(), height: height() };
+                const currentRect = _rect();
+                if (!currentRect || Object.keys(newRect).some(key => currentRect[key] !== newRect[key])) {
+                    _rect(newRect);
+                }
             }
         }));
         this._disposables.push(this.rect = external_ko_namespaceObject.pureComputed({

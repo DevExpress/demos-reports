@@ -1,7 +1,7 @@
 ﻿/**
-* DevExpress Analytics (dist\js\dx-querybuilder.js)
-* Version:  26.1.3
-* Build date: Jun 16, 2026
+* DevExpress Analytics (js\dx-querybuilder.js)
+* Version:  26.1.4
+* Build date: Jul 27, 2026
 * Copyright (c) 2012 - 2026 Developer Express Inc. ALL RIGHTS RESERVED
 * License: https://www.devexpress.com/Support/EULAs/universal.xml
 */
@@ -113,6 +113,7 @@ __webpack_require__.d(analytics_data_namespaceObject, {
   DBStoredProcedureArgumentDirection: () => (DBStoredProcedureArgumentDirection),
   DBTable: () => (DBTable),
   DataSourceParameter: () => (DataSourceParameter),
+  DataSourceParameterTypeValue: () => (DataSourceParameterTypeValue),
   FederatedQueriesContainer: () => (FederatedQueriesContainer),
   FederatedQueryExpression: () => (FederatedQueryExpression),
   FederatedQueryExpressionType: () => (FederatedQueryExpressionType),
@@ -157,12 +158,16 @@ __webpack_require__.d(analytics_data_namespaceObject, {
   UnionTypes: () => (UnionTypes),
   _resetGetMongoDBSchemaCallback: () => (_resetGetMongoDBSchemaCallback),
   _setGetMongoDBSchemaCallback: () => (_setGetMongoDBSchemaCallback),
+  baseParameterLocalizationMap: () => (baseParameterLocalizationMap),
+  defaultGuidValue: () => (defaultGuidValue),
+  defaultParameterTypes: () => (defaultParameterTypes),
   expressionSerializationInfo: () => (expressionSerializationInfo),
   getMongoDBSchemaCallback: () => (getMongoDBSchemaCallback),
   mongoDBQuerySerializationInfo: () => (mongoDBQuerySerializationInfo),
   selectQuerySerializationsInfo: () => (selectQuerySerializationsInfo),
   sourceQuerySerializationsInfo: () => (sourceQuerySerializationsInfo),
   subNodeSerializationInfo: () => (subNodeSerializationInfo),
+  toDisplayedValueArray: () => (toDisplayedValueArray),
   transformQuerySerializationsInfo: () => (transformQuerySerializationsInfo),
   transformationRuleSerializationsInfo: () => (transformationRuleSerializationsInfo),
   unionQuerySerializationsInfo: () => (unionQuerySerializationsInfo)
@@ -1763,6 +1768,7 @@ external_ko_namespaceObject.bindingHandlers['routeLineDraggable'] = {
 
 ;// ./dist/query-builder/dataSource/dbColumn.js
 
+
 var DBColumnType;
 (function (DBColumnType) {
     DBColumnType[DBColumnType["Unknown"] = 0] = "Unknown";
@@ -1847,7 +1853,7 @@ class DBColumn {
         }
         switch (type) {
             case external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemBoolean:
-                return 'Bool';
+                return external_DevExpress_Analytics_Internal_namespaceObject.SpecificTypes.Bool;
             case external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemByte:
             case external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemSByte:
             case external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemInt16:
@@ -1856,24 +1862,25 @@ class DBColumn {
             case external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemUInt32:
             case external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemInt64:
             case external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemUInt64:
-                return 'Integer';
+                return external_DevExpress_Analytics_Internal_namespaceObject.SpecificTypes.Integer;
             case external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemChar:
             case external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemGuid:
             case 'System.ByteArray':
             case external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemString:
-                return 'String';
+                return external_DevExpress_Analytics_Internal_namespaceObject.SpecificTypes.String;
             case external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDouble:
             case external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemSingle:
             case external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDecimal:
-                return 'Float';
+                return external_DevExpress_Analytics_Internal_namespaceObject.SpecificTypes.Float;
             case external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDateTime:
-            case external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemTimeSpan:
+                return external_DevExpress_Analytics_Internal_namespaceObject.SpecificTypes.DateTime;
             case external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDateOnly:
-                return 'Date';
+                return external_DevExpress_Analytics_Internal_namespaceObject.SpecificTypes.Date;
             case external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemTimeOnly:
-                return 'Time';
+            case external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemTimeSpan:
+                return external_DevExpress_Analytics_Internal_namespaceObject.SpecificTypes.Time;
             default:
-                return 'String';
+                return external_DevExpress_Analytics_Internal_namespaceObject.SpecificTypes.String;
         }
     }
 }
@@ -2960,7 +2967,39 @@ var FederationQueryType;
     FederationQueryType[FederationQueryType["TransformationNode"] = 3] = "TransformationNode";
 })(FederationQueryType || (FederationQueryType = {}));
 
+;// ./dist/query-builder/dataSource/dataSourceParameterLocalizationMap.js
+
+const baseParameterLocalizationMap = {
+    [external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemString]: { displayValue: 'String', localizationId: 'AnalyticsCoreStringId.Parameter_Type_String' },
+    [external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDateTime]: { displayValue: 'Date and Time', localizationId: 'AnalyticsCoreStringId.Parameter_Type_DateTime' },
+    [external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDateOnly]: { displayValue: 'Date', localizationId: 'AnalyticsCoreStringId.Parameter_Type_DateOnly' },
+    [external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemTimeOnly]: { displayValue: 'Time', localizationId: 'AnalyticsCoreStringId.Parameter_Type_TimeOnly' },
+    [external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemInt16]: { displayValue: 'Number (16 bit integer)', localizationId: 'AnalyticsCoreStringId.Parameter_Type_Int16' },
+    [external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemInt32]: { displayValue: 'Number (32 bit integer)', localizationId: 'AnalyticsCoreStringId.Parameter_Type_Int32' },
+    [external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemInt64]: { displayValue: 'Number (64 bit integer)', localizationId: 'AnalyticsCoreStringId.Parameter_Type_Int64' },
+    [external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemSingle]: { displayValue: 'Number (floating-point)', localizationId: 'AnalyticsCoreStringId.Parameter_Type_Float' },
+    [external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDouble]: { displayValue: 'Number (double-precision floating-point)', localizationId: 'AnalyticsCoreStringId.Parameter_Type_Double' },
+    [external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDecimal]: { displayValue: 'Number (decimal)', localizationId: 'AnalyticsCoreStringId.Parameter_Type_Decimal' },
+    [external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemBoolean]: { displayValue: 'Boolean', localizationId: 'AnalyticsCoreStringId.Parameter_Type_Boolean' },
+    [external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemGuid]: { displayValue: 'Guid', localizationId: 'AnalyticsCoreStringId.Parameter_Type_Guid' },
+    [external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemByte]: { displayValue: 'Non-negative number (8 bit integer)', localizationId: 'DataAccessStringId.Type_Byte' },
+    [external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemSByte]: { displayValue: 'Number (8 bit integer)', localizationId: 'DataAccessStringId.Type_SByte' },
+    [external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemUInt32]: { displayValue: 'Non-negative number (32 bit integer)', localizationId: 'DataAccessStringId.Type_UInt' },
+    [external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemUInt16]: { displayValue: 'Non-negative number (16 bit integer)', localizationId: 'DataAccessStringId.Type_UShort' },
+    [external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemUInt64]: { displayValue: 'Non-negative number (64 bit integer)', localizationId: 'DataAccessStringId.Type_ULong' },
+    [external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemChar]: { displayValue: 'Char', localizationId: 'DataAccessStringId.Type_Char' },
+    [external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemObject]: { displayValue: 'Object', localizationId: 'DataAccessStringId.Type_Object' },
+    [external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemBiteArray]: { displayValue: 'Byte array', localizationId: 'DataAccessStringId.Type_ByteArray' },
+    [external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemTimeSpan]: { displayValue: 'Time interval', localizationId: 'DataAccessStringId.Type_TimeSpan' },
+    [external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.DevExpressExpression]: { displayValue: 'Expression', localizationId: 'DataAccessUIStringId.ParametersColumn_Expression' },
+    [external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.Enum]: { displayValue: 'Enum' }
+};
+const toDisplayedValueArray = (typeArray) => {
+    return typeArray.map(type => ({ ...baseParameterLocalizationMap[type], value: type }));
+};
+
 ;// ./dist/query-builder/dataSource/dataSourceParameterMeta.js
+
 
 
 
@@ -2979,21 +3018,21 @@ const dsParameterNameValidationRules = [{
 const parameterValueSerializationsInfo = { propertyName: 'value', displayName: 'Value', localizationId: 'DevExpress.DataAccess.Parameter.Value', editor: external_DevExpress_Analytics_Widgets_namespaceObject.editorTemplates.getEditor('text') };
 const dsParameterName = { propertyName: 'name', displayName: 'Name', localizationId: 'DevExpress.DataAccess.Parameter.Name', validationRules: dsParameterNameValidationRules, editor: external_DevExpress_Analytics_Widgets_namespaceObject.editorTemplates.getEditor('text') };
 const dsParameterType = {
-    propertyName: 'type', displayName: 'Type', localizationId: 'DevExpress.DataAccess.Parameter.Type', modelName: '@Type', editor: external_DevExpress_Analytics_Widgets_namespaceObject.editorTemplates.getEditor('combobox'), valuesArray: [
-        { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemString, displayValue: 'String', localizationId: 'AnalyticsCoreStringId.Parameter_Type_String' },
-        { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDateTime, displayValue: 'Date and Time', localizationId: 'AnalyticsCoreStringId.Parameter_Type_DateTime' },
-        { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDateOnly, displayValue: 'Date', localizationId: 'AnalyticsCoreStringId.Parameter_Type_DateOnly' },
-        { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemTimeOnly, displayValue: 'Time', localizationId: 'AnalyticsCoreStringId.Parameter_Type_TimeOnly' },
-        { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemInt16, displayValue: 'Number (16 bit integer)', localizationId: 'AnalyticsCoreStringId.Parameter_Type_Int16' },
-        { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemInt32, displayValue: 'Number (32 bit integer)', localizationId: 'AnalyticsCoreStringId.Parameter_Type_Int32' },
-        { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemInt64, displayValue: 'Number (64 bit integer)', localizationId: 'AnalyticsCoreStringId.Parameter_Type_Int64' },
-        { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemSingle, displayValue: 'Number (floating-point)', localizationId: 'AnalyticsCoreStringId.Parameter_Type_Float' },
-        { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDouble, displayValue: 'Number (double-precision floating-point)', localizationId: 'AnalyticsCoreStringId.Parameter_Type_Double' },
-        { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDecimal, displayValue: 'Number (decimal)', localizationId: 'AnalyticsCoreStringId.Parameter_Type_Decimal' },
-        { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemBoolean, displayValue: 'Boolean', localizationId: 'AnalyticsCoreStringId.Parameter_Type_Boolean' },
-        { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemGuid, displayValue: 'Guid', localizationId: 'AnalyticsCoreStringId.Parameter_Type_Guid' },
-        { value: external_DevExpress_Analytics_Internal_namespaceObject.ExpressionType, displayValue: 'Expression', localizationId: 'DataAccessUIStringId.ParametersColumn_Expression' }
-    ]
+    propertyName: 'type', displayName: 'Type', localizationId: 'DevExpress.DataAccess.Parameter.Type', modelName: '@Type', editor: external_DevExpress_Analytics_Widgets_namespaceObject.editorTemplates.getEditor('combobox'), valuesArray: toDisplayedValueArray([
+        external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemString,
+        external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDateTime,
+        external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDateOnly,
+        external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemTimeOnly,
+        external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemInt16,
+        external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemInt32,
+        external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemInt64,
+        external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemSingle,
+        external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDouble,
+        external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDecimal,
+        external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemBoolean,
+        external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemGuid,
+        external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.DevExpressExpression,
+    ])
 };
 const dsExpressionResultType = {
     propertyName: 'resultType',
@@ -3011,17 +3050,17 @@ const baseDSParamterSerializationsInfo = [
     { propertyName: 'itemType', modelName: '@ItemType' }
 ];
 const dsParameterSerializationInfo = [dsParameterName, dsParameterType, dsExpressionResultType].concat(baseDSParamterSerializationsInfo);
-const storedProcAdditionValuesArray = [
-    { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemByte, displayValue: 'Non-negative number (8 bit integer)', localizationId: 'DataAccessStringId.Type_Byte' },
-    { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemSByte, displayValue: 'Number (8 bit integer)', localizationId: 'DataAccessStringId.Type_SByte' },
-    { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemUInt32, displayValue: 'Non-negative number (32 bit integer)', localizationId: 'DataAccessStringId.Type_UInt' },
-    { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemUInt16, displayValue: 'Non-negative number (16 bit integer)', localizationId: 'DataAccessStringId.Type_UShort' },
-    { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemUInt64, displayValue: 'Non-negative number (64 bit integer)', localizationId: 'DataAccessStringId.Type_ULong' },
-    { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemChar, displayValue: 'Char', localizationId: 'DataAccessStringId.Type_Char' },
-    { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemObject, displayValue: 'Object', localizationId: 'DataAccessStringId.Type_Object' },
-    { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemBiteArray, displayValue: 'Byte array', localizationId: 'DataAccessStringId.Type_ByteArray' },
-    { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemTimeSpan, displayValue: 'Time interval', localizationId: 'DataAccessStringId.Type_TimeSpan' },
-];
+const storedProcAdditionValuesArray = toDisplayedValueArray([
+    external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemByte,
+    external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemSByte,
+    external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemUInt32,
+    external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemUInt16,
+    external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemUInt64,
+    external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemChar,
+    external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemObject,
+    external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemBiteArray,
+    external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemTimeSpan
+]);
 function storedProcParameterSerializationsInfo(type) {
     const copyParamType = (0,external_DevExpress_Analytics_Internal_namespaceObject.extend)(true, {}, dsParameterType);
     const newValuesArray = [];
@@ -3049,7 +3088,26 @@ const expressionFunctions = ((addins) => (0,external_DevExpress_Analytics_Widget
     }
 });
 
+;// ./dist/query-builder/dataSource/dataSourceParameterTypeValue.js
+
+
+class DataSourceParameterTypeValue {
+    constructor(value, defaultValue, valueConverter, specifics) {
+        this.value = value;
+        this.defaultValue = defaultValue;
+        this.disabled = false;
+        this.valueConverter = (val, currentDefaultVal) => valueConverter(val, currentDefaultVal ?? defaultValue, this.value);
+        const localizableValue = baseParameterLocalizationMap[value];
+        this.displayValue = localizableValue.displayValue;
+        this.localizationId = localizableValue.localizationId;
+        this.specifics = specifics || DBColumn.GetSpecific(value);
+    }
+}
+
 ;// ./dist/query-builder/dataSource/dataSourceParameter.js
+
+
+
 
 
 
@@ -3075,22 +3133,20 @@ function expressionValueConverter(val) {
     }
     return (val || '').toString();
 }
-class DataSourceParameterTypeValue {
-    constructor(name, defaultValue, _valueConverter, realTypeName) {
-        this.name = name;
-        this.defaultValue = defaultValue;
-        this.realTypeName = realTypeName;
-        if (_valueConverter)
-            this.valueConverter = (val) => _valueConverter(val, defaultValue, this.name);
-    }
-    get specifics() {
-        return DBColumn.GetSpecific(this.realTypeName || this.name);
-    }
-}
 const tryParseDate = val => {
     let date;
     try {
         date = (0,external_DevExpress_Analytics_Internal_namespaceObject.parseDate)(val);
+    }
+    catch (e) {
+        date = dateDefaultValue();
+    }
+    return date;
+};
+const tryParseTime = val => {
+    let date;
+    try {
+        date = (0,external_DevExpress_Analytics_Utils_namespaceObject.parseTime)(val);
     }
     catch (e) {
         date = dateDefaultValue();
@@ -3102,15 +3158,35 @@ const dateDefaultValue = () => {
     date.setHours(0, 0, 0, 0);
     return date;
 };
+const stringValueConverter = (val, defaultVal) => {
+    return val?.toString() ?? defaultVal;
+};
+const defaultGuidValue = '00000000-0000-0000-0000-000000000000';
+const defaultParameterTypes = [
+    new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemString, '', stringValueConverter),
+    new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDateTime, dateDefaultValue(), tryParseDate),
+    new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDateOnly, dateDefaultValue(), tryParseDate),
+    new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemTimeOnly, dateDefaultValue(), tryParseTime),
+    new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemInt16, '0', integerValueConverter),
+    new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemInt32, '0', integerValueConverter),
+    new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemInt64, '0', integerValueConverter),
+    new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemSingle, '0', floatValueConverter),
+    new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDouble, '0', floatValueConverter),
+    new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDecimal, '0', floatValueConverter),
+    new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemBoolean, false, val => val !== void 0 ? String(val).toLowerCase() === 'true' : val)
+];
 class DataSourceParameter extends external_DevExpress_Analytics_Utils_namespaceObject.Disposable {
     static _getTypeValue(typeName, resultType = null) {
-        const result = DataSourceParameter._typeValues.filter((type) => { return type.name === typeName; });
-        if (result.length > 0) {
-            if (resultType && (0,external_DevExpress_Analytics_Internal_namespaceObject.IsDataAccessExpression)(typeName))
-                result[0].realTypeName = resultType;
-            return result[0];
+        if ((0,external_DevExpress_Analytics_Internal_namespaceObject.IsDataAccessExpression)(typeName)) {
+            return {
+                value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.DevExpressExpression,
+                defaultValue: '',
+                specifics: DBColumn.GetSpecific(resultType || typeName),
+                valueConverter: expressionValueConverter
+            };
         }
-        return { name: typeName, defaultValue: null, specifics: 'String', disableEditor: true };
+        const result = DataSourceParameter._typeValues.find((type) => { return type.value === typeName; });
+        return result ?? { value: typeName, defaultValue: null, specifics: external_DevExpress_Analytics_Internal_namespaceObject.SpecificTypes.String, disabled: true, valueConverter: stringValueConverter };
     }
     _getTypeValue(typeName) {
         return DataSourceParameter._getTypeValue(typeName, this.resultType());
@@ -3136,8 +3212,8 @@ class DataSourceParameter extends external_DevExpress_Analytics_Utils_namespaceO
         this._expressionValue(null);
         this._value(null);
         this._valueInfo((0,external_DevExpress_Analytics_Internal_namespaceObject.extend)({}, parameterValueSerializationsInfo, {
-            editor: this.getEditorType(typeValue.name),
-            disabled: typeValue.disableEditor === true,
+            editor: this.getEditorType(typeValue.value),
+            disabled: typeValue.disabled === true,
             editorOptions: {
                 onFocusOut: (params) => {
                     this.isValid(params.component.option('isValid'));
@@ -3193,7 +3269,7 @@ class DataSourceParameter extends external_DevExpress_Analytics_Utils_namespaceO
         const realTypeName = ((0,external_DevExpress_Analytics_Internal_namespaceObject.IsDataAccessExpression)(this.type.peek()))
             ? this.resultType()
             : this.type();
-        const result = DataSourceParameter._typeValues.filter((type) => { return type.name === realTypeName; });
+        const result = DataSourceParameter._typeValues.filter((type) => { return type.value === realTypeName; });
         if (result.length > 0)
             return result[0].specifics;
         return 'string';
@@ -3213,25 +3289,15 @@ class DataSourceParameter extends external_DevExpress_Analytics_Utils_namespaceO
     }
 }
 DataSourceParameter._typeValues = [
-    new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDateTime, dateDefaultValue(), tryParseDate),
-    new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDateOnly, dateDefaultValue(), tryParseDate),
-    new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemTimeOnly, dateDefaultValue(), tryParseDate),
-    new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemString, ''),
+    ...defaultParameterTypes,
+    new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemGuid, defaultGuidValue, stringValueConverter),
     new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemSByte, '0', integerValueConverter),
-    new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemInt16, '0', integerValueConverter),
-    new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemInt32, '0', integerValueConverter),
-    new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemInt64, '0', integerValueConverter),
     new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemByte, '0', integerValueConverter),
     new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemUInt16, '0', integerValueConverter),
     new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemUInt32, '0', integerValueConverter),
     new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemUInt64, '0', integerValueConverter),
-    new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDecimal, '0', floatValueConverter),
-    new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDouble, '0', floatValueConverter),
-    new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemSingle, '0', floatValueConverter),
-    new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemBoolean, false, val => val !== void 0 ? String(val).toLowerCase() === 'true' : val),
-    new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemGuid, '00000000-0000-0000-0000-000000000000'),
-    new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.ExpressionType, '', expressionValueConverter),
-    new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemChar, ''),
+    new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.DevExpressExpression, '', expressionValueConverter),
+    new DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemChar, '', stringValueConverter),
 ];
 
 ;// ./dist/query-builder/dataSource/sql/customSqlQueryMeta.js
@@ -4442,6 +4508,10 @@ class FederationDataSource extends FederatedQueriesContainer {
 
 
 
+
+
+
+
 ;// ./dist/query-builder/dataSource/_utils.js
 
 
@@ -4951,6 +5021,7 @@ function _registerChooseSqlConnectionPage(factory, connectionStrings, getSqlConn
 
 
 
+
 class ObjectDataSourceParameterProperty extends external_DevExpress_Analytics_Utils_namespaceObject.Disposable {
     switchPropertyType() {
         if (this.isExpression()) {
@@ -4958,7 +5029,7 @@ class ObjectDataSourceParameterProperty extends external_DevExpress_Analytics_Ut
             this._parameter.value = this.value();
         }
         else {
-            this.type(external_DevExpress_Analytics_Internal_namespaceObject.ExpressionType);
+            this.type(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.DevExpressExpression);
             this._parameter.value = this.expression.value();
         }
     }
@@ -12823,7 +12894,7 @@ class FederatedQueryConfigurePage extends WizardPageBase {
         this._scrollViewHeight = 'calc(100% - 37px)';
         this._isDataLoadingInProcess = external_ko_namespaceObject.observable(false);
         this._customizeDBSchemaTreeListActions = null;
-        this._dataSources(this._options.dataSources());
+        this._dataSources(this._options.usedDataSources ? this._options.usedDataSources() : this._options.dataSources());
         this._disposables.push(this._fieldListProvider = new external_DevExpress_Analytics_Internal_namespaceObject.FieldListProvider(this._wrapFieldListCallback(this._options.callbacks.fieldListsCallback, false), this._dataSources, [
             new FederationDataSourceItemsExtender(this._dataSources)
         ], true));

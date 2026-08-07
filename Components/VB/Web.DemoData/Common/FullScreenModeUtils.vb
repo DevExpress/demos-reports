@@ -85,7 +85,7 @@ Namespace DevExpress.Web.Demos
             Return image
         End Function
     End Class
-    Public Class QRBarCodeData
+    Friend Class QRBarCodeData
         Implements IBarCodeData
 
 
@@ -96,7 +96,11 @@ Namespace DevExpress.Web.Demos
             Me.text_Renamed = text
             Me.style_Renamed = New DevExpress.XtraPrinting.BrickStyle With {.ForeColor = Color.Black, .BackColor = Color.Transparent, .Padding = New DevExpress.XtraPrinting.PaddingInfo()}
         End Sub
-        Private IBarCodeData As DXGraphicsUnit
+        Private ReadOnly Property IBarCodeData_ModuleUnit() As DXGraphicsUnit Implements IBarCodeData.ModuleUnit
+            Get
+                Return DXGraphicsUnit.Pixel
+            End Get
+        End Property
         Private ReadOnly Property IBarCodeData_Alignment() As DevExpress.XtraPrinting.TextAlignment Implements IBarCodeData.Alignment
             Get
                 Return DevExpress.XtraPrinting.TextAlignment.MiddleCenter

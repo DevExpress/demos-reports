@@ -14,6 +14,7 @@
     <PackageVersion Include="Microsoft.VisualBasic" Version="10.0.0.0" />
     <PackageVersion Include="Azure.AI.OpenAI" Version="2.9.0-beta.1" />
     <PackageVersion Include="Azure.Identity" Version="1.17.1" />
+    <PackageVersion Include="BouncyCastle.Cryptography" Version="2.6.2" />
     <PackageVersion Include="CommonMark.NET" Version="0.15.1" />
     <PackageVersion Include="Microsoft.AspNet.EntityDataSource" Version="6.0.0" />
     <PackageVersion Include="Microsoft.AspNet.Mvc" Version="5.2.3" />
@@ -29,12 +30,10 @@
     <PackageVersion Include="System.Drawing.Common" Version="8.0.15" />
     <PackageVersion Include="System.Security.AccessControl" Version="6.0.1" />
     <PackageVersion Include="System.Security.Permissions" Version="8.0.0" />
-    <PackageVersion Include="Azure.Identity" Version="1.17.1" />
     <PackageVersion Include="EntityFramework" Version="6.5.1" />
     <PackageVersion Include="System.Text.Json" Version="8.0.6" />
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="9.0.8" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.1.2" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="8.0.18" />
     <PackageVersion Include="Microsoft.Identity.Client" Version="4.78.0" />
     <PackageVersion Include="NUnit" Version="3.14.0" />
     <PackageVersion Include="BuildBundlerMinifier" Version="3.2.449" />

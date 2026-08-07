@@ -1,7 +1,7 @@
 ﻿/**
-* DevExpress Analytics (dist\js\dx-analytics-core.d.ts)
-* Version:  26.1.3
-* Build date: Jun 16, 2026
+* DevExpress Analytics (js\dx-analytics-core.d.ts)
+* Version:  26.1.4
+* Build date: Jul 27, 2026
 * Copyright (c) 2012 - 2026 Developer Express Inc. ALL RIGHTS RESERVED
 * License: https://www.devexpress.com/Support/EULAs/universal.xml
 */
@@ -417,10 +417,12 @@ declare module DevExpress.Analytics.Utils {
         localizable?: boolean;
         asRef?: boolean;
     }
-    export interface IDisplayedValue {
-        value: any;
+    export interface ILocalizableValue {
         displayValue: string;
         localizationId?: string;
+    }
+    export interface IDisplayedValue extends ILocalizableValue {
+        value: any;
     }
     export interface ISerializationInfoArray extends Array<DevExpress.Analytics.Utils.ISerializationInfo> {
     }
@@ -550,6 +552,8 @@ declare module DevExpress.Analytics.Utils {
         private properyChanged;
         private _currentEngineName;
         private visitProperties;
+        private _triggerOnAdd;
+        private _triggerOnDelete;
         private undoChangeSet;
         private redoChangeSet;
         private _disposeChilds;
@@ -691,6 +695,7 @@ declare module DevExpress.Analytics.Utils {
         onCustomItemCreating?: (e: DevExpress.ui.dxSelectBox.CustomItemCreatingInfo) => void;
         group?: () => string;
         displayText?: () => string;
+        getAccessibilityActivationMessage?: () => string;
         imageTemplateName?: Observable<string> | Computed<string> | string;
         imageClassName?: Observable<string> | Computed<string> | string;
         disabled?: Observable<boolean> | Computed<boolean> | boolean;
@@ -1689,16 +1694,15 @@ declare module DevExpress.Analytics.Internal {
         alwaysAlt: boolean;
         snapToGridOnCreateControl: boolean;
     }
-    /// <reference types="jquery" />
     export interface IShortcutActionList {
-        processShortcut: (e: JQueryKeyEventObject) => void;
+        processShortcut: (e: KeyboardEvent) => void;
         toolbarItems: DevExpress.Analytics.Utils.IAction[] | Observable<DevExpress.Analytics.Utils.IAction[]> | Computed<DevExpress.Analytics.Utils.IAction[]>;
         enabled?: () => boolean;
     }
     export class KeyboardHelperBase extends Disposable {
         private _processShortcut;
-        processShortcut(e: JQueryKeyEventObject, index?: number): boolean;
-        processChildrenShortcut(e: JQueryKeyEventObject, index?: number): boolean;
+        processShortcut(e: KeyboardEvent, index?: number): boolean;
+        processChildrenShortcut(e: KeyboardEvent, index?: number): boolean;
         shortcutMap: DevExpress.Analytics.Internal.IKeyboardCodesEnum;
         childrenShortcutMap: DevExpress.Analytics.Internal.IKeyboardCodesEnum;
     }
@@ -1713,10 +1717,10 @@ declare module DevExpress.Analytics.Internal {
         private _handlers;
         private _targetElement;
         private get _activeHandler();
-        _removeHandler(handler: (e: JQueryKeyEventObject) => void, eventName: string): void;
+        _removeHandler(handler: (e: Event) => void, eventName: string): void;
         dispose(): void;
         constructor(targetElement: HTMLElement | Window);
-        bindHandler(handler: (e: JQueryKeyEventObject) => void, eventName?: string): () => void;
+        bindHandler(handler: (e: Event) => void, eventName?: string): () => void;
     }
     export function GetWindowKeyDownHandlersManager(): DevExpress.Analytics.Internal.KeyDownHandlersManager;
     export function integerValueConverter(val: any, defaultValue: any, type?: any): any;
@@ -1735,14 +1739,12 @@ declare module DevExpress.Analytics.Internal {
     export function isList(data: DevExpress.Analytics.Utils.IDataMemberInfo): boolean;
     export function getParentContainer(el: HTMLElement, container?: string): HTMLElement;
     export function isNullOrEmptyString(str: string): boolean;
-    /// <reference types="jquery" />
     export interface IActionListBaseViewModel extends IViewModel {
         toolbarItems: DevExpress.Analytics.Utils.IActionViewModel[];
-        processShortcut: (e: JQueryKeyEventObject) => void;
+        processShortcut: (e: KeyboardEvent) => void;
     }
     export function createActionListBaseViewModel(this: DevExpress.Analytics.Internal.ActionListsBase, base: DevExpress.Analytics.Serializer.Native.IViewModel): DevExpress.Analytics.Internal.IActionListBaseViewModel;
     export function createBaseActionViewModel(this: DevExpress.Analytics.Internal.ActionListsBase, action: DevExpress.Analytics.Utils.IAction, index: number): DevExpress.Analytics.Utils.IActionViewModel;
-    /// <reference types="jquery" />
     export class ActionListsBase extends BaseRenderingModel<DevExpress.Analytics.Internal.IActionListBaseViewModel> implements IShortcutActionList {
         createViewModel(): DevExpress.Analytics.Internal.IActionListBaseViewModel;
         constructor(enabled?: () => boolean);
@@ -1753,9 +1755,11 @@ declare module DevExpress.Analytics.Internal {
         updateViewModel(args: DevExpress.Analytics.Serializer.Native.PropertyChangedEventArgs<any> | DevExpress.Analytics.Serializer.Native.ArrayPropertyChangedEventArgs<any>): void;
         mapActionToViewModels(actions: DevExpress.Analytics.Utils.IAction[]): DevExpress.Analytics.Utils.IActionViewModel[];
         getActions(): DevExpress.Analytics.Utils.IAction[];
-        processShortcut(e: JQueryKeyEventObject): void;
-        shouldIgnoreProcessing(e: JQueryKeyEventObject): boolean;
+        actionAvailableAtTarget(action: DevExpress.Analytics.Utils.IAction, e: Event): boolean;
+        processShortcut(e: KeyboardEvent): void;
+        shouldIgnoreProcessing(e: Event): boolean;
         enabled: () => boolean;
+        accessibilityAnnouncer?: (message: string) => void;
         toolbarItems: DevExpress.Analytics.Utils.IAction[] | Observable<DevExpress.Analytics.Utils.IAction[]> | Computed<DevExpress.Analytics.Utils.IAction[]>;
     }
     export class BaseAction extends BaseRenderingModel<DevExpress.Analytics.Utils.IActionViewModel> implements IAction {
@@ -1936,10 +1940,9 @@ declare module DevExpress.Analytics.Internal {
         setTabIndex(index: string): void;
         setFocus(): void;
     }
-    /// <reference types="jquery" />
     export interface IAccessibilityLiveRegion {
-        element: HTMLElement;
-        changeText: (text: string, timeout?: number) => ReturnType<typeof setTimeout>;
+        element: HTMLElement | null;
+        changeText: ((text: string, timeout?: number) => ReturnType<typeof setTimeout> | undefined) | null;
     }
     export interface IMutationObserverArgs {
         onInitialized: (element: HTMLElement, accessibilityCompliant: boolean) => void;
@@ -1959,7 +1962,7 @@ declare module DevExpress.Analytics.Internal {
         private _prevActiveElement;
         private _eventListeners;
         private _elementContainer;
-        private _liveRegion;
+        private _liveRegions;
         private _disposeItems;
         constructor();
         getElements(predicate?: (elt: Element) => boolean): any;
@@ -1998,13 +2001,13 @@ declare module DevExpress.Analytics.Internal {
         dispose(): void;
         addListener(element: HTMLElement, index: number, eventType: string, handler: any): void;
         focus(prevActiveElement?: Element): void;
-        liveRegion: () => DevExpress.Analytics.Internal.IAccessibilityLiveRegion;
+        liveRegion: (isAssertive?: boolean) => DevExpress.Analytics.Internal.IAccessibilityLiveRegion;
         lastFocusItem(): HTMLElement;
         onInitialized: (element: HTMLElement, accessibilityCompliant: boolean) => void;
         onDomUpdated: () => void;
         onCleanUp: () => void;
         protected _handlersManager: DevExpress.Analytics.Internal.KeyDownHandlersManager;
-        protected _keyDownHandler(e: JQueryKeyEventObject): void;
+        protected _keyDownHandler(e: KeyboardEvent): void;
     }
     export function initializeMutationObserver(element: HTMLElement, mutationObserverArgs: DevExpress.Analytics.Internal.IMutationObserverArgs, accessibilityCompliant: boolean): () => void;
     export const cssTransform: string[];
@@ -2353,7 +2356,6 @@ declare module DevExpress.Analytics.Internal {
         stop(): void;
         updateSize(boundsDiff: DevExpress.Analytics.Elements.IArea): void;
     }
-    export const ExpressionType = "DevExpress.DataAccess.Expression";
     export function IsDataAccessExpression(type: string): boolean;
     export const editorTypeMapper: {
         [key: string]: DevExpress.Analytics.Utils.IEditorInfo;
@@ -2532,7 +2534,6 @@ declare module DevExpress.Analytics.Internal {
         paste(): void;
     }
     export function parseZoom(val: string): number;
-    /// <reference types="jquery" />
     export interface IActionListViewModel extends IActionListBaseViewModel {
         menuItems: DevExpress.Analytics.Utils.IActionViewModel[];
     }
@@ -2541,7 +2542,7 @@ declare module DevExpress.Analytics.Internal {
         _registerAction(container: Array<DevExpress.Analytics.Utils.IAction>, action: DevExpress.Analytics.Utils.IAction): void;
         private _keyboardHelper;
         constructor(surfaceContext: ko.Observable<DevExpress.Analytics.Elements.ISurfaceContext> | ko.Computed<DevExpress.Analytics.Elements.ISurfaceContext>, selection: DevExpress.Analytics.Internal.ISelectionProvider, undoEngine: ko.Observable<DevExpress.Analytics.Utils.UndoEngine> | ko.Computed<DevExpress.Analytics.Utils.UndoEngine>, customizeActions?: (actions: DevExpress.Analytics.Utils.IAction[]) => void, enabled?: ko.Observable<boolean> | ko.Computed<boolean>, copyPasteStrategy?: DevExpress.Analytics.Internal.ICopyPasteStrategy, zoomStep?: ko.Observable<number> | ko.Computed<number>, isLocked?: (item: any) => boolean);
-        processShortcut(e: JQueryKeyEventObject): void;
+        processShortcut(e: KeyboardEvent): void;
         getActions(): DevExpress.Analytics.Utils.IAction[];
         menuItems: DevExpress.Analytics.Utils.IAction[];
     }
@@ -2875,6 +2876,19 @@ declare module DevExpress.Analytics.Internal {
     export function base64DecodeUnicode(base64string: string): string;
     export type SizeFactorType = "xl" | "lg" | "md" | "sm" | "xs";
     export function getSizeFactor(width: any): SizeFactorType;
+    export enum SpecificTypes {
+        Date = "Date",
+        DateTime = "DateTime",
+        Time = "Time",
+        Integer = "Integer",
+        String = "String",
+        Bool = "Bool",
+        Float = "Float",
+        Enum = "Enum",
+        Guid = "guid"
+    }
+    export function _isNumericTypeSpecific(specific: string): boolean;
+    export function _isDateTypeSpecific(specific: string): boolean;
     export const staticContext: {
         _static: {
             searchPlaceholder: () => any;
@@ -2994,6 +3008,7 @@ declare module DevExpress.Analytics.Internal {
         private _subscribeButtonsAndInitialize;
         private _initialize;
         createControlElement(element: HTMLElement, index?: number): ToolbarItemElement;
+        private _moveFocusToSibling;
         constructor(_buttonModels: DevExpress.Analytics.Utils.IAction[] | ko.Observable<DevExpress.Analytics.Utils.IAction[]> | ko.Computed<DevExpress.Analytics.Utils.IAction[]>);
         itemHandleEnterKey(e: any, index: any): boolean;
         itemHandleSpaceKey(e: any, index: any): boolean;
@@ -3007,11 +3022,14 @@ declare module DevExpress.Analytics.Internal {
         element: HTMLElement;
         private _toolbarItemModel;
         private _liveRegion;
+        private _moveFocusToSibling?;
         private _selectBox;
         private _menu;
-        private _complexItem;
+        private _isComplexItem;
         dispose(): void;
-        constructor(element: HTMLElement, _toolbarElement: HTMLElement, _toolbarItemModel: DevExpress.Analytics.Utils.IAction, _liveRegion: () => DevExpress.Analytics.Internal.IAccessibilityLiveRegion);
+        constructor(element: HTMLElement, _toolbarElement: HTMLElement, _toolbarItemModel: DevExpress.Analytics.Utils.IAction, _liveRegion: (isAssertive?: boolean) => DevExpress.Analytics.Internal.IAccessibilityLiveRegion, _moveFocusToSibling?: (item: ToolbarItemElement, offset: number) => void);
+        private _menuArrowKeyHandler;
+        private _focusMenu;
         setFocus(): void;
         actionExecute(): void;
         cancelAction(): boolean;
@@ -3068,6 +3086,7 @@ declare module DevExpress.Analytics.Widgets.Internal {
     import ILocalizationInfo = DevExpress.Analytics.Internal.ILocalizationInfo;
     import ISerializationInfo = DevExpress.Analytics.Utils.ISerializationInfo;
     import ListKeyboardHelper = DevExpress.Analytics.Internal.ListKeyboardHelper;
+    import Editor = DevExpress.Analytics.Widgets.Editor;
     import ICollapsedViewModel = DevExpress.Analytics.Widgets.ICollapsedViewModel;
     import IEditorViewModel = DevExpress.Analytics.Widgets.IEditorViewModel;
     import IObjectPropertiesViewModel = DevExpress.Analytics.Widgets.IObjectPropertiesViewModel;
@@ -3080,7 +3099,6 @@ declare module DevExpress.Analytics.Widgets.Internal {
     import Disposable = DevExpress.Analytics.Utils.Disposable;
     import PopupEditorBase = DevExpress.Analytics.Widgets.Internal.PopupEditorBase;
     import dxDropDownBox = DevExpress.ui.dxDropDownBox;
-    import Editor = DevExpress.Analytics.Widgets.Editor;
     import DotnetTypes = DevExpress.Analytics.Internal.DotnetTypes;
     import EditorWithIcons = DevExpress.Analytics.Internal.EditorWithIcons;
     import IKoCollectionEditorOptions = DevExpress.Analytics.Widgets.Internal.IKoCollectionEditorOptions;
@@ -3250,6 +3268,7 @@ declare module DevExpress.Analytics.Widgets.Internal {
         isHovered: boolean;
         isSelected: boolean;
         isMultiSelected: boolean;
+        isLoading: boolean;
         resolver: DevExpress.Analytics.Internal.CodeResolver;
         dragDropHandler: DevExpress.Analytics.Internal.DragDropHandler;
     }
@@ -3387,6 +3406,7 @@ declare module DevExpress.Analytics.Widgets.Internal {
         visibleItemsCount: number;
         collapsed: boolean;
         isLoaded: boolean;
+        isLoading: boolean;
         hasItems: boolean;
         isSelected: boolean;
         isMultiSelected: boolean;
@@ -3569,6 +3589,7 @@ declare module DevExpress.Analytics.Widgets.Internal {
         values: any[];
         undoEngine?: DevExpress.Analytics.Internal.IUndoEngine;
         info?: DevExpress.Analytics.Utils.ISerializationInfo;
+        editor?: DevExpress.Analytics.Widgets.Editor;
     }
     type CollectionEditorViewModelButtonType = {
         visible: boolean;
@@ -5932,6 +5953,8 @@ declare module DevExpress.Analytics.Elements {
         addChilds: (array: IElementViewModel<T>[]) => void;
         removeChild: (element: IElementViewModel<T>) => void;
         removeChilds: (array: IElementViewModel<T>[]) => void;
+        onDelete: () => void;
+        onAdd: () => void;
         getNearestParent: (dropTarget: IElementViewModel<T>) => IElementViewModel<T>;
     }
     export interface IControlPropertiesViewModel<T extends string = string> {
@@ -5986,6 +6009,7 @@ declare module DevExpress.Analytics.Elements {
         get root(): DevExpress.Analytics.Elements.ElementViewModel<T>;
         rtl(): boolean;
         onDelete(): void;
+        onAdd(): void;
         actions: DevExpress.Analytics.Internal.IModelAction[];
         actionProviders: any[];
         update: ko.Observable<boolean>;
@@ -6746,10 +6770,15 @@ declare module DevExpress.Analytics.Widgets.Metadata {
 }
 declare module DevExpress.Analytics.Data {
     import DotnetTypes = DevExpress.Analytics.Internal.DotnetTypes;
+    import IDisplayedValue = DevExpress.Analytics.Utils.IDisplayedValue;
+    import ILocalizableValue = DevExpress.Analytics.Utils.ILocalizableValue;
+    import SpecificTypes = DevExpress.Analytics.Internal.SpecificTypes;
     import Disposable = DevExpress.Analytics.Utils.Disposable;
     import ISerializableModel = DevExpress.Analytics.Utils.ISerializableModel;
     import ISerializationInfoArray = DevExpress.Analytics.Utils.ISerializationInfoArray;
     import IModelSerializer = DevExpress.Analytics.Utils.IModelSerializer;
+    import DataSourceParameterTypeValue = DevExpress.Analytics.Data.DataSourceParameterTypeValue;
+    import IParameterTypeValue = DevExpress.Analytics.Data.IParameterTypeValue;
     import DBColumn = DevExpress.Analytics.Data.DBColumn;
     import DBForeignKey = DevExpress.Analytics.Data.DBForeignKey;
     import DBColumnType = DevExpress.Analytics.Data.DBColumnType;
@@ -6805,6 +6834,8 @@ declare module DevExpress.Analytics.Data {
     import JsonSchemaProvider = DevExpress.Analytics.Data.JsonSchemaProvider;
     import JsonSource = DevExpress.Analytics.Data.JsonSource;
     import DBSchema = DevExpress.Analytics.Data.DBSchema;
+    export const baseParameterLocalizationMap: Record<DevExpress.Analytics.Internal.DotnetTypes, DevExpress.Analytics.Utils.ILocalizableValue>;
+    export const toDisplayedValueArray: (typeArray: DevExpress.Analytics.Internal.DotnetTypes[]) => DevExpress.Analytics.Utils.IDisplayedValue[];
     export enum DBColumnType {
         Unknown = 0,
         Boolean = 1,
@@ -6834,13 +6865,32 @@ declare module DevExpress.Analytics.Data {
         size: string;
         constructor(model: any);
         static GetType(dbColumnType: DevExpress.Analytics.Data.DBColumnType): DotnetTypes.SystemChar | DotnetTypes.SystemString | DotnetTypes.SystemGuid | DotnetTypes.SystemSByte | DotnetTypes.SystemDecimal | DotnetTypes.SystemInt64 | DotnetTypes.SystemInt32 | DotnetTypes.SystemInt16 | DotnetTypes.SystemSingle | DotnetTypes.SystemDouble | DotnetTypes.SystemByte | DotnetTypes.SystemUInt16 | DotnetTypes.SystemUInt32 | DotnetTypes.SystemUInt64 | DotnetTypes.SystemBoolean | DotnetTypes.SystemDateTime | DotnetTypes.SystemDateOnly | DotnetTypes.SystemTimeOnly | DotnetTypes.SystemTimeSpan | DotnetTypes.SystemObject | DotnetTypes.SystemBiteArray;
-        static GetSpecific(type: string): "String" | "Date" | "Bool" | "Integer" | "Float" | "Time";
+        static GetSpecific(type: string): DevExpress.Analytics.Internal.SpecificTypes;
     }
+    export interface IParameterTypeValue<T = unknown> {
+        readonly value: string;
+        readonly defaultValue: T;
+        readonly specifics: DevExpress.Analytics.Internal.SpecificTypes;
+        readonly valueConverter: (val: unknown, defaultValue?: T) => unknown;
+        readonly disabled?: boolean;
+    }
+    export class DataSourceParameterTypeValue<T = unknown> implements IParameterTypeValue<T> {
+        value: DevExpress.Analytics.Internal.DotnetTypes;
+        defaultValue: T;
+        readonly displayValue: string;
+        readonly localizationId: string;
+        readonly specifics: DevExpress.Analytics.Internal.SpecificTypes;
+        readonly disabled: boolean;
+        readonly valueConverter: (val: unknown, defaultValue?: T) => unknown;
+        constructor(value: DevExpress.Analytics.Internal.DotnetTypes, defaultValue: T, valueConverter: (val: unknown, defaultVal?: T, type?: string) => unknown, specifics?: DevExpress.Analytics.Internal.SpecificTypes);
+    }
+    export const defaultGuidValue = "00000000-0000-0000-0000-000000000000";
+    export const defaultParameterTypes: DevExpress.Analytics.Data.DataSourceParameterTypeValue[];
     export class DataSourceParameter extends Disposable implements ISerializableModel {
         private _serializationsInfo;
         private _name;
-        static _typeValues: any[];
-        static _getTypeValue(typeName: string, resultType?: string): any;
+        static _typeValues: DevExpress.Analytics.Data.DataSourceParameterTypeValue[];
+        static _getTypeValue(typeName: string, resultType?: string): DevExpress.Analytics.Data.IParameterTypeValue;
         private _getTypeValue;
         private _tryConvertValue;
         private static _isValueValid;
@@ -6857,7 +6907,7 @@ declare module DevExpress.Analytics.Data {
         private _previousResultType;
         private _parametersFunctions;
         constructor(model: any, serializer?: DevExpress.Analytics.Utils.IModelSerializer, _serializationsInfo?: DevExpress.Analytics.Utils.ISerializationInfoArray);
-        get specifics(): any;
+        get specifics(): "string" | DevExpress.Analytics.Internal.SpecificTypes;
         isValid: ko.Observable<boolean> | ko.Computed<boolean>;
         name: ko.Computed<string>;
         value: ko.Observable | ko.Computed;
@@ -7589,7 +7639,7 @@ declare module DevExpress.QueryBuilder.Elements {
         groupBy: ko.Computed<boolean>;
         aggregate: ko.Observable<string> | ko.Computed<string>;
         toggleSelected: (val: boolean, lazy?: boolean) => void;
-        get specifics(): "String" | "Date" | "Bool" | "Integer" | "Float" | "Time";
+        get specifics(): DevExpress.Analytics.Internal.SpecificTypes;
     }
     export class JoinConditionViewModel extends RoutedConnectorViewModel {
         getControlFactory(): DevExpress.Analytics.Utils.ControlsFactory;
@@ -9549,6 +9599,7 @@ declare module DevExpress.Analytics.Wizard {
         queryName: string;
         allowCreateNewJsonConnection: boolean;
         dataSources: ko.PureComputed<DevExpress.Analytics.Internal.IDataSourceInfo[]>;
+        usedDataSources?: ko.PureComputed<DevExpress.Analytics.Internal.IDataSourceInfo[]>;
         predefinedDataSources: ko.PureComputed<DevExpress.Analytics.Internal.IDataSourceInfo[]> | ko.Observable<DevExpress.Analytics.Internal.IDataSourceInfo[]>;
         getSqlConnectionStrings?: () => DevExpress.Analytics.Internal.DxPromise<IConnectionStringDefinition[]>;
         getJsonConnectionStrings?: () => DevExpress.Analytics.Internal.DxPromise<IConnectionStringDefinition[]>;

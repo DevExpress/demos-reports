@@ -1,7 +1,7 @@
 ﻿/**
-* DevExpress HTML/JS Reporting (dist\js\dx-reporting.d.ts)
-* Version:  26.1.3
-* Build date: Jun 16, 2026
+* DevExpress HTML/JS Reporting (js\dx-reporting.d.ts)
+* Version:  26.1.4
+* Build date: Jul 27, 2026
 * Copyright (c) 2012 - 2026 Developer Express Inc. ALL RIGHTS RESERVED
 * License: https://www.devexpress.com/Support/EULAs/universal.xml
 */
@@ -235,8 +235,6 @@ declare module DevExpress.Reporting.Chart.Internal {
         getContainer: (element: HTMLElement, selector: string) => Element;
         actions: any;
     }[];
-    export function _isNumericTypeSpecific(specific: string): boolean;
-    export function _isDateTypeSpecific(specific: string): boolean;
     export function _getUnconvertiblePoint(propertyName: string, oldValue: string, newValue: string, points: DevExpress.Reporting.Chart.Internal.Series.SeriesPointModel[]): DevExpress.Reporting.Chart.Internal.Series.SeriesPointModel;
     export const HandlerUri: DevExpress.Analytics.Internal.IGlobalSubscribableValue<string>;
     export class ChartRequests {
@@ -4349,6 +4347,7 @@ declare module DevExpress.Reporting.Designer.Controls {
     import SurfaceSelection = DevExpress.Analytics.Internal.SurfaceSelection;
     import IFileUploadResult = DevExpress.Analytics.Internal.IFileUploadResult;
     import XRRichViewModel = DevExpress.Reporting.Designer.Controls.XRRichViewModel;
+    import DxPromise = DevExpress.Analytics.Internal.DxPromise;
     import FieldListProvider = DevExpress.Analytics.Internal.FieldListProvider;
     import IDataMemberInfo = DevExpress.Analytics.Utils.IDataMemberInfo;
     import UndoEngine = DevExpress.Analytics.Utils.UndoEngine;
@@ -4384,7 +4383,6 @@ declare module DevExpress.Reporting.Designer.Controls {
     import TableOfContentsLevelSurface = DevExpress.Reporting.Designer.Controls.TableOfContentsLevelSurface;
     import PropertyModificationModel = DevExpress.Analytics.Elements.PropertyModificationModel;
     import SurfaceElementBase = DevExpress.Analytics.Elements.SurfaceElementBase;
-    import DxPromise = DevExpress.Analytics.Internal.DxPromise;
     import HorizontalAnchoring = DevExpress.Reporting.Designer.Controls.HorizontalAnchoring;
     import IAnchoringProperties = DevExpress.Reporting.Designer.Controls.IAnchoringProperties;
     import VerticalAcnhoring = DevExpress.Reporting.Designer.Controls.VerticalAcnhoring;
@@ -4922,6 +4920,8 @@ declare module DevExpress.Reporting.Designer.Controls {
             getInfo: () => any;
         };
         constructor(model: any, parent: DevExpress.Analytics.Elements.ElementViewModel<ControlType>, serializer?: DevExpress.Analytics.Utils.ModelSerializer);
+        onDelete(): void;
+        onAdd(): void;
         Shape: any;
         shapeFake: any;
     }
@@ -4930,11 +4930,16 @@ declare module DevExpress.Reporting.Designer.Controls {
     }
     export class XRShapeControlSurface extends XRControlSurface {
         private _lastUpdateImageDeferred;
+        _lastShapeImageParams?: string;
+        _lastShapeImagePromise?: DevExpress.Analytics.Internal.DxPromise<any>;
         private _updateImage;
         constructor(control: DevExpress.Reporting.Designer.Controls.XRControlViewModel, context: DevExpress.Analytics.Elements.ISurfaceContext);
+        onDelete(): void;
+        onAdd(): void;
         imageSrc: ko.Observable<string>;
         isLoading: ko.Observable<boolean>;
         error: ko.Observable<string>;
+        _updateImageSubscription: ko.Computed<any> | null;
     }
     export class ControlParameter extends DataBindingBase implements ISerializableModel {
         private _dataSourceHelper?;
@@ -5161,7 +5166,7 @@ declare module DevExpress.Reporting.Designer.Controls {
         addColumnToCalculation(diff: number, last?: boolean): void;
         addTableOffset(width?: number, left?: number): void;
         addChild(control: DevExpress.Analytics.Elements.IElementViewModel, position?: number, onComponentAdded?: any): void;
-        insertCellCopy(selectedCell: DevExpress.Reporting.Designer.Controls.XRTableCellViewModel, isRight: boolean, onComponentAdded: any): void;
+        insertCellCopy(selectedCell: DevExpress.Reporting.Designer.Controls.XRTableCellViewModel, isRight: boolean, onComponentAdded: any, duplicateWeight?: boolean): void;
         removeChild(selectedCell: DevExpress.Reporting.Designer.Controls.XRTableCellViewModel): void;
         parentModel: ko.Observable<DevExpress.Reporting.Designer.Controls.XRTableControlViewModel>;
         cells: ko.ObservableArray<DevExpress.Reporting.Designer.Controls.XRTableCellViewModel>;
@@ -6574,6 +6579,7 @@ declare module DevExpress.Reporting.Export.Metadata {
     export const pdfUACompatibilityValues: {
         None: string;
         PdfUA1: string;
+        PdfUA2: string;
     };
     export const pdfUACompatibility: {
         propertyName: string;
@@ -7254,8 +7260,20 @@ declare module DevExpress.Reporting.Viewer.Widgets.Internal {
         private GESTURE_COVER_CLASS;
         private ACTIVE_POPUP_CLASS;
         private _getPopupContent;
+        private _toolbarKeyboardHelper;
+        private _toolbarFocusTimeout;
+        private _leaveEditingField;
+        private _initToolbarKeyboardNavigation;
+        private _popoverKeyboardHelper;
+        private _popoverFocusTimeout;
+        private _activePopoverItem;
+        private _disposePopoverKeyboardNavigation;
+        private _focusToolbarItem;
+        private _closePopover;
+        private _activatePopoverKeyboardNavigation;
+        private _wrapPopoverKeyboardNavigation;
         private _takeFocus;
-        private _releaseFocus;
+        _releaseFocus(): void;
         private _wrapButtonAction;
         private _initActions;
         private _loadImage;
@@ -8295,6 +8313,7 @@ declare module DevExpress.Reporting.Viewer.Internal {
     import IReportPreviewViewModel = DevExpress.Reporting.Viewer.IReportPreviewViewModel;
     import IPreviewPageViewModel = DevExpress.Reporting.Viewer.Internal.IPreviewPageViewModel;
     import EditingField = DevExpress.Reporting.Viewer.Editing.EditingField;
+    import ColumnSortOrder = DevExpress.Reporting.Viewer.Internal.ColumnSortOrder;
     import INumericSize = DevExpress.Analytics.Elements.INumericSize;
     import EditingFieldBase = DevExpress.Reporting.Viewer.Editing.EditingFieldBase;
     import IPageSizeConfiguration = DevExpress.Reporting.Viewer.Internal.IPageSizeConfiguration;
@@ -8582,8 +8601,11 @@ declare module DevExpress.Reporting.Viewer.Internal {
         private _terminateWorker;
         private _callPrint;
         private _window;
+        private _returnFocusTarget;
         clearExportTools(): void;
         private _initPrintingWindow;
+        private _rememberReturnFocusTarget;
+        private _returnFocus;
         private _setPrintingLinkCallback;
         private _formSubmit;
         private _doExportSync;
@@ -8801,6 +8823,9 @@ declare module DevExpress.Reporting.Viewer.Internal {
     export function initializeBrick(brick: DevExpress.Reporting.Viewer.Utils.IBrickNode, processClick: (target: DevExpress.Reporting.Viewer.Utils.IBrickNode, e?: JQueryEventObject) => void, editingFieldBricks: DevExpress.Reporting.Viewer.Utils.IBrickNode[], activeBricksMap: {
         [key: string]: DevExpress.Reporting.Viewer.Utils.IBrickNode;
     } | null): void;
+    export function getNavigationDescription(brick: DevExpress.Reporting.Viewer.Utils.IBrickNode, state?: boolean | null): string | null;
+    export function getSortOrderText(order: DevExpress.Reporting.Viewer.Internal.ColumnSortOrder): string;
+    export function getBrickFullDescription(brick: DevExpress.Reporting.Viewer.Utils.IBrickNode, state?: boolean | null): string;
     /// <reference types="jquery" />
     export interface IGetPageRequest {
         pageIndex: number;
@@ -9059,7 +9084,6 @@ declare module DevExpress.Reporting.Viewer.Internal {
         goToResult: (resultId: number) => void;
     }
     export const formatSearchResult: (value: DevExpress.Reporting.Viewer.Internal.IFoundText) => string;
-    /// <reference types="jquery" />
     interface IPageItem {
         index: number;
         text: number;
@@ -9101,10 +9125,13 @@ declare module DevExpress.Reporting.Viewer.Internal {
     }
     export class ActionLists extends ActionListsBase {
         updateToolbarItems: () => void;
-        constructor(reportPreview: DevExpress.Reporting.Viewer.ReportPreview, globalActionProviders: Array<DevExpress.Analytics.Internal.IActionsProvider>, customizeActions?: (actions: DevExpress.Analytics.Utils.IAction[]) => void, enabled?: () => boolean);
+        constructor(reportPreview: DevExpress.Reporting.Viewer.ReportPreview, globalActionProviders: Array<DevExpress.Analytics.Internal.IActionsProvider>, customizeActions?: (actions: DevExpress.Analytics.Utils.IAction[]) => void, enabled?: () => boolean, panelShortcutActions?: DevExpress.Analytics.Utils.IAction[]);
         onPropertyChanged(args: DevExpress.Analytics.Serializer.Native.PropertyChangedEventArgs<ActionLists> | DevExpress.Analytics.Serializer.Native.ArrayPropertyChangedEventArgs<ActionLists>): void;
-        processShortcut(e: JQueryKeyEventObject): void;
+        getActions(): DevExpress.Analytics.Utils.IAction[];
+        processShortcut(e: KeyboardEvent): void;
+        actionAvailableAtTarget(action: DevExpress.Analytics.Utils.IAction, e: Event | null): boolean;
         dispose(): void;
+        panelShortcutActions: DevExpress.Analytics.Utils.IAction[];
         globalActionProviders: Array<DevExpress.Analytics.Internal.IActionsProvider>;
     }
     export class PreviewActions extends Disposable implements IActionsProvider {
@@ -9126,6 +9153,18 @@ declare module DevExpress.Reporting.Viewer.Internal {
     export class ExportActionBase extends ViewerAction {
         constructor(reportPreview: DevExpress.Reporting.Viewer.ReportPreview);
         isDisabled(): boolean;
+    }
+    export class OpenPreviewTabAction extends ViewerAction {
+        constructor(reportPreview: DevExpress.Reporting.Viewer.ReportPreview, tabInfo: DevExpress.Analytics.Utils.TabInfo);
+    }
+    export class ParametersPanelAction extends OpenPreviewTabAction {
+        constructor(reportPreview: DevExpress.Reporting.Viewer.ReportPreview, tabInfo: DevExpress.Analytics.Utils.TabInfo);
+    }
+    export class DocumentMapPanelAction extends OpenPreviewTabAction {
+        constructor(reportPreview: DevExpress.Reporting.Viewer.ReportPreview, tabInfo: DevExpress.Analytics.Utils.TabInfo);
+    }
+    export class ExportOptionsPanelAction extends OpenPreviewTabAction {
+        constructor(reportPreview: DevExpress.Reporting.Viewer.ReportPreview, tabInfo: DevExpress.Analytics.Utils.TabInfo);
     }
     export {};
     export interface IFoundText {
@@ -9271,7 +9310,7 @@ declare module DevExpress.Reporting.Viewer.Internal {
     }
     export interface ISortingFieldInfo {
         fieldName?: string;
-        sortOrder?: ColumnSortOrder;
+        sortOrder?: DevExpress.Reporting.Viewer.Internal.ColumnSortOrder;
     }
     export interface ISignatureItem {
         reason?: string;
@@ -9849,6 +9888,7 @@ declare module DevExpress.Reporting.Viewer.Editing {
     }
 }
 declare module DevExpress.Reporting.Viewer {
+    import KeyboardHelperWithArrowButtonBase = DevExpress.Analytics.Internal.KeyboardHelperWithArrowButtonBase;
     import AccessibilityControlElementBase = DevExpress.Analytics.Internal.AccessibilityControlElementBase;
     import AccessibilityKeyboardHelperBase = DevExpress.Analytics.Internal.AccessibilityKeyboardHelperBase;
     import EditingFieldBase = DevExpress.Reporting.Viewer.Editing.EditingFieldBase;
@@ -9863,7 +9903,6 @@ declare module DevExpress.Reporting.Viewer {
     import IProgressBarViewModel = DevExpress.Reporting.Viewer.Internal.IProgressBarViewModel;
     import ReportPreview = DevExpress.Reporting.Viewer.ReportPreview;
     import dxLoadingPanelProperties = DevExpress.ui.dxLoadPanel.dxLoadingPanelProperties;
-    import KeyboardHelperWithArrowButtonBase = DevExpress.Analytics.Internal.KeyboardHelperWithArrowButtonBase;
     import BreadcrumbModel = DevExpress.Reporting.Viewer.Internal.BreadcrumbModel;
     import DxPromise = DevExpress.Analytics.Internal.DxPromise;
     import TabPanel = DevExpress.Analytics.Utils.TabPanel;
@@ -9911,6 +9950,32 @@ declare module DevExpress.Reporting.Viewer {
     import JSReportViewerBindingBase = DevExpress.Reporting.Viewer.JSReportViewerBindingBase;
     import DxAnalyticsComponentCommon = DevExpress.Analytics.Internal.DxAnalyticsComponentCommon;
     import IReportViewerOptions = DevExpress.Reporting.Viewer.IReportViewerOptions;
+    export abstract class PictureEditorKeyboardHelperBase extends KeyboardHelperWithArrowButtonBase {
+        protected _leaveHandler: () => void;
+        constructor(_leaveHandler: () => void);
+        itemHandleUpArrowKey(e: any, index: any): boolean;
+        itemHandleDownArrowKey(e: any, index: any): boolean;
+        itemHandleLeftArrowKey(e: any, index: any): boolean;
+        itemHandleRightArrowKey(e: any, index: any): boolean;
+        itemHandleEnterKey(e: any, index: any): boolean;
+        itemHandleSpaceKey(e: any, index: any): boolean;
+        itemHandleEscKey(e: any, index: any): boolean;
+    }
+    export class PictureEditorToolbarKeyboardHelper extends PictureEditorKeyboardHelperBase {
+        controlElementClassName: string;
+        initialize(): void;
+        itemHandleTabKey(e: any, index: any): boolean;
+        itemHandleShiftTabKey(e: any, index: any): boolean;
+        handleEscKey(e: any): boolean;
+    }
+    export class PictureEditorPopoverKeyboardHelper extends PictureEditorKeyboardHelperBase {
+        static itemSelectors: string[];
+        focusFirstFocusableDescendant: boolean;
+        initialize(): void;
+        getElements(predicate?: (elt: Element) => boolean): HTMLElement[];
+        handleEscKey(e: any): boolean;
+        protected _keyDownHandler(e: any): void;
+    }
     export class PreviewEditingFieldsKeyboardHelper extends AccessibilityKeyboardHelperBase {
         private _page;
         controlElementClassName: string;
@@ -9950,6 +10015,9 @@ declare module DevExpress.Reporting.Viewer {
         PrintPage: string;
         ExportTo: string;
         Search: string;
+        ParametersPanel: string;
+        DocumentMapPanel: string;
+        ExportOptionsPanel: string;
         FullScreen: string;
     };
     export const ExportFormatID: {
@@ -10054,8 +10122,12 @@ declare module DevExpress.Reporting.Viewer {
         private _resetBricksIndexes;
         private _resetBricks;
         private _activeBricksSubscription;
+        private _brickReloadSubscription;
+        private _pendingFocusBrickIndex;
+        private _restoreBrickTimeout;
         private _bricks;
         private _getSelectedContent;
+        private _getDrillDownExpanded;
         private _usePageKeyboardNavigation;
         private _pages;
         private _goToPage;
@@ -10067,9 +10139,12 @@ declare module DevExpress.Reporting.Viewer {
         _subscribeToBricksChanges(): void;
         constructor(viewModel: DevExpress.Reporting.Viewer.ReportPreview);
         reset: () => void;
+        private _getLiveRegionText;
         initialize(): void;
         clickHandler(): void;
         itemHandleEscKey(e: any, index: any): boolean;
+        private _getRestoreNavigationIndex;
+        private _restoreActiveBrick;
         private _actionExecute;
         private _getNonEmptyBrick;
         private _pageChangeHandle;
@@ -10078,6 +10153,11 @@ declare module DevExpress.Reporting.Viewer {
         itemHandleEndKey(e: any, index: any): boolean;
         itemHandleLeftArrowKey(e: any, index: any): boolean;
         itemHandleRightArrowKey(e: any, index: any): boolean;
+        itemHandleUpArrowKey(e: any, index: any): boolean;
+        itemHandleDownArrowKey(e: any, index: any): boolean;
+        private _focusVerticalSiblingPage;
+        private _verticaleVisibilityTolerance;
+        private _getVerticalSiblingPageIndex;
         itemHandleEnterKey(e: any, index: any): boolean;
         itemHandleSpaceKey(e: any, index: any): boolean;
         setFocusToPrevious(currentIndex: number): number;
@@ -10705,8 +10785,10 @@ declare module DevExpress.Reporting.Designer.Data {
     import DataSourceHelper = DevExpress.Reporting.Designer.Internal.DataSourceHelper;
     import ObjectItem = DevExpress.Reporting.Designer.Data.ObjectItem;
     import LookUpValue = DevExpress.Reporting.Designer.Data.LookUpValue;
+    import SpecificTypes = DevExpress.Analytics.Internal.SpecificTypes;
     import IEnumType = DevExpress.Reporting.IEnumType;
-    import IParameterTypeValue = DevExpress.Reporting.Designer.Data.IParameterTypeValue;
+    import IParameterTypeValue = DevExpress.Analytics.Data.IParameterTypeValue;
+    import IReportParameterTypeValue = DevExpress.Reporting.Designer.Data.IReportParameterTypeValue;
     import WrappedExpressionOptions = DevExpress.Reporting.Designer.Internal.WrappedExpressionOptions;
     import ISerializationInfo = DevExpress.Analytics.Utils.ISerializationInfo;
     import Parameter = DevExpress.Reporting.Designer.Data.Parameter;
@@ -10786,38 +10868,26 @@ declare module DevExpress.Reporting.Designer.Data {
         getPath(propertyName: any): any;
         isPropertyDisabled(name: string): boolean;
     }
-    export interface IParameterType {
-        value: string;
-        displayValue: string;
-        defaultVal: any;
-        specifics: string;
-        valueConverter: (val: any) => any;
-    }
-    export interface IParameterTypeValue {
-        value: string;
-        displayValue: string;
-        defaultValue: any;
-        specifics: string;
-        valueConverter: (val: any, defaultValue?: any) => any;
+    export interface IReportParameterTypeValue extends IParameterTypeValue {
         icon?: string;
+        displayValue: string;
         localizationId?: string;
     }
     export class ParameterTypesHelper {
         private knownEnums?;
-        static defaultGuidValue: string;
-        static typeValues: DevExpress.Reporting.Designer.Data.IParameterTypeValue[];
-        enumValueTypes?: DevExpress.Reporting.Designer.Data.IParameterTypeValue[];
+        static typeValues: DevExpress.Reporting.Designer.Data.IReportParameterTypeValue[];
+        enumValueTypes?: DevExpress.Reporting.Designer.Data.IReportParameterTypeValue[];
         private _getTypeInfo;
         private _tryConvertValue;
         convertSingleValue(value: any, typeName: string): any;
-        getSpecifics(typeName: string): string;
+        getSpecifics(typeName: string): "default" | DevExpress.Analytics.Internal.SpecificTypes;
         getIcon(typeName: string): string;
-        getDefaultValue(typeName: string): any;
-        getEnumTypeValues(): DevExpress.Reporting.Designer.Data.IParameterTypeValue[];
+        getDefaultValue(typeName: string): unknown;
+        getEnumTypeValues(): DevExpress.Reporting.Designer.Data.IReportParameterTypeValue[];
         constructor(knownEnums?: Array<DevExpress.Reporting.IEnumType>);
     }
     export const parameterSeparator = "|";
-    export const parameterTypeValues: DevExpress.Reporting.Designer.Data.IParameterTypeValue[];
+    export const parameterTypeValues: DevExpress.Reporting.Designer.Data.IReportParameterTypeValue[];
     export interface IParameterExpressionBinding {
         propertyName: ko.Observable<string>;
         expression: ko.Observable<string>;
@@ -11017,7 +11087,6 @@ declare module DevExpress.Reporting.Designer.Data {
         _report: DevExpress.Reporting.Designer.Controls.ReportViewModel;
         static propertiesWithExpressions: string[];
         static ParametersRefString: string;
-        static defaultGuidValue: string;
         static availableRangeSettingTypes: string[];
         private _parameterHelper;
         __localizationProvider: DevExpress.Reporting.Designer.Internal.DefaultLocalizationProvider<ILocalizedControl>;
@@ -11043,9 +11112,9 @@ declare module DevExpress.Reporting.Designer.Data {
         assign(parameter: DevExpress.Reporting.Designer.Data.Parameter): void;
         getRangeParameters(): DevExpress.Analytics.Utils.IDataMemberInfo[];
         get name(): string;
-        get specifics(): string;
+        get specifics(): "default" | "range" | DevExpress.Analytics.Internal.SpecificTypes;
         get icon(): string;
-        get defaultValue(): any;
+        get defaultValue(): unknown;
         get displayName(): string;
         get isList(): boolean;
         get dragData(): {
@@ -11129,7 +11198,7 @@ declare module DevExpress.Reporting.Designer.Data {
     }
     export class ParameterLayoutItem extends ParameterPanelLayoutItem {
         constructor(model: any, parent: any, serializer?: DevExpress.Analytics.Utils.IModelSerializer, parameter?: DevExpress.Reporting.Designer.Data.Parameter);
-        className(): string;
+        className(): "" | "default" | "range" | DevExpress.Analytics.Internal.SpecificTypes;
         getInfo(): DevExpress.Analytics.Utils.ISerializationInfoArray;
         get canRemove(): boolean;
         labelOrientation: ko.Observable<string>;
@@ -11380,7 +11449,7 @@ declare module DevExpress.Reporting.Designer {
     import IEditorInfo = DevExpress.Analytics.Utils.IEditorInfo;
     import ISerializationInfo = DevExpress.Analytics.Utils.ISerializationInfo;
     import ControlType = DevExpress.Reporting.Designer.Internal.ControlType;
-    import IParameterTypeValue = DevExpress.Reporting.Designer.Data.IParameterTypeValue;
+    import IReportParameterTypeValue = DevExpress.Reporting.Designer.Data.IReportParameterTypeValue;
     import IReportDesignerRootContext = DevExpress.Reporting.Designer.IReportDesignerRootContext;
     import NavigateTab = DevExpress.Reporting.Designer.Tools.NavigateTab;
     import WizardRunType = DevExpress.Reporting.Designer.Wizard.WizardRunType;
@@ -11580,9 +11649,9 @@ declare module DevExpress.Reporting.Designer {
         IsModified(): boolean;
         ResetIsModified(): void;
         AddToPropertyGrid(groupName: string, property: DevExpress.Analytics.Utils.ISerializationInfo): void;
-        AddParameterType(parameterInfo: DevExpress.Reporting.Designer.Data.IParameterTypeValue, editorInfo: DevExpress.Analytics.Utils.IEditorInfo): void;
+        AddParameterType(parameterInfo: DevExpress.Reporting.Designer.Data.IReportParameterTypeValue, editorInfo: DevExpress.Analytics.Utils.IEditorInfo): void;
         RemoveParameterType(parameterType: string): void;
-        GetParameterInfo(parameterType: string): DevExpress.Reporting.Designer.Data.IParameterTypeValue;
+        GetParameterInfo(parameterType: string): DevExpress.Reporting.Designer.Data.IReportParameterTypeValue;
         GetParameterEditor(valueType: string): DevExpress.Analytics.Utils.IEditorInfo;
         ReportStorageGetData(url: string): DevExpress.Analytics.Internal.DxPromise<any>;
         ReportStorageSetData(reportLayout: string, url: string): DevExpress.Analytics.Internal.DxPromise<any>;
@@ -11846,6 +11915,7 @@ declare module DevExpress.Reporting.Designer.Actions {
         constructor(_converters: DevExpress.Reporting.Designer.Internal.BaseConverter[], isDisabled?: () => boolean);
         condition(context: any): boolean;
     }
+    export const tableComponentControlTypes: string[];
     export class ElementsGroupActions extends BaseActionsProvider {
         private _selectionProvider;
         actions: DevExpress.Analytics.Utils.IActionKO[];

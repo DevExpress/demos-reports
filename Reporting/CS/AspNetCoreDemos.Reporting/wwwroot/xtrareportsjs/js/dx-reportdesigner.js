@@ -1,7 +1,7 @@
 ﻿/**
-* DevExpress HTML/JS Reporting (dist\js\dx-reportdesigner.js)
-* Version:  26.1.3
-* Build date: Jun 16, 2026
+* DevExpress HTML/JS Reporting (js\dx-reportdesigner.js)
+* Version:  26.1.4
+* Build date: Jul 27, 2026
 * Copyright (c) 2012 - 2026 Developer Express Inc. ALL RIGHTS RESERVED
 * License: https://www.devexpress.com/Support/EULAs/universal.xml
 */
@@ -69,8 +69,6 @@ __webpack_require__.d(reporting_chart_internal_namespaceObject, {
   DiagramViewModel: () => (DiagramViewModel),
   HandlerUri: () => (HandlerUri),
   _getUnconvertiblePoint: () => (_getUnconvertiblePoint),
-  _isDateTypeSpecific: () => (_isDateTypeSpecific),
-  _isNumericTypeSpecific: () => (_isNumericTypeSpecific),
   additionalLegendSerializationsInfo: () => (additionalLegendSerializationsInfo),
   additionalPaneSerializationsInfo: () => (additionalPaneSerializationsInfo),
   angle: () => (angle),
@@ -1015,7 +1013,8 @@ __webpack_require__.d(reporting_designer_actions_namespaceObject, {
   TableCellActions: () => (TableCellActions),
   TableCellGroupActions: () => (TableCellGroupActions),
   TableRowActions: () => (TableRowActions),
-  TextElementAction: () => (TextElementAction)
+  TextElementAction: () => (TextElementAction),
+  tableComponentControlTypes: () => (tableComponentControlTypes)
 });
 
 // NAMESPACE OBJECT: ./dist/scopes/reporting-designer-bands-internal.js
@@ -1760,12 +1759,6 @@ function createInnerActionsWithPopover(text, id, actions, template) {
         object._visible(false);
     };
     return [object];
-}
-function _isNumericTypeSpecific(specific) {
-    return ['Integer', 'Float', 'CalcInteger', 'CalcFloat', 'SumInteger', 'SumFloat'].indexOf(specific) > -1;
-}
-function _isDateTypeSpecific(specific) {
-    return ['Date', 'CalcDate', 'SumDate'].indexOf(specific) > -1;
 }
 function _getUnconvertiblePoint(propertyName, oldValue, newValue, points) {
     let filter = _ => false;
@@ -5282,7 +5275,6 @@ const _controlsFactory_controlsFactory = new external_DevExpress_Analytics_Utils
 
 
 
-
 class ChartControlViewModel extends external_DevExpress_Analytics_Utils_namespaceObject.Disposable {
     getInfo() {
         return chartControlSerializationsInfo;
@@ -5316,9 +5308,9 @@ class ChartControlViewModel extends external_DevExpress_Analytics_Utils_namespac
                 const result = items.filter(item => item.name === argumentFieldName)[0];
                 let _scaleType = ScaleType.Numerical;
                 if (result && result.specifics) {
-                    if (_isNumericTypeSpecific(result.specifics))
+                    if ((0,external_DevExpress_Analytics_Internal_namespaceObject._isNumericTypeSpecific)(result.specifics))
                         _scaleType = ScaleType.Numerical;
-                    else if (_isDateTypeSpecific(result.specifics))
+                    else if ((0,external_DevExpress_Analytics_Internal_namespaceObject._isDateTypeSpecific)(result.specifics))
                         _scaleType = ScaleType.DateTime;
                     else
                         _scaleType = ScaleType.Qualitative;
@@ -6991,6 +6983,8 @@ class ReportParameterHelper extends external_DevExpress_Reporting_Viewer_Paramet
     }
 }
 
+;// external "DevExpress.Analytics.Data"
+const external_DevExpress_Analytics_Data_namespaceObject = DevExpress.Analytics.Data;
 ;// ./dist/designer/dataObjects/parameters/parameterTypesHelper.js
 
 
@@ -7049,7 +7043,7 @@ class ParameterTypesHelper {
                     value: knownEnum.enumType,
                     displayValue: knownEnum.enumType,
                     defaultValue: knownEnum.values[0].value,
-                    specifics: 'Enum',
+                    specifics: external_DevExpress_Analytics_Internal_namespaceObject.SpecificTypes.Enum,
                     valueConverter: function (val, defaultValue) { return (0,external_DevExpress_Analytics_Internal_namespaceObject.enumValueConverter)(val, defaultValue, knownEnum.values); }
                 });
             });
@@ -7061,20 +7055,9 @@ class ParameterTypesHelper {
         this.enumValueTypes = this.getEnumTypeValues();
     }
 }
-ParameterTypesHelper.defaultGuidValue = '00000000-0000-0000-0000-000000000000';
 ParameterTypesHelper.typeValues = [
-    { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemString, displayValue: 'String', defaultValue: '', specifics: 'String', valueConverter: function (val) { return val.toString(); }, localizationId: 'UtilsUIStringId.Parameter_Type_String' },
-    { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDateTime, displayValue: 'Date and Time', defaultValue: new Date(new Date().setHours(0, 0, 0, 0)), specifics: 'DateTime', valueConverter: function (val) { return (0,external_DevExpress_Analytics_Internal_namespaceObject.parseDate)(val); }, localizationId: 'UtilsUIStringId.Parameter_Type_DateTime' },
-    { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDateOnly, displayValue: 'Date', defaultValue: new Date(new Date().setHours(0, 0, 0, 0)), specifics: 'Date', valueConverter: function (val) { return (0,external_DevExpress_Analytics_Internal_namespaceObject.parseDate)(val); }, localizationId: 'UtilsUIStringId.Parameter_Type_DateOnly' },
-    { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemTimeOnly, displayValue: 'Time', defaultValue: new Date(new Date().setHours(0, 0, 0, 0)), specifics: 'Time', valueConverter: function (val) { return (0,external_DevExpress_Analytics_Utils_namespaceObject.parseTime)(val); }, localizationId: 'UtilsUIStringId.Parameter_Type_TimeOnly' },
-    { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemInt16, displayValue: 'Number (16 bit integer)', defaultValue: '0', specifics: 'Integer', valueConverter: function (val, defaultValue) { return (0,external_DevExpress_Analytics_Internal_namespaceObject.integerValueConverter)(val, defaultValue, external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemInt16); }, localizationId: 'UtilsUIStringId.Parameter_Type_Int16' },
-    { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemInt32, displayValue: 'Number (32 bit integer)', defaultValue: '0', specifics: 'Integer', valueConverter: function (val, defaultValue) { return (0,external_DevExpress_Analytics_Internal_namespaceObject.integerValueConverter)(val, defaultValue, external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemInt32); }, localizationId: 'UtilsUIStringId.Parameter_Type_Int32' },
-    { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemInt64, displayValue: 'Number (64 bit integer)', defaultValue: '0', specifics: 'Integer', valueConverter: function (val, defaultValue) { return (0,external_DevExpress_Analytics_Internal_namespaceObject.integerValueConverter)(val, defaultValue, external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemInt64); }, localizationId: 'UtilsUIStringId.Parameter_Type_Int64' },
-    { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemSingle, displayValue: 'Number (floating-point)', defaultValue: '0', specifics: 'Float', valueConverter: function (val, defaultValue) { return (0,external_DevExpress_Analytics_Internal_namespaceObject.floatValueConverter)(val, defaultValue, external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemSingle); }, localizationId: 'UtilsUIStringId.Parameter_Type_Float' },
-    { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDouble, displayValue: 'Number (double-precision floating-point)', defaultValue: '0', specifics: 'Float', valueConverter: function (val, defaultValue) { return (0,external_DevExpress_Analytics_Internal_namespaceObject.floatValueConverter)(val, defaultValue, external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDouble); }, localizationId: 'UtilsUIStringId.Parameter_Type_Double' },
-    { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDecimal, displayValue: 'Number (decimal)', defaultValue: '0', specifics: 'Float', valueConverter: function (val, defaultValue) { return (0,external_DevExpress_Analytics_Internal_namespaceObject.floatValueConverter)(val, defaultValue, external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDecimal); }, localizationId: 'UtilsUIStringId.Parameter_Type_Decimal' },
-    { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemBoolean, displayValue: 'Boolean', defaultValue: false, specifics: 'Bool', valueConverter: function (val) { return String(val).toLowerCase() === 'true' ? true : (String(val).toLowerCase() === 'false' ? false : null); }, localizationId: 'UtilsUIStringId.Parameter_Type_Boolean' },
-    { value: external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemGuid, displayValue: 'Guid', defaultValue: ParameterTypesHelper.defaultGuidValue, valueConverter: function (val) { return (0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.validateGuid)(val) ? val : ParameterTypesHelper.defaultGuidValue; }, specifics: 'guid', localizationId: 'UtilsUIStringId.Parameter_Type_Guid' }
+    ...external_DevExpress_Analytics_Data_namespaceObject.defaultParameterTypes,
+    new external_DevExpress_Analytics_Data_namespaceObject.DataSourceParameterTypeValue(external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemGuid, external_DevExpress_Analytics_Data_namespaceObject.defaultGuidValue, val => { return (0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.validateGuid)(val) ? val : external_DevExpress_Analytics_Data_namespaceObject.defaultGuidValue; }, external_DevExpress_Analytics_Internal_namespaceObject.SpecificTypes.Guid),
 ];
 
 ;// ./dist/designer/dataObjects/parameters/parameterSettings.js
@@ -8877,7 +8860,18 @@ class ReportRenderingService {
             padding: surface._control['padding'] && surface._control['padding']() || external_DevExpress_Analytics_Elements_namespaceObject.PaddingModel.defaultVal,
             dpi: surface._control['dpi'] && surface._control['dpi']() || 100
         };
-        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(settings_HandlerUri(), 'shapeGlyph', (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)(params));
+        const paramsStr = JSON.stringify(params);
+        if (surface._lastShapeImageParams === paramsStr && surface._lastShapeImagePromise) {
+            return surface._lastShapeImagePromise;
+        }
+        surface._lastShapeImageParams = paramsStr;
+        const promise = (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(settings_HandlerUri(), 'shapeGlyph', (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)(params));
+        surface._lastShapeImagePromise = promise;
+        promise.fail(() => {
+            surface._lastShapeImageParams = undefined;
+            surface._lastShapeImagePromise = undefined;
+        });
+        return promise;
     }
     static getRichImage(surface, propertyName) {
         return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(settings_HandlerUri(), 'renderRich', (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
@@ -11839,8 +11833,8 @@ const watermarkId = { propertyName: 'watermarkId', modelName: '@WatermarkId', di
 const rollPaper = { propertyName: 'rollPaper', modelName: '@RollPaper', displayName: 'Roll Paper', localizationId: 'DevExpress.XtraReports.UI.XtraReport.RollPaper', defaultVal: false, editor: external_DevExpress_Analytics_Widgets_namespaceObject.editorTemplates.getEditor('bool'), from: external_DevExpress_Analytics_Utils_namespaceObject.parseBool };
 const requestParameters = { propertyName: 'requestParameters', modelName: '@RequestParameters', displayName: 'Request Parameters', localizationId: 'DevExpress.XtraReports.UI.XtraReport.RequestParameters', defaultVal: true, editor: external_DevExpress_Analytics_Widgets_namespaceObject.editorTemplates.getEditor('bool'), from: external_DevExpress_Analytics_Utils_namespaceObject.parseBool };
 const formattingRuleSheet = { propertyName: 'formattingRuleSheet', modelName: 'FormattingRuleSheet', displayName: 'Formatting Rule Sheet', localizationId: 'DevExpress.XtraReports.UI.XtraReport.FormattingRuleSheet', array: true };
-const pageWidthF = { propertyName: 'pageWidthF', modelName: '@PageWidthF', displayName: 'Page Width', localizationId: 'DevExpress.XtraReports.UI.XtraReport.PageWidth', descriptionLocalizationId: 'DevExpress.XtraReports.UI.XtraReport.PageWidthF.Description', defaultVal: -1, from: external_DevExpress_Analytics_Utils_namespaceObject.floatFromModel, editor: external_DevExpress_Analytics_Widgets_namespaceObject.editorTemplates.getEditor('numeric'), editorOptions: { format: '#0.##' } };
-const pageHeightF = { propertyName: 'pageHeightF', modelName: '@PageHeightF', displayName: 'Page Height', localizationId: 'DevExpress.XtraReports.UI.XtraReport.PageHeight', descriptionLocalizationId: 'DevExpress.XtraReports.UI.XtraReport.PageHeightF.Description', defaultVal: -1, from: external_DevExpress_Analytics_Utils_namespaceObject.floatFromModel, editor: external_DevExpress_Analytics_Widgets_namespaceObject.editorTemplates.getEditor('numeric'), editorOptions: { format: '#0.##' } };
+const pageWidthF = { propertyName: 'pageWidthF', modelName: '@PageWidthF', localizable: true, displayName: 'Page Width', localizationId: 'DevExpress.XtraReports.UI.XtraReport.PageWidth', descriptionLocalizationId: 'DevExpress.XtraReports.UI.XtraReport.PageWidthF.Description', defaultVal: -1, from: external_DevExpress_Analytics_Utils_namespaceObject.floatFromModel, editor: external_DevExpress_Analytics_Widgets_namespaceObject.editorTemplates.getEditor('numeric'), editorOptions: { format: '#0.##' } };
+const pageHeightF = { propertyName: 'pageHeightF', modelName: '@PageHeightF', localizable: true, displayName: 'Page Height', localizationId: 'DevExpress.XtraReports.UI.XtraReport.PageHeight', descriptionLocalizationId: 'DevExpress.XtraReports.UI.XtraReport.PageHeightF.Description', defaultVal: -1, from: external_DevExpress_Analytics_Utils_namespaceObject.floatFromModel, editor: external_DevExpress_Analytics_Widgets_namespaceObject.editorTemplates.getEditor('numeric'), editorOptions: { format: '#0.##' } };
 const localizationItems = { propertyName: '_localizationItems', modelName: 'LocalizationItems', array: true };
 const language = {
     propertyName: 'language', displayName: 'Language', defaultVal: external_DevExpress_Reporting_Metadata_namespaceObject.defaultCulture, localizationId: 'DevExpress.XtraReports.UI.XtraReport.XRLanguage', localizable: true, editor: designerEditorTemplates.getEditor('localizationSelectBox'), values: external_DevExpress_Reporting_Metadata_namespaceObject.availableCultures
@@ -12342,8 +12336,6 @@ class CalculatedField extends external_DevExpress_Analytics_Utils_namespaceObjec
     }
 }
 
-;// external "DevExpress.Analytics.Data"
-const external_DevExpress_Analytics_Data_namespaceObject = DevExpress.Analytics.Data;
 ;// ./dist/designer/dataObjects/metadata/parameters/parameterExpressionBinding.js
 const parameterExpressionBindingSerializationsInfo = [
     { propertyName: 'propertyName', modelName: '@PropertyName', defaultVal: '' },
@@ -13552,7 +13544,6 @@ class Parameter extends external_DevExpress_Analytics_Utils_namespaceObject.Disp
 }
 Parameter.propertiesWithExpressions = ['visible', 'enabled', 'value'];
 Parameter.ParametersRefString = 'Parameters';
-Parameter.defaultGuidValue = ParameterTypesHelper.defaultGuidValue;
 Parameter.availableRangeSettingTypes = [external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDateTime, external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemDateOnly, external_DevExpress_Analytics_Internal_namespaceObject.DotnetTypes.SystemTimeOnly];
 
 ;// ./dist/designer/localization/localizationMetadata.js
@@ -15021,13 +15012,15 @@ class XRTableRowViewModel extends XRControlViewModel {
             throw new Error('Trying to add non a cell to the table row.');
         }
     }
-    insertCellCopy(selectedCell, isRight, onComponentAdded) {
-        const newCellWeight = selectedCell.weight() / 2, newCell = new XRTableCellViewModel({ '@ControlType': 'XRTableCell', '@Weight': newCellWeight, '@Multiline': 'true' }, this), indexSelectedCell = this.cells.indexOf(selectedCell);
+    insertCellCopy(selectedCell, isRight, onComponentAdded, duplicateWeight = false) {
+        const newCellWeight = duplicateWeight ? selectedCell.weight() : selectedCell.weight() / 2, newCell = new XRTableCellViewModel({ '@ControlType': 'XRTableCell', '@Weight': newCellWeight, '@Multiline': 'true' }, this), indexSelectedCell = this.cells.indexOf(selectedCell);
         this.addChild(newCell, indexSelectedCell + (isRight ? 1 : 0), onComponentAdded);
         if (newCell['text']) {
             newCell['text'](newCell.name());
         }
-        selectedCell.weight(newCellWeight);
+        if (!duplicateWeight) {
+            selectedCell.weight(newCellWeight);
+        }
     }
     removeChild(selectedCell) {
         if (this.cells().length > 0 && this.cells().indexOf(selectedCell) !== -1) {
@@ -15177,9 +15170,11 @@ class XRTableControlViewModel extends XRControlViewModel {
     }
     insertColumn(selectedCell, isRight, onComponentAdded) {
         const selectedCellX = selectedCell.surface.rect().left, selectedCellRight = selectedCell.surface.rect().left + selectedCell.surface.rect().width, adjacentCells = this._getAdjacentCells((cell) => { return isRight ? ((cell.surface.rect().left + cell.surface.rect().width) === selectedCellRight) : (cell.surface.rect().left === selectedCellX); });
+        const cellWidth = selectedCell.width();
         adjacentCells.forEach((cell) => {
-            cell.parentModel().insertCellCopy(cell, isRight, onComponentAdded);
+            cell.parentModel().insertCellCopy(cell, isRight, onComponentAdded, true);
         });
+        this.size.width(this.size.width() + cellWidth);
     }
     addColumnToCalculation(diff, last = false) {
         const rows = this.rows();
@@ -21603,6 +21598,12 @@ class XRShapeViewModel extends XRControlViewModel {
         };
         this._disposables.push(this.shapeFake.type);
     }
+    onDelete() {
+        this.surface?.onDelete?.();
+    }
+    onAdd() {
+        this.surface?.onAdd?.();
+    }
 }
 XRShapeViewModel.unitProperties = [].concat(['lineWidth'], XRReportElementViewModel.unitProperties);
 XRShapeViewModel.timeout = 1;
@@ -21744,6 +21745,7 @@ class XRShapeControlSurface extends XRControlSurface {
         ReportRenderingService.getShapeImage(this)
             .done((result) => {
             resultDeferred.resolve(result);
+            this.error('');
         })
             .fail((xhr) => {
             resultDeferred.resolve(null);
@@ -21761,11 +21763,20 @@ class XRShapeControlSurface extends XRControlSurface {
         this.imageSrc = external_ko_namespaceObject.observable('');
         this.isLoading = external_ko_namespaceObject.observable(false);
         this.error = external_ko_namespaceObject.observable('');
-        this._disposables.push(external_ko_namespaceObject.computed(() => {
-            this._updateImage();
-        }));
+        this._updateImageSubscription = null;
+        this.onAdd();
+        this.addDisposable(() => this.onDelete());
         this.template = 'dxrd-shape';
         this.contenttemplate = 'dxrd-server-rendered-control-content';
+    }
+    onDelete() {
+        this._updateImageSubscription?.dispose();
+    }
+    onAdd() {
+        this._updateImageSubscription?.dispose();
+        this._updateImageSubscription = external_ko_namespaceObject.computed(() => {
+            this._updateImage();
+        }).extend({ rateLimit: { timeout: 200, method: 'notifyWhenChangesStop' } });
     }
 }
 
@@ -24861,6 +24872,7 @@ class SpaceCommandHandler {
 
 
 
+const tableComponentControlTypes = ['XRTableCell', 'XRTableRow'];
 class ElementsGroupActions extends external_DevExpress_Analytics_Internal_namespaceObject.BaseActionsProvider {
     constructor(surfaceContext, selectionProvider) {
         super();
@@ -24998,7 +25010,9 @@ class ElementsGroupActions extends external_DevExpress_Analytics_Internal_namesp
         };
     }
     condition(context) {
-        return this._selectionProvider.selectedItems.length > 1 && !this._selectionProvider.selectedItems.some(item => item instanceof XRCellsurface);
+        return this._selectionProvider.selectedItems.length > 1
+            && !this._selectionProvider.selectedItems.some(item => item instanceof XRCellsurface)
+            && !this._selectionProvider.selectedItems.every((x) => tableComponentControlTypes.indexOf(x.getControlModel().controlType) >= 0);
     }
 }
 
@@ -25421,6 +25435,7 @@ class FitToContainerAction {
 
 
 
+
 class ElementActions extends external_DevExpress_Analytics_Internal_namespaceObject.BaseActionsProvider {
     constructor(surfaceContext, selectionProvider) {
         super();
@@ -25519,7 +25534,8 @@ class ElementActions extends external_DevExpress_Analytics_Internal_namespaceObj
     condition(context) {
         this._isMultiSelect(context.controlType === 'multiselect');
         if (this._isMultiSelect())
-            return !this._selectionProvider.selectedItems.some(item => item instanceof XRCellsurface);
+            return !this._selectionProvider.selectedItems.some(item => item instanceof XRCellsurface)
+                && !this._selectionProvider.selectedItems.every(x => tableComponentControlTypes.indexOf(x.getControlModel().controlType) >= 0);
         return !(context instanceof XRTableCellViewModel || context instanceof XRTableRowViewModel || context instanceof XRCrossTabCellViewModel);
     }
 }
@@ -25893,6 +25909,7 @@ class TableCellGroupActions extends external_DevExpress_Analytics_Internal_names
 
 
 
+
 class TextElementAction extends external_DevExpress_Analytics_Internal_namespaceObject.BaseActionsProvider {
     get _textControls() {
         return this._selectionProvider.selectedItems;
@@ -25934,7 +25951,9 @@ class TextElementAction extends external_DevExpress_Analytics_Internal_namespace
         this._disposables.push(actionsDisabled);
     }
     condition(context) {
-        return context && (context.controlType === 'XRLabel' || context.controlType === 'XRTableCell' || context.controlType === 'XRCharacterComb' || context.controlType === 'multiselect');
+        if (context && context.controlType === 'multiselect')
+            return !this._selectionProvider.selectedItems.some(item => item instanceof XRCellsurface);
+        return context && (context.controlType === 'XRLabel' || context.controlType === 'XRTableCell' || context.controlType === 'XRCharacterComb');
     }
 }
 
@@ -26120,7 +26139,7 @@ class DataSourceHelper extends external_DevExpress_Analytics_Utils_namespaceObje
         return (!dataSource || !dataSource.data) ? (0,external_DevExpress_Analytics_Internal_namespaceObject.localizeNoneString)('none') : dataSource.name;
     }
     mergedDataSources() {
-        const dataSources = this.usedDataSources().slice(0, -1);
+        const dataSources = this.usedDataSources().filter(item => item.specifics !== 'none');
         for (let i = this.availableDataSources.length - 1; i >= 0; i--) {
             if (!(0,external_DevExpress_Analytics_Internal_namespaceObject.findFirstItemMatchesCondition)(dataSources, (item) => item.name === this.availableDataSources[i].name)) {
                 dataSources.unshift(this.availableDataSources[i]);
@@ -27410,6 +27429,8 @@ class ReportControlsDragDropHelper extends ObjectExplorerDragDropHelper {
         const currentModel = this._getElementViewModel(currentTarget);
         if (BandViewModel.isReorderingBand(this._draggableModel) && BandViewModel.isReorderingBand(currentModel))
             return _isReorderBand(this._draggableModel.surface, currentModel);
+        if (this._draggableModel.controlType === 'XRSubreport' && (currentModel.parentModel?.()?.controlType === 'XRTableCell' || currentModel.parentModel?.()?.controlType === 'XRPanel'))
+            return false;
         return currentTarget.data.specifics === draggableData.specifics ||
             (this._draggableModel.getMetaData().canDrop(currentModel.surface, this._draggableModel) &&
                 !currentModel.getMetaData().isContainer && !(currentModel instanceof ReportViewModel));
@@ -27417,6 +27438,8 @@ class ReportControlsDragDropHelper extends ObjectExplorerDragDropHelper {
     _canInsertToTarget(targetModel) {
         const targetIsContainer = targetModel.getMetaData().isContainer || targetModel instanceof ReportViewModel;
         if (this._tableControlTypes.indexOf(this._draggableModel.controlType) === -1 && (targetModel.controlType === 'XRTable' || targetModel.controlType === 'XRTableRow'))
+            return false;
+        if (this._draggableModel.controlType === 'XRSubreport' && (targetModel.controlType === 'XRTableCell' || targetModel.controlType === 'XRPanel'))
             return false;
         return targetIsContainer && targetModel.surface && targetModel.surface.canDrop()
             && this._draggableModel.getMetaData().canDrop(targetModel.surface, this._draggableModel);
@@ -31410,8 +31433,13 @@ class ReportWizardService {
         if (reportWizardState.dataSource) {
             if (reportWizardState.dataSourceType === external_DevExpress_Analytics_Wizard_namespaceObject.DataSourceType.Federation) {
                 const federationModel = (JSON.parse(JSON.parse(reportWizardState.dataSource).data));
-                dataSourceJSON = JSON.stringify(federationModel.dataSource);
-                dataSources = Object.keys(federationModel.dataSources).map(key => JSON.stringify(federationModel.dataSources[key]));
+                if (federationModel.dataSources) {
+                    dataSourceJSON = JSON.stringify(federationModel.dataSource);
+                    dataSources = Object.keys(federationModel.dataSources).map(key => JSON.stringify(federationModel.dataSources[key]));
+                }
+                else {
+                    dataSourceJSON = JSON.parse(reportWizardState.dataSource).data;
+                }
             }
             else {
                 dataSourceJSON = JSON.parse(reportWizardState.dataSource).data;
@@ -38350,9 +38378,6 @@ class ReportWizard extends external_DevExpress_Analytics_Wizard_namespaceObject.
         else if (this._reportWizardOptions.mongoDBDataSourceAvailable || !(0,external_DevExpress_Analytics_Internal_namespaceObject.isEmptyObject)(state.mongoDBDataSourceWizard)) {
             state.dataSourceType = external_DevExpress_Analytics_Wizard_namespaceObject.DataSourceType.MongoDB;
         }
-        else if (this._reportWizardOptions.federationDataSourceAvailable) {
-            state.dataSourceType = external_DevExpress_Analytics_Wizard_namespaceObject.DataSourceType.Federation;
-        }
         else {
             state.dataSourceType = external_DevExpress_Analytics_Wizard_namespaceObject.DataSourceType.NoData;
         }
@@ -39812,6 +39837,11 @@ class WizardsInitializerSettings {
                 result = settings.data.isReportServer ? settings.dataSourceHelper().availableDataSources : settings.dataSourceHelper().mergedDataSources();
             }
             return result.filter(object => !object.hasErrors);
+        });
+        this.reportWizardOptions.usedDataSources = external_ko_namespaceObject.pureComputed(() => {
+            if (!settings.dataSourceHelper())
+                return [];
+            return settings.dataSourceHelper().usedDataSources().filter(object => object.specifics !== 'none' && !object.hasErrors);
         });
         this.reportWizardOptions.callbacks = (0,external_DevExpress_Analytics_Internal_namespaceObject.extend)({}, this.multipleQueriesWizardCallbacks, {
             createSqlDataSourceInfo: SqlDataSourceEditor.createSqlDataSourceInfo,
@@ -41388,7 +41418,8 @@ class ReportDesignerInitializer extends external_DevExpress_Analytics_Internal_n
             const isDataSourceWizardVisible = this.buildingModel.dataSourceWizard && this.buildingModel.dataSourceWizard.isVisible();
             const isMultiQueryDataSourceWizardVisible = this.buildingModel.multiQueryDataSourceWizard && this.buildingModel.multiQueryDataSourceWizard.isVisible();
             const isLocalizationModeVisible = this.buildingModel.localizationMode && this.buildingModel.localizationMode();
-            return isDesignMode && !isWizardVisible && !isDataSourceWizardVisible && !isMultiQueryDataSourceWizardVisible && !isLocalizationModeVisible;
+            const isExpressionEditorVisible = this.buildingModel.activatedExpressionEditor && this.buildingModel.activatedExpressionEditor() && this.buildingModel.activatedExpressionEditor().popupVisible();
+            return isDesignMode && !isWizardVisible && !isDataSourceWizardVisible && !isMultiQueryDataSourceWizardVisible && !isLocalizationModeVisible && !isExpressionEditorVisible;
         });
         this._addDisposable(designerShortcutsEnabled);
         const actions = new external_DevExpress_Analytics_Internal_namespaceObject.ActionLists(this.buildingModel.surface, this.buildingModel.selection, this.buildingModel.undoEngine, this._customizeDesignerActions(this.buildingModel, this._designerCallbacks.customizeActions, this._designerCallbacks.exitDesigner, () => this._reportcontext() && this._reportcontext().state() || this.buildingModel.state, this._designerCallbacks), designerShortcutsEnabled, reportCopyPasteStrategy(this._designerCallbacks.componentAdded), this.buildingModel.zoomStep, _ => !this.buildingModel.canAddItems());

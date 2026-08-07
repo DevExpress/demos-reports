@@ -1,7 +1,7 @@
 ﻿/**
-* DevExpress HTML/JS Reporting (dist\js\dx-webdocumentviewer.js)
-* Version:  26.1.3
-* Build date: Jun 16, 2026
+* DevExpress HTML/JS Reporting (js\dx-webdocumentviewer.js)
+* Version:  26.1.4
+* Build date: Jul 27, 2026
 * Copyright (c) 2012 - 2026 Developer Express Inc. ALL RIGHTS RESERVED
 * License: https://www.devexpress.com/Support/EULAs/universal.xml
 */
@@ -228,6 +228,9 @@ __webpack_require__.d(reporting_viewer_namespaceObject, {
   JSReportViewerBase: () => (JSReportViewerBase),
   JSReportViewerBindingBase: () => (JSReportViewerBindingBase),
   MobilePreviewElements: () => (MobilePreviewElements),
+  PictureEditorKeyboardHelperBase: () => (PictureEditorKeyboardHelperBase),
+  PictureEditorPopoverKeyboardHelper: () => (PictureEditorPopoverKeyboardHelper),
+  PictureEditorToolbarKeyboardHelper: () => (PictureEditorToolbarKeyboardHelper),
   PredefinedDateRangesKeyboardHelper: () => (PredefinedDateRangesKeyboardHelper),
   PreviewBricksKeyboardHelper: () => (PreviewBricksKeyboardHelper),
   PreviewEditingFieldsKeyboardHelper: () => (PreviewEditingFieldsKeyboardHelper),
@@ -344,13 +347,17 @@ __webpack_require__.d(reporting_viewer_internal_namespaceObject, {
   ColumnSortOrder: () => (ColumnSortOrder),
   DocumentMapItemsProvider: () => (DocumentMapItemsProvider),
   DocumentMapModel: () => (DocumentMapModel),
+  DocumentMapPanelAction: () => (DocumentMapPanelAction),
   DocumentMapTreeListController: () => (DocumentMapTreeListController),
   ExportActionBase: () => (ExportActionBase),
   ExportHandler: () => (ExportHandler),
+  ExportOptionsPanelAction: () => (ExportOptionsPanelAction),
   ExportResultRequestData: () => (ExportResultRequestData),
   FullScreenActionBase: () => (FullScreenActionBase),
+  OpenPreviewTabAction: () => (OpenPreviewTabAction),
   PageLoadSession: () => (PageLoadSession),
   PagePrefetchService: () => (PagePrefetchService),
+  ParametersPanelAction: () => (ParametersPanelAction),
   PreviewActions: () => (PreviewActions),
   PreviewDesignerActions: () => (PreviewDesignerActions),
   PreviewDisposableModel: () => (PreviewDisposableModel),
@@ -377,11 +384,14 @@ __webpack_require__.d(reporting_viewer_internal_namespaceObject, {
   createViewModel: () => (createViewModel),
   formatSearchResult: () => (formatSearchResult),
   generateSignatureDisplay: () => (generateSignatureDisplay),
+  getBrickFullDescription: () => (getBrickFullDescription),
   getBrickValueForKey: () => (getBrickValueForKey),
   getCurrentResolution: () => (getCurrentResolution),
   getDockedElementCallback: () => (getDockedElementCallback),
   getEnumValues: () => (getEnumValues),
   getImageBase64: () => (getImageBase64),
+  getNavigationDescription: () => (getNavigationDescription),
+  getSortOrderText: () => (getSortOrderText),
   getUpdateProgressBarCallback: () => (getUpdateProgressBarCallback),
   initPreviewModel: () => (initPreviewModel),
   initializeAutoFitBinding: () => (initializeAutoFitBinding),
@@ -995,7 +1005,7 @@ class EventGenerator {
 ;// external "DevExpress.Analytics.Internal.dxversions"
 const external_DevExpress_Analytics_Internal_dxversions_namespaceObject = DevExpress.Analytics.Internal.dxversions;
 ;// ./dist/dx-reporting-version.js
-const version = '26.1.3';
+const version = '26.1.4';
 
 ;// ./dist/common/versions.js
 
@@ -1259,7 +1269,16 @@ const fullscreenEventsList = ['fullscreenchange', 'mozfullscreenchange', 'webkit
 function createFullscreenComputed(element, parent) {
     const fullscreen = (0,external_DevExpress_Analytics_Internal_namespaceObject.createGlobalModuleVariableFunc)(false, (newVal) => toggleFullscreen(element, newVal));
     let func = () => {
-        const isFullscreen = document.fullscreen || !!document['msFullscreenElement'] || !!document['webkitFullscreenElement'];
+        const isFullscreen = !!(document.fullscreenElement || document['msFullscreenElement'] || document['webkitFullscreenElement'] || document['mozFullScreenElement']);
+        if (!isFullscreen) {
+            const keyboard = navigator.keyboard;
+            if (keyboard && keyboard.unlock) {
+                try {
+                    keyboard.unlock();
+                }
+                catch (e) { }
+            }
+        }
         fullscreen.notifySubscribers(isFullscreen);
     };
     addFullscreenListener(document, func);
@@ -1292,14 +1311,19 @@ function removeFullscreenListener(element, func) {
     });
 }
 function showFullscreen(element) {
+    let request;
     if (element.requestFullscreen)
-        element.requestFullscreen();
+        request = element.requestFullscreen();
     else if (element['mozRequestFullScreen'])
-        element['mozRequestFullScreen']();
+        request = element['mozRequestFullScreen']();
     else if (element['webkitRequestFullscreen'])
-        element['webkitRequestFullscreen']();
-    else if (element['msRequestFullscreen']) {
-        element['msRequestFullscreen']();
+        request = element['webkitRequestFullscreen']();
+    else if (element['msRequestFullscreen'])
+        request = element['msRequestFullscreen']();
+    const keyboard = navigator.keyboard;
+    if (keyboard && keyboard.lock) {
+        const lock = () => keyboard.lock(['Escape']).catch(() => { });
+        request ? request.then(lock).catch(() => { }) : lock();
     }
 }
 function exitFullscreen() {
@@ -1919,12 +1943,13 @@ const pdfACompatibility = {
         { value: pdfACompatibilityValues.PdfA3b, displayValue: 'PDF/A-3b', localizationId: 'DevExpress.XtraPrinting.PdfACompatibility.PdfA3b' }
     ]
 };
-const pdfUACompatibilityValues = { None: 'None', PdfUA1: 'PdfUA1' };
+const pdfUACompatibilityValues = { None: 'None', PdfUA1: 'PdfUA1', PdfUA2: 'PdfUA2' };
 const pdfUACompatibility = {
     propertyName: 'pdfUACompatibility', modelName: '@PdfUACompatibility', displayName: 'PDF UA Compatibility', localizationId: 'DevExpress.XtraPrinting.PdfExportOptions.PdfUACompatibility', editor: external_DevExpress_Analytics_Widgets_namespaceObject.editorTemplates.getEditor('combobox'), defaultVal: pdfUACompatibilityValues.None, from: external_DevExpress_Analytics_Utils_namespaceObject.fromEnum,
     valuesArray: [
         { value: pdfUACompatibilityValues.None, displayValue: pdfACompatibilityValues.None, localizationId: 'DevExpress.XtraPrinting.PdfUACompatibility.None' },
-        { value: pdfUACompatibilityValues.PdfUA1, displayValue: pdfUACompatibilityValues.PdfUA1, localizationId: 'DevExpress.XtraPrinting.PdfUACompatibility.PdfUA1' }
+        { value: pdfUACompatibilityValues.PdfUA1, displayValue: 'PDF/UA-1', localizationId: 'DevExpress.XtraPrinting.PdfUACompatibility.PdfUA1' },
+        { value: pdfUACompatibilityValues.PdfUA2, displayValue: 'PDF/UA-2', localizationId: 'DevExpress.XtraPrinting.PdfUACompatibility.PdfUA2' }
     ]
 };
 const showPrintDialogOnOpen = {
@@ -2405,6 +2430,9 @@ const ActionId = {
     PrintPage: 'dxxrp-print-page',
     ExportTo: 'dxxrp-export-menu',
     Search: 'dxxrp-search',
+    ParametersPanel: 'dxxrp-parameters-panel',
+    DocumentMapPanel: 'dxxrp-document-map-panel',
+    ExportOptionsPanel: 'dxxrp-export-options-panel',
     FullScreen: 'dxrd-fullscreen'
 };
 const ExportFormatID = {
@@ -2434,11 +2462,369 @@ var ZoomAutoBy;
     ZoomAutoBy[ZoomAutoBy["PageWidth"] = -1] = "PageWidth";
 })(ZoomAutoBy || (ZoomAutoBy = {}));
 
+;// ./dist/viewer/settings.js
+
+var PageRenderFormat;
+(function (PageRenderFormat) {
+    PageRenderFormat[PageRenderFormat["Auto"] = 0] = "Auto";
+    PageRenderFormat[PageRenderFormat["Svg"] = 1] = "Svg";
+    PageRenderFormat[PageRenderFormat["Png"] = 2] = "Png";
+})(PageRenderFormat || (PageRenderFormat = {}));
+const EditablePreviewEnabled = (0,external_DevExpress_Analytics_Internal_namespaceObject.createGlobalModuleVariableFunc)(true);
+const SearchAvailable = (0,external_DevExpress_Analytics_Internal_namespaceObject.createGlobalModuleVariableFunc)(true);
+const ReportServerInvokeUri = '/RSWebDocumentViewerApi/Invoke';
+const ReportServerExportUri = '/RSWebDocumentViewerApi/Download';
+const AsyncExportApproach = (0,external_DevExpress_Analytics_Internal_namespaceObject.createGlobalModuleVariableFunc)(false);
+const MessageHandler = (0,external_DevExpress_Analytics_Internal_namespaceObject.createGlobalModuleVariableFunc)({
+    processError: (message, showForUser, prefix = '', element) => {
+        showForUser && (0,external_DevExpress_Analytics_Internal_namespaceObject.ShowMessage)(message.substr(prefix.length), undefined, undefined, undefined, undefined, element);
+        (0,external_DevExpress_Analytics_Internal_namespaceObject.NotifyAboutWarning)(message, false);
+    },
+    processMessage: (message, showForUser, element) => { showForUser && (0,external_DevExpress_Analytics_Internal_namespaceObject.ShowMessage)(message, external_DevExpress_Analytics_Internal_namespaceObject.NotifyType.success, 10000, undefined, undefined, element); },
+    processWarning: (message, showForUser, element) => { showForUser && (0,external_DevExpress_Analytics_Internal_namespaceObject.ShowMessage)(message, undefined, undefined, undefined, undefined, element); }
+});
+const HandlerUri = (0,external_DevExpress_Analytics_Internal_namespaceObject.createGlobalModuleVariableFunc)('DXXRDV.axd');
+const previewDefaultResolution = (0,external_DevExpress_Analytics_Internal_namespaceObject.createGlobalModuleVariableFunc)(96);
+const ReportServerDownloadUri = (0,external_DevExpress_Analytics_Internal_namespaceObject.createGlobalModuleVariableFunc)('');
+const PollingDelay = (0,external_DevExpress_Analytics_Internal_namespaceObject.createGlobalModuleVariableFunc)(300);
+const TimeOut = (0,external_DevExpress_Analytics_Internal_namespaceObject.createGlobalModuleVariableFunc)(105000);
+const PreloadedPagesOffset = (0,external_DevExpress_Analytics_Internal_namespaceObject.createGlobalModuleVariableFunc)(15);
+const MultipageScrollingThrottle = (0,external_DevExpress_Analytics_Internal_namespaceObject.createGlobalModuleVariableFunc)(150);
+const PreviewRenderFormat = (0,external_DevExpress_Analytics_Internal_namespaceObject.createGlobalModuleVariableFunc)(PageRenderFormat.Png);
+const ClipboardSeparator = (0,external_DevExpress_Analytics_Internal_namespaceObject.createGlobalModuleVariableFunc)('');
+const AIServicesEnabled = (0,external_DevExpress_Analytics_Internal_namespaceObject.createGlobalModuleVariableFunc)(false);
+
+;// ./dist/viewer/internal/_previewRequestWrapper.js
+
+
+
+var ColumnSortOrder;
+(function (ColumnSortOrder) {
+    ColumnSortOrder[ColumnSortOrder["None"] = 0] = "None";
+    ColumnSortOrder[ColumnSortOrder["Ascending"] = 1] = "Ascending";
+    ColumnSortOrder[ColumnSortOrder["Descending"] = 2] = "Descending";
+})(ColumnSortOrder || (ColumnSortOrder = {}));
+class PreviewRequestWrapper {
+    constructor(handlers, _callbacks) {
+        this._callbacks = _callbacks;
+        Object.keys(handlers || {}).forEach((name) => {
+            this[name] = handlers[name];
+        });
+    }
+    static getProcessErrorCallback(reportPreview, defaultErrorMessage, showMessage = true) {
+        return function (message, jqXHR, textStatus) {
+            let messageWithStatusCode;
+            if (jqXHR) {
+                const statusCodeText = (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)(jqXHR.statusText, 'ASPxReportsStringId.HttpResponseStatusCode_' + jqXHR.status);
+                if (defaultErrorMessage) {
+                    if (jqXHR.status === 0) {
+                        messageWithStatusCode = statusCodeText
+                            ? (0,external_DevExpress_Analytics_Internal_namespaceObject.formatUnicorn)('{0} ({1})', defaultErrorMessage, statusCodeText)
+                            : defaultErrorMessage;
+                    }
+                    else {
+                        const stringFormat = (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('{0} ({1} {2})', 'ASPxReportsStringId.Error_WithStatus');
+                        messageWithStatusCode = (0,external_DevExpress_Analytics_Internal_namespaceObject.formatUnicorn)(stringFormat, defaultErrorMessage, jqXHR.status, statusCodeText);
+                    }
+                }
+                else {
+                    messageWithStatusCode = statusCodeText;
+                }
+            }
+            if (!reportPreview) {
+                const error = (0,external_DevExpress_Analytics_Internal_namespaceObject.getErrorMessage)(jqXHR);
+                MessageHandler().processError(error || messageWithStatusCode || defaultErrorMessage || 'Internal Server Error', showMessage);
+            }
+            else {
+                reportPreview._processError(messageWithStatusCode || defaultErrorMessage, jqXHR, showMessage);
+            }
+        };
+    }
+    static getPage(url, ignoreError) {
+        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(url, undefined, undefined, PreviewRequestWrapper.getProcessErrorCallback(), ignoreError, { type: 'GET' });
+    }
+    initialize(reportPreview, parametersModel, searchModel) {
+        this._reportPreview = reportPreview;
+        this._parametersModel = parametersModel;
+        this._searchModel = searchModel;
+    }
+    findTextRequest(text, ignore) {
+        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'findText', (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
+            text: text,
+            documentId: this._reportPreview.documentId,
+            matchCase: this._searchModel.matchCase,
+            wholeWord: this._searchModel.matchWholeWord,
+            searchUp: this._searchModel.searchUp
+        }), PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('An error occurred during search', 'ASPxReportsStringId.WebDocumentViewer_SearchError')), () => ignore);
+    }
+    startSearch(text, ignore) {
+        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'startSearch', (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
+            text: text,
+            documentId: this._reportPreview.documentId,
+            matchCase: this._searchModel.matchCase,
+            wholeWord: this._searchModel.matchWholeWord,
+        }), PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('An error occurred during search', 'ASPxReportsStringId.WebDocumentViewer_SearchError')), () => ignore);
+    }
+    getSearchStatus(searchOperationId, startIndex = 0, resultLimitPerRequest = 1000, ignore) {
+        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'getSearchStatus', (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
+            searchOperationId: searchOperationId,
+            documentId: this._reportPreview.documentId,
+            startIndex: startIndex,
+            resultLimitPerRequest: resultLimitPerRequest
+        }), PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('An error occurred during search', 'ASPxReportsStringId.WebDocumentViewer_SearchError')), () => ignore);
+    }
+    stopSearch(searchOperationId, ignore) {
+        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'stopSearch', (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
+            searchOperationId: searchOperationId,
+            documentId: this._reportPreview.documentId,
+        }), PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('An error occurred during search', 'ASPxReportsStringId.WebDocumentViewer_SearchError')), () => ignore);
+    }
+    translateTextRequest(text, toLanguage, isWholeDocument, prevResponse, currentChunkPosition, summaryTranslation, ignore) {
+        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'translateText', (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
+            text: text,
+            documentId: this._reportPreview.documentId,
+            toLanguage: toLanguage,
+            isWholeDocument: isWholeDocument,
+            currentChunkPosition: currentChunkPosition,
+            prevResponse: prevResponse,
+            summaryTranslation: summaryTranslation,
+        }), PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('An error occurred during Text Translation', 'ASPxReportsStringId.WebDocumentViewer_TranslateTextError')), () => ignore);
+    }
+    translateDocumentInPlaseRequest(brickIndexes, toLanguage, isWholeDocument, prevResponse, currentChunkPosition, pageIndex, aiCustomDocumentStorageId, ignore) {
+        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'translateDocument', (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
+            brickIndexes: brickIndexes,
+            pageIndex: pageIndex,
+            documentId: this._reportPreview.documentId,
+            toLanguage: toLanguage,
+            isWholeDocument: isWholeDocument,
+            currentChunkPosition: currentChunkPosition,
+            prevResponse: prevResponse,
+            aiCustomDocumentStorageId: aiCustomDocumentStorageId,
+        }), PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('An error occurred during Text Translation', 'ASPxReportsStringId.WebDocumentViewer_TranslateTextError')), () => ignore);
+    }
+    summarizeTextRequest(text, isWholeDocument, prevResponse, currentChunkPosition, language, ignore) {
+        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'summarizeText', (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
+            text: text,
+            documentId: this._reportPreview.documentId,
+            toLanguage: language,
+            isWholeDocument: isWholeDocument,
+            currentChunkPosition: currentChunkPosition,
+            prevResponse: prevResponse,
+            editingFieldValues: this._reportPreview._editingFields?.map(item => item.getEditValue())
+        }), PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('An error occurred during Summarize Text', 'ASPxReportsStringId.WebDocumentViewer_SummarizeTextError')), () => ignore);
+    }
+    stopBuild(id) {
+        (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'stopBuild', id, undefined, () => true);
+    }
+    sendCloseRequest(documentId, reportId) {
+        (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'close', (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
+            reportId: reportId,
+            documentId: documentId
+        }), undefined, () => true);
+    }
+    startBuildRequest(shouldIgnoreError) {
+        const parameters = this._parametersModel.serializeParameters();
+        this._callbacks && this._callbacks.parametersSubmitted && this._callbacks.parametersSubmitted(this._parametersModel, parameters);
+        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)({
+            uri: HandlerUri(),
+            action: 'startBuild',
+            arg: (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
+                reportId: this._reportPreview.reportId,
+                reportUrl: this._reportPreview.reportUrl,
+                drillDownKeys: this._reportPreview['_drillDownState'],
+                sortingState: this._reportPreview['_sortingState'],
+                timeZoneOffset: 0 - new Date().getTimezoneOffset(),
+                parameters: parameters
+            }),
+            ignoreError: shouldIgnoreError,
+            isError: (data) => !!data.error || !!(data.result && data.result.faultMessage),
+            processErrorCallback: PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('Cannot create a document for the current report', 'ASPxReportsStringId.WebDocumentViewer_DocumentCreationError'))
+        });
+    }
+    getBuildStatusRequest(documentId, shouldIgnoreError, isFirstRequest, firstPageRequest) {
+        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)({
+            uri: HandlerUri(),
+            action: 'getBuildStatus',
+            arg: (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
+                documentId: documentId,
+                firstPageRequest: firstPageRequest,
+                isFirstRequest: isFirstRequest,
+                timeOut: Math.max(5000, TimeOut())
+            }),
+            processErrorCallback: PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('Error obtaining a build status', 'ASPxReportsStringId.WebDocumentViewer_GetBuildStatusError')),
+            ignoreError: shouldIgnoreError,
+            isError: (data) => !!data.error || !!(data.result && data.result.faultMessage) || !data.success,
+            getErrorMessage: this._reportPreview._getErrorMessage
+        });
+    }
+    getDocumentData(documentId, shouldIgnoreError) {
+        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'getDocumentData', documentId, PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('Cannot obtain additional document data for the current document', 'ASPxReportsStringId.WebDocumentViewer_GetDocumentDataError')), shouldIgnoreError);
+    }
+    customDocumentOperation(documentId, serializedExportOptions, editindFields, customData, hideMessageFromUser) {
+        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'documentOperation', (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
+            documentId: documentId,
+            customData: customData,
+            exportOptions: serializedExportOptions,
+            editingFieldValues: editindFields
+        }), PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('The requested document operation cannot be performed.', 'ASPxReportsStringId.WebDocumentViewer_CustomDocumentOperationsDenied_Error'), !hideMessageFromUser));
+    }
+    openReport(reportName) {
+        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'openReport', reportName, PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('Could not open report', 'ASPxReportsStringId.WebDocumentViewer_OpenReportError') + " '" + reportName + "'"));
+    }
+    drillThrough(drillThroughData) {
+        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'drillThrough', (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
+            reportId: this._reportPreview.reportId,
+            reportUrl: this._reportPreview.reportUrl,
+            drillThroughData: drillThroughData
+        }), PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('Drill through operation failed', 'ASPxReportsStringId.WebDocumentViewer_DrillThroughError')));
+    }
+    goToReport(customData) {
+        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'goToReport', (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
+            reportId: this._reportPreview.reportId,
+            reportUrl: this._reportPreview.reportUrl,
+            documentId: this._reportPreview.documentId,
+            parameters: this._parametersModel.serializeParameters(),
+            editingFields: this._reportPreview.editingFieldsProvider().map(field => field.model()),
+            customData: customData
+        }), PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('Go to report operation failed', 'ASPxReportsStringId.WebDocumentViewer_DrillThroughError')));
+    }
+    getStartExportOperation(arg, shouldIgnoreError) {
+        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'startExport', arg, PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('An error occurred during the export', 'ASPxReportsStringId.WebDocumentViewer_ExportError')), shouldIgnoreError);
+    }
+    getExportResult(requestData, shouldIgnoreError, method = 'POST') {
+        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)({
+            uri: requestData.RequestUrl,
+            action: requestData.FormData.actionKey,
+            arg: requestData.FormData.arg,
+            processErrorCallback: PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('An error occurred during the export', 'ASPxReportsStringId.WebDocumentViewer_ExportError')),
+            ignoreError: shouldIgnoreError,
+            method
+        });
+    }
+    cancelExportRequest(operationId, shouldIgnoreError) {
+        const arg = (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
+            id: operationId
+        });
+        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'cancelExport', arg, PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('An error occurred during the export', 'ASPxReportsStringId.WebDocumentViewer_ExportError')), shouldIgnoreError);
+    }
+    getExportStatusRequest(operationId) {
+        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)({
+            uri: HandlerUri(),
+            action: 'getExportStatus',
+            arg: (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
+                id: operationId,
+                timeOut: Math.max(5000, TimeOut())
+            }),
+            processErrorCallback: PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('Error obtaining an export status', 'ASPxReportsStringId.WebDocumentViewer_GetExportStatusError')),
+            isError: (data) => !!data.error || !!(data.result && data.result.faultMessage) || !data.success,
+            getErrorMessage: this._reportPreview._getErrorMessage
+        });
+    }
+    getEditingFieldHtml(value, editingFieldIndex) {
+        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'getEditingFieldHtmlValue', (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
+            documentId: this._reportPreview.documentId,
+            value: value,
+            editingFieldIndex: editingFieldIndex
+        }));
+    }
+}
+
+;// ./dist/viewer/internal/_brickUtils.js
+
+
+function convertToPercent(childSize, parentSize) {
+    return childSize * 100 / parentSize + '%';
+}
+function getBrickValueForKey(brick, key = 'text') {
+    const brickTextProperty = brick.content && brick.content.filter(x => x.Key === key)[0];
+    return brickTextProperty && brickTextProperty.Value;
+}
+function brickText(brick, editingFieldsProvider) {
+    const fields = editingFieldsProvider ? editingFieldsProvider() : [];
+    if (brick.efIndex && brick.efIndex > 0 && brick.efIndex <= fields.length && fields[brick.efIndex - 1].type() === 'text') {
+        return fields[brick.efIndex - 1].getEditValue();
+    }
+    else {
+        return getBrickValueForKey(brick);
+    }
+}
+function updateBricksPosition(brick, height, width) {
+    if (!brick) {
+        return;
+    }
+    brick[brick.rtl ? 'rightP' : 'leftP'] = convertToPercent(brick.left, width);
+    brick.widthP = convertToPercent(brick.width, width);
+    brick.topP = convertToPercent(brick.top, height);
+    brick.heightP = convertToPercent(brick.height, height);
+    brick.bricks && brick.bricks.forEach((childBrick) => {
+        updateBricksPosition(childBrick, height, width);
+    });
+}
+function initializeBrick(brick, processClick, editingFieldBricks, activeBricksMap) {
+    if (!brick) {
+        return;
+    }
+    if (activeBricksMap && activeBricksMap[brick.indexes]) {
+        brick.active = true;
+    }
+    else {
+        brick.active = false;
+    }
+    brick['onClick'] = (e) => { processClick && processClick(brick, e); };
+    brick.bricks && brick.bricks.forEach(childBrick => {
+        if (!childBrick)
+            return;
+        childBrick.top += brick.top;
+        childBrick.left += brick.left;
+        initializeBrick(childBrick, processClick, editingFieldBricks, activeBricksMap);
+    });
+    if (brick.efIndex > 0) {
+        editingFieldBricks.push(brick);
+    }
+    brick.text = () => brickText(brick);
+    brick.accessibleDescription = getBrickValueForKey(brick, 'AccessibleDescription');
+}
+function getNavigationDescription(brick, state) {
+    const navigation = brick.navigation;
+    if (!navigation)
+        return '';
+    if (navigation.drillDownKey) {
+        return state ?
+            (0,external_DevExpress_Analytics_Internal_namespaceObject.getLocalization)('Details are expanded', 'ASPxReportsStringId.WebDocumentViewer_DrillDownExpanded_Announcement') :
+            (0,external_DevExpress_Analytics_Internal_namespaceObject.getLocalization)('Details are collapsed', 'ASPxReportsStringId.WebDocumentViewer_DrillDownCollapsed_Announcement');
+    }
+    else if (navigation.sortData) {
+        return getSortOrderText(navigation.sortData.order);
+    }
+    else if (navigation.drillThroughData) {
+        return `${(0,external_DevExpress_Analytics_Internal_namespaceObject.getLocalization)('Drill through to details', 'ASPxReportsStringId.WebDocumentViewer_DrillThroughToDetails_Announcement')}`;
+    }
+    else if (navigation.url && navigation.urlChecked) {
+        return `${(0,external_DevExpress_Analytics_Internal_namespaceObject.getLocalization)('Link', 'ASPxReportsStringId.WebDocumentViewer_Hyperlink_Announcement')}: ${navigation.url}`;
+    }
+    return null;
+}
+function getSortOrderText(order) {
+    if (order === ColumnSortOrder.Ascending)
+        return (0,external_DevExpress_Analytics_Internal_namespaceObject.getLocalization)('Sorted ascending', 'WebDocumentViewer_InteractiveSortng_Ascending_Announcement');
+    if (order === ColumnSortOrder.Descending)
+        return (0,external_DevExpress_Analytics_Internal_namespaceObject.getLocalization)('Sorted descending', 'WebDocumentViewer_InteractiveSortng_Descending_Announcement');
+    return (0,external_DevExpress_Analytics_Internal_namespaceObject.getLocalization)('Not sorted', 'WebDocumentViewer_InteractiveSortng_None_Announcement');
+}
+function getBrickFullDescription(brick, state) {
+    const description = brick.navigation ? getNavigationDescription(brick, state) : null;
+    return description ? `${brickText(brick)}, ${description}` : brickText(brick);
+}
+
 ;// ./dist/viewer/accessibility/_previewBricksKeyboardHelper.js
+
 
 class PreviewBricksKeyboardHelper extends external_DevExpress_Analytics_Internal_namespaceObject.KeyboardHelperWithArrowButtonBase {
     dispose() {
         this._activeBricksSubscription && this._activeBricksSubscription.dispose();
+        this._brickReloadSubscription && this._brickReloadSubscription.dispose();
+        this._pendingFocusBrickIndex = null;
+        this._restoreBrickTimeout && clearTimeout(this._restoreBrickTimeout);
         this._afterInitializeCallback = null;
         this._initTimeout && clearTimeout(this._initTimeout);
         super.dispose();
@@ -2451,7 +2837,7 @@ class PreviewBricksKeyboardHelper extends external_DevExpress_Analytics_Internal
                 this._liveRegionTimeout && clearTimeout(this._liveRegionTimeout);
                 if (!activeBricks.length)
                     return;
-                this._liveRegionTimeout = this.liveRegion().changeText(this._getSelectedContent(','));
+                this._liveRegionTimeout = this.liveRegion().changeText(this._getLiveRegionText(activeBricks));
                 const _bricks = this._bricks();
                 for (let i = 0; i < _bricks.length; i++) {
                     const brick = _bricks[i];
@@ -2465,6 +2851,17 @@ class PreviewBricksKeyboardHelper extends external_DevExpress_Analytics_Internal
             })
         };
         this._currentPage.addDisposable(this._activeBricksSubscription);
+        this._brickReloadSubscription && this._brickReloadSubscription.dispose();
+        this._brickReloadSubscription = {
+            dispose: this._currentPage.events.on('brickChanged', () => {
+                if (!this._pendingFocusBrickIndex)
+                    return;
+                const indexes = this._pendingFocusBrickIndex;
+                this._pendingFocusBrickIndex = null;
+                this._restoreActiveBrick(indexes);
+            })
+        };
+        this._currentPage.addDisposable(this._brickReloadSubscription);
     }
     constructor(viewModel) {
         super();
@@ -2480,6 +2877,7 @@ class PreviewBricksKeyboardHelper extends external_DevExpress_Analytics_Internal
         this._resetBricks = () => {
             return this._currentPage?.selectBrick('');
         };
+        this._pendingFocusBrickIndex = null;
         this.delayedInit = () => {
             this._initTimeout && clearTimeout(this._initTimeout);
             this._initTimeout = setTimeout(() => {
@@ -2490,8 +2888,10 @@ class PreviewBricksKeyboardHelper extends external_DevExpress_Analytics_Internal
             this._resetBricks();
             this._resetBricksIndexes();
         };
+        this._verticaleVisibilityTolerance = 1;
         this.active = false;
         this._getSelectedContent = viewModel.getSelectedContent;
+        this._getDrillDownExpanded = (drillDownKey) => (viewModel['_drillDownState'] || []).find(x => x.Key === drillDownKey)?.Value;
         this._pages = () => viewModel.pages;
         this._goToPage = viewModel.goToPage.bind(viewModel);
         this._usePageKeyboardNavigation = () => viewModel.showMultipagePreview;
@@ -2505,6 +2905,15 @@ class PreviewBricksKeyboardHelper extends external_DevExpress_Analytics_Internal
                 }
             })
         });
+    }
+    _getLiveRegionText(activeBricks) {
+        activeBricks?.forEach(brick => {
+            if (brick.navigation) {
+                const state = brick.navigation.drillDownKey ? this._getDrillDownExpanded(brick.navigation.drillDownKey) : null;
+                brick.accessibleDescription = getBrickFullDescription(brick, state) || '';
+            }
+        });
+        return this._getSelectedContent(',');
     }
     initialize() {
         if (!this._currentPage)
@@ -2530,24 +2939,49 @@ class PreviewBricksKeyboardHelper extends external_DevExpress_Analytics_Internal
     itemHandleEscKey(e, index) {
         if (!this.active)
             return false;
+        this._pendingFocusBrickIndex = null;
         this.controlElements[index].element.classList.remove('dx-accessibility-active-state');
         this.active = false;
         this._resetBricks();
         return true;
     }
+    _getRestoreNavigationIndex(brick) {
+        if (brick?.navigation?.drillDownKey || brick?.navigation?.sortData) {
+            return brick.indexes;
+        }
+        return null;
+    }
+    _restoreActiveBrick(indexes) {
+        const page = this._currentPage;
+        if (!page)
+            return;
+        this._restoreBrickTimeout && clearTimeout(this._restoreBrickTimeout);
+        this._restoreBrickTimeout = setTimeout(() => {
+            if (page !== this._currentPage)
+                return;
+            const bricks = (page.clickableBricks || page.bricks).find(b => b.indexes === indexes);
+            if (!bricks)
+                return;
+            page.activateBrick(bricks);
+        }, 20);
+    }
     _actionExecute(brick, e) {
         if (brick.navigation) {
+            this._pendingFocusBrickIndex = this._getRestoreNavigationIndex(brick);
             brick.onClick(e);
         }
         else if (brick.efIndex) {
-            const editField = this._currentPage.editingFields[brick.efIndex - 1];
+            const editingFields = this._currentPage.editingFields;
+            const editFieldIndex = editingFields.findIndex(field => field.field && field.field.brick && field.field.brick.efIndex === brick.efIndex);
+            const editField = editingFields[editFieldIndex];
             const efItems = Array.prototype.slice.call(e.target.querySelectorAll('.dx-accessibility-editing-field-item'));
-            const efItem = efItems[brick.efIndex - 1];
+            const efItem = efItems[editFieldIndex];
             if (efItem && editField.canActivateEditor) {
                 editField.activateEditor(editField, { target: efItem, currentTarget: efItem });
                 const subscriptionDispose = editField.events.on('activeChanged', (args) => {
                     if (!args.newValue) {
-                        if (document.activeElement === document.body) {
+                        const activeElement = document.activeElement;
+                        if (activeElement === document.body || efItem.contains(activeElement)) {
                             e.target.focus();
                         }
                         this._currentPage.activateBrick(brick);
@@ -2558,7 +2992,7 @@ class PreviewBricksKeyboardHelper extends external_DevExpress_Analytics_Internal
                 });
                 editField._disposables.push({ dispose: subscriptionDispose });
             }
-            else if (editField.onClick) {
+            else if (editField && editField.onClick) {
                 editField.onClick(editField, e);
             }
         }
@@ -2582,12 +3016,8 @@ class PreviewBricksKeyboardHelper extends external_DevExpress_Analytics_Internal
         if (!this.active) {
             if (this._usePageKeyboardNavigation())
                 return action();
-            else {
-                const lastFocusItem = this.lastFocusItem();
-                lastFocusItem.setAttribute('tabindex', '0');
-                lastFocusItem.focus();
+            else
                 return false;
-            }
         }
         this._currentPage.activateBrick(this._getNonEmptyBrick(newIndex, reverse));
         return true;
@@ -2602,22 +3032,66 @@ class PreviewBricksKeyboardHelper extends external_DevExpress_Analytics_Internal
         }
     }
     itemHandleHomeKey(e, index) {
-        return this._pageChangeHandle(() => super.itemHandleHomeKey(e, index), -1);
+        return this._pageChangeHandle(() => {
+            this._goToPage(0);
+            return true;
+        }, -1);
     }
     itemHandleEndKey(e, index) {
-        return this._pageChangeHandle(() => super.itemHandleEndKey(e, index), this._bricks().length, true);
+        return this._pageChangeHandle(() => {
+            this._goToPage(this._pages().length - 1);
+            return true;
+        }, this._bricks().length, true);
     }
     itemHandleLeftArrowKey(e, index) {
         return this._pageChangeHandle(() => {
-            this.setFocusToPrevious(index);
+            this._goToPage(index - 1);
             return true;
         }, this._firstSelectedBrickIndex, true);
     }
     itemHandleRightArrowKey(e, index) {
         return this._pageChangeHandle(() => {
-            this.setFocusToNext(index);
+            this._goToPage(index + 1);
             return true;
         }, this._lastSelectedBrickIndex);
+    }
+    itemHandleUpArrowKey(e, index) {
+        return this._focusVerticalSiblingPage(index, true);
+    }
+    itemHandleDownArrowKey(e, index) {
+        return this._focusVerticalSiblingPage(index, false);
+    }
+    _focusVerticalSiblingPage(index, up) {
+        if (this.active || !this._usePageKeyboardNavigation() || !this.controlElements[index])
+            return false;
+        const siblingIndex = this._getVerticalSiblingPageIndex(index, up);
+        if (siblingIndex !== -1) {
+            this.reset();
+            this.changeFocus(siblingIndex, false);
+            this._goToPage(siblingIndex);
+        }
+        return true;
+    }
+    _getVerticalSiblingPageIndex(index, up) {
+        const currentRect = this.controlElements[index].element.getBoundingClientRect();
+        const currentCenter = currentRect.left + currentRect.width / 2;
+        let nearestRowTop = null;
+        let nearestCenterDistance = Infinity;
+        let siblingIndex = -1;
+        this.controlElements.forEach((controlElement, i) => {
+            const rect = controlElement.element.getBoundingClientRect();
+            if ((up ? currentRect.top - rect.top : rect.top - currentRect.top) <= this._verticaleVisibilityTolerance)
+                return;
+            const centerDistance = Math.abs(rect.left + rect.width / 2 - currentCenter);
+            const isNearerRow = nearestRowTop === null || (up ? rect.top - nearestRowTop : nearestRowTop - rect.top) > this._verticaleVisibilityTolerance;
+            const isSameRow = nearestRowTop !== null && Math.abs(rect.top - nearestRowTop) <= this._verticaleVisibilityTolerance;
+            if (isNearerRow || isSameRow && centerDistance < nearestCenterDistance) {
+                nearestRowTop = rect.top;
+                nearestCenterDistance = centerDistance;
+                siblingIndex = i;
+            }
+        });
+        return siblingIndex;
     }
     itemHandleEnterKey(e, index) {
         if (this.active) {
@@ -2672,38 +3146,6 @@ class PreviewPageControlsElement extends external_DevExpress_Analytics_Internal_
         element.addEventListener('focus', this._focusHandler);
     }
 }
-
-;// ./dist/viewer/settings.js
-
-var PageRenderFormat;
-(function (PageRenderFormat) {
-    PageRenderFormat[PageRenderFormat["Auto"] = 0] = "Auto";
-    PageRenderFormat[PageRenderFormat["Svg"] = 1] = "Svg";
-    PageRenderFormat[PageRenderFormat["Png"] = 2] = "Png";
-})(PageRenderFormat || (PageRenderFormat = {}));
-const EditablePreviewEnabled = (0,external_DevExpress_Analytics_Internal_namespaceObject.createGlobalModuleVariableFunc)(true);
-const SearchAvailable = (0,external_DevExpress_Analytics_Internal_namespaceObject.createGlobalModuleVariableFunc)(true);
-const ReportServerInvokeUri = '/RSWebDocumentViewerApi/Invoke';
-const ReportServerExportUri = '/RSWebDocumentViewerApi/Download';
-const AsyncExportApproach = (0,external_DevExpress_Analytics_Internal_namespaceObject.createGlobalModuleVariableFunc)(false);
-const MessageHandler = (0,external_DevExpress_Analytics_Internal_namespaceObject.createGlobalModuleVariableFunc)({
-    processError: (message, showForUser, prefix = '', element) => {
-        showForUser && (0,external_DevExpress_Analytics_Internal_namespaceObject.ShowMessage)(message.substr(prefix.length), undefined, undefined, undefined, undefined, element);
-        (0,external_DevExpress_Analytics_Internal_namespaceObject.NotifyAboutWarning)(message, false);
-    },
-    processMessage: (message, showForUser, element) => { showForUser && (0,external_DevExpress_Analytics_Internal_namespaceObject.ShowMessage)(message, external_DevExpress_Analytics_Internal_namespaceObject.NotifyType.success, 10000, undefined, undefined, element); },
-    processWarning: (message, showForUser, element) => { showForUser && (0,external_DevExpress_Analytics_Internal_namespaceObject.ShowMessage)(message, undefined, undefined, undefined, undefined, element); }
-});
-const HandlerUri = (0,external_DevExpress_Analytics_Internal_namespaceObject.createGlobalModuleVariableFunc)('DXXRDV.axd');
-const previewDefaultResolution = (0,external_DevExpress_Analytics_Internal_namespaceObject.createGlobalModuleVariableFunc)(96);
-const ReportServerDownloadUri = (0,external_DevExpress_Analytics_Internal_namespaceObject.createGlobalModuleVariableFunc)('');
-const PollingDelay = (0,external_DevExpress_Analytics_Internal_namespaceObject.createGlobalModuleVariableFunc)(300);
-const TimeOut = (0,external_DevExpress_Analytics_Internal_namespaceObject.createGlobalModuleVariableFunc)(105000);
-const PreloadedPagesOffset = (0,external_DevExpress_Analytics_Internal_namespaceObject.createGlobalModuleVariableFunc)(15);
-const MultipageScrollingThrottle = (0,external_DevExpress_Analytics_Internal_namespaceObject.createGlobalModuleVariableFunc)(150);
-const PreviewRenderFormat = (0,external_DevExpress_Analytics_Internal_namespaceObject.createGlobalModuleVariableFunc)(PageRenderFormat.Png);
-const ClipboardSeparator = (0,external_DevExpress_Analytics_Internal_namespaceObject.createGlobalModuleVariableFunc)('');
-const AIServicesEnabled = (0,external_DevExpress_Analytics_Internal_namespaceObject.createGlobalModuleVariableFunc)(false);
 
 ;// ./dist/viewer/editing/models/editingFieldBase.js
 var __decorate = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
@@ -3618,9 +4060,16 @@ class PopupImageEditingFieldViewModel extends ImageEditingFieldViewModel {
         })
             .generateProperty('onContentReady', (event) => {
             this._resetPainter(this.painter);
-            event.component && event.component.registerKeyHandler('tab', (_) => {
-                viewModel.popupData.onHiding(event);
-            });
+            if (!event.component)
+                return;
+            const leaveEditor = (_) => {
+                if (this.pictureEditor)
+                    this.pictureEditor._releaseFocus();
+                else
+                    viewModel.popupData.onHiding(event);
+            };
+            event.component.registerKeyHandler('tab', leaveEditor);
+            event.component.registerKeyHandler('escape', leaveEditor);
         })
             .generateProperty('renderedHandler', () => this._renderedHandler())
             .generateProperty('getPopupContainer', external_DevExpress_Analytics_Internal_namespaceObject.getParentContainer)
@@ -4425,234 +4874,6 @@ function updateExportHandlerViewModel(args) {
         viewModel.popupOptions.title = this.getPopupTitle();
 }
 
-;// ./dist/viewer/internal/_previewRequestWrapper.js
-
-
-
-var ColumnSortOrder;
-(function (ColumnSortOrder) {
-    ColumnSortOrder[ColumnSortOrder["None"] = 0] = "None";
-    ColumnSortOrder[ColumnSortOrder["Ascending"] = 1] = "Ascending";
-    ColumnSortOrder[ColumnSortOrder["Descending"] = 2] = "Descending";
-})(ColumnSortOrder || (ColumnSortOrder = {}));
-class PreviewRequestWrapper {
-    constructor(handlers, _callbacks) {
-        this._callbacks = _callbacks;
-        Object.keys(handlers || {}).forEach((name) => {
-            this[name] = handlers[name];
-        });
-    }
-    static getProcessErrorCallback(reportPreview, defaultErrorMessage, showMessage = true) {
-        return function (message, jqXHR, textStatus) {
-            let messageWithStatusCode;
-            if (jqXHR) {
-                const statusCodeText = (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)(jqXHR.statusText, 'ASPxReportsStringId.HttpResponseStatusCode_' + jqXHR.status);
-                if (defaultErrorMessage) {
-                    const stringFormat = (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('{0} ({1} {2})', 'ASPxReportsStringId.Error_WithStatus');
-                    messageWithStatusCode = (0,external_DevExpress_Analytics_Internal_namespaceObject.formatUnicorn)(stringFormat, defaultErrorMessage, jqXHR.status, statusCodeText);
-                }
-                else {
-                    messageWithStatusCode = statusCodeText;
-                }
-            }
-            if (!reportPreview) {
-                const error = (0,external_DevExpress_Analytics_Internal_namespaceObject.getErrorMessage)(jqXHR);
-                MessageHandler().processError(error || messageWithStatusCode || defaultErrorMessage || 'Internal Server Error', showMessage);
-            }
-            else {
-                reportPreview._processError(messageWithStatusCode || defaultErrorMessage, jqXHR, showMessage);
-            }
-        };
-    }
-    static getPage(url, ignoreError) {
-        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(url, undefined, undefined, PreviewRequestWrapper.getProcessErrorCallback(), ignoreError, { type: 'GET' });
-    }
-    initialize(reportPreview, parametersModel, searchModel) {
-        this._reportPreview = reportPreview;
-        this._parametersModel = parametersModel;
-        this._searchModel = searchModel;
-    }
-    findTextRequest(text, ignore) {
-        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'findText', (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
-            text: text,
-            documentId: this._reportPreview.documentId,
-            matchCase: this._searchModel.matchCase,
-            wholeWord: this._searchModel.matchWholeWord,
-            searchUp: this._searchModel.searchUp
-        }), PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('An error occurred during search', 'ASPxReportsStringId.WebDocumentViewer_SearchError')), () => ignore);
-    }
-    startSearch(text, ignore) {
-        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'startSearch', (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
-            text: text,
-            documentId: this._reportPreview.documentId,
-            matchCase: this._searchModel.matchCase,
-            wholeWord: this._searchModel.matchWholeWord,
-        }), PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('An error occurred during search', 'ASPxReportsStringId.WebDocumentViewer_SearchError')), () => ignore);
-    }
-    getSearchStatus(searchOperationId, startIndex = 0, resultLimitPerRequest = 1000, ignore) {
-        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'getSearchStatus', (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
-            searchOperationId: searchOperationId,
-            documentId: this._reportPreview.documentId,
-            startIndex: startIndex,
-            resultLimitPerRequest: resultLimitPerRequest
-        }), PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('An error occurred during search', 'ASPxReportsStringId.WebDocumentViewer_SearchError')), () => ignore);
-    }
-    stopSearch(searchOperationId, ignore) {
-        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'stopSearch', (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
-            searchOperationId: searchOperationId,
-            documentId: this._reportPreview.documentId,
-        }), PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('An error occurred during search', 'ASPxReportsStringId.WebDocumentViewer_SearchError')), () => ignore);
-    }
-    translateTextRequest(text, toLanguage, isWholeDocument, prevResponse, currentChunkPosition, summaryTranslation, ignore) {
-        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'translateText', (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
-            text: text,
-            documentId: this._reportPreview.documentId,
-            toLanguage: toLanguage,
-            isWholeDocument: isWholeDocument,
-            currentChunkPosition: currentChunkPosition,
-            prevResponse: prevResponse,
-            summaryTranslation: summaryTranslation,
-        }), PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('An error occurred during Text Translation', 'ASPxReportsStringId.WebDocumentViewer_TranslateTextError')), () => ignore);
-    }
-    translateDocumentInPlaseRequest(brickIndexes, toLanguage, isWholeDocument, prevResponse, currentChunkPosition, pageIndex, aiCustomDocumentStorageId, ignore) {
-        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'translateDocument', (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
-            brickIndexes: brickIndexes,
-            pageIndex: pageIndex,
-            documentId: this._reportPreview.documentId,
-            toLanguage: toLanguage,
-            isWholeDocument: isWholeDocument,
-            currentChunkPosition: currentChunkPosition,
-            prevResponse: prevResponse,
-            aiCustomDocumentStorageId: aiCustomDocumentStorageId,
-        }), PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('An error occurred during Text Translation', 'ASPxReportsStringId.WebDocumentViewer_TranslateTextError')), () => ignore);
-    }
-    summarizeTextRequest(text, isWholeDocument, prevResponse, currentChunkPosition, language, ignore) {
-        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'summarizeText', (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
-            text: text,
-            documentId: this._reportPreview.documentId,
-            toLanguage: language,
-            isWholeDocument: isWholeDocument,
-            currentChunkPosition: currentChunkPosition,
-            prevResponse: prevResponse,
-            editingFieldValues: this._reportPreview._editingFields?.map(item => item.getEditValue())
-        }), PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('An error occurred during Summarize Text', 'ASPxReportsStringId.WebDocumentViewer_SummarizeTextError')), () => ignore);
-    }
-    stopBuild(id) {
-        (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'stopBuild', id, undefined, () => true);
-    }
-    sendCloseRequest(documentId, reportId) {
-        (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'close', (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
-            reportId: reportId,
-            documentId: documentId
-        }), undefined, () => true);
-    }
-    startBuildRequest(shouldIgnoreError) {
-        const parameters = this._parametersModel.serializeParameters();
-        this._callbacks && this._callbacks.parametersSubmitted && this._callbacks.parametersSubmitted(this._parametersModel, parameters);
-        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)({
-            uri: HandlerUri(),
-            action: 'startBuild',
-            arg: (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
-                reportId: this._reportPreview.reportId,
-                reportUrl: this._reportPreview.reportUrl,
-                drillDownKeys: this._reportPreview['_drillDownState'],
-                sortingState: this._reportPreview['_sortingState'],
-                timeZoneOffset: 0 - new Date().getTimezoneOffset(),
-                parameters: parameters
-            }),
-            ignoreError: shouldIgnoreError,
-            isError: (data) => !!data.error || !!(data.result && data.result.faultMessage),
-            processErrorCallback: PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('Cannot create a document for the current report', 'ASPxReportsStringId.WebDocumentViewer_DocumentCreationError'))
-        });
-    }
-    getBuildStatusRequest(documentId, shouldIgnoreError, isFirstRequest, firstPageRequest) {
-        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)({
-            uri: HandlerUri(),
-            action: 'getBuildStatus',
-            arg: (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
-                documentId: documentId,
-                firstPageRequest: firstPageRequest,
-                isFirstRequest: isFirstRequest,
-                timeOut: Math.max(5000, TimeOut())
-            }),
-            processErrorCallback: PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('Error obtaining a build status', 'ASPxReportsStringId.WebDocumentViewer_GetBuildStatusError')),
-            ignoreError: shouldIgnoreError,
-            isError: (data) => !!data.error || !!(data.result && data.result.faultMessage) || !data.success,
-            getErrorMessage: this._reportPreview._getErrorMessage
-        });
-    }
-    getDocumentData(documentId, shouldIgnoreError) {
-        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'getDocumentData', documentId, PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('Cannot obtain additional document data for the current document', 'ASPxReportsStringId.WebDocumentViewer_GetDocumentDataError')), shouldIgnoreError);
-    }
-    customDocumentOperation(documentId, serializedExportOptions, editindFields, customData, hideMessageFromUser) {
-        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'documentOperation', (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
-            documentId: documentId,
-            customData: customData,
-            exportOptions: serializedExportOptions,
-            editingFieldValues: editindFields
-        }), PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('The requested document operation cannot be performed.', 'ASPxReportsStringId.WebDocumentViewer_CustomDocumentOperationsDenied_Error'), !hideMessageFromUser));
-    }
-    openReport(reportName) {
-        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'openReport', reportName, PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('Could not open report', 'ASPxReportsStringId.WebDocumentViewer_OpenReportError') + " '" + reportName + "'"));
-    }
-    drillThrough(drillThroughData) {
-        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'drillThrough', (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
-            reportId: this._reportPreview.reportId,
-            reportUrl: this._reportPreview.reportUrl,
-            drillThroughData: drillThroughData
-        }), PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('Drill through operation failed', 'ASPxReportsStringId.WebDocumentViewer_DrillThroughError')));
-    }
-    goToReport(customData) {
-        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'goToReport', (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
-            reportId: this._reportPreview.reportId,
-            reportUrl: this._reportPreview.reportUrl,
-            documentId: this._reportPreview.documentId,
-            parameters: this._parametersModel.serializeParameters(),
-            editingFields: this._reportPreview.editingFieldsProvider().map(field => field.model()),
-            customData: customData
-        }), PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('Go to report operation failed', 'ASPxReportsStringId.WebDocumentViewer_DrillThroughError')));
-    }
-    getStartExportOperation(arg, shouldIgnoreError) {
-        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'startExport', arg, PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('An error occurred during the export', 'ASPxReportsStringId.WebDocumentViewer_ExportError')), shouldIgnoreError);
-    }
-    getExportResult(requestData, shouldIgnoreError, method = 'POST') {
-        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)({
-            uri: requestData.RequestUrl,
-            action: requestData.FormData.actionKey,
-            arg: requestData.FormData.arg,
-            processErrorCallback: PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('An error occurred during the export', 'ASPxReportsStringId.WebDocumentViewer_ExportError')),
-            ignoreError: shouldIgnoreError,
-            method
-        });
-    }
-    cancelExportRequest(operationId, shouldIgnoreError) {
-        const arg = (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
-            id: operationId
-        });
-        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'cancelExport', arg, PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('An error occurred during the export', 'ASPxReportsStringId.WebDocumentViewer_ExportError')), shouldIgnoreError);
-    }
-    getExportStatusRequest(operationId) {
-        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)({
-            uri: HandlerUri(),
-            action: 'getExportStatus',
-            arg: (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
-                id: operationId,
-                timeOut: Math.max(5000, TimeOut())
-            }),
-            processErrorCallback: PreviewRequestWrapper.getProcessErrorCallback(this._reportPreview, (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('Error obtaining an export status', 'ASPxReportsStringId.WebDocumentViewer_GetExportStatusError')),
-            isError: (data) => !!data.error || !!(data.result && data.result.faultMessage) || !data.success,
-            getErrorMessage: this._reportPreview._getErrorMessage
-        });
-    }
-    getEditingFieldHtml(value, editingFieldIndex) {
-        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(HandlerUri(), 'getEditingFieldHtmlValue', (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)({
-            documentId: this._reportPreview.documentId,
-            value: value,
-            editingFieldIndex: editingFieldIndex
-        }));
-    }
-}
-
 ;// ./dist/viewer/internal/_utils.js
 
 
@@ -4751,6 +4972,7 @@ class ExportHandler extends external_DevExpress_Analytics_Serializer_Native_name
             };
         };
         this._window = null;
+        this._returnFocusTarget = null;
         this._handleFile = (fileMetadata, _url) => {
             if (fileMetadata.url) {
                 const link = document.createElement('a');
@@ -4820,11 +5042,26 @@ class ExportHandler extends external_DevExpress_Analytics_Serializer_Native_name
         iframe && iframe.location.replace('about:blank');
         this.printingLinkCallback = () => { };
         this.popupVisible = false;
+        this._returnFocus();
     }
     _initPrintingWindow() {
         if (this._showPrintNotificationDialog) {
             this.popupVisible = true;
         }
+    }
+    _rememberReturnFocusTarget() {
+        const active = document.activeElement;
+        this._returnFocusTarget = active && active !== document.body ? active : null;
+    }
+    _returnFocus() {
+        const target = this._returnFocusTarget;
+        this._returnFocusTarget = null;
+        if (!target || typeof target.focus !== 'function')
+            return;
+        this._timeouts.push(setTimeout(() => {
+            if (document.body.contains(target))
+                target.focus();
+        }, 10));
     }
     _setPrintingLinkCallback(printingLinkCallback) {
         if (this._showPrintNotificationDialog) {
@@ -5033,6 +5270,9 @@ class ExportHandler extends external_DevExpress_Analytics_Serializer_Native_name
     }
     export(args, actionUri, inlineResult, printable = false) {
         this._terminateWorker();
+        this._returnFocusTarget = null;
+        if (printable && this._showPrintNotificationDialog)
+            this._rememberReturnFocusTarget();
         const abortController = new AbortController();
         const deferred = new external_DevExpress_Analytics_Internal_namespaceObject.DxDeferred();
         const requestData = this._exportResultRequestData;
@@ -5271,7 +5511,8 @@ class PreviewEditingFieldsElement extends external_DevExpress_Analytics_Internal
                 const subscriptionDispose = this.model.events.on('activeChanged', (args) => {
                     if (!args.newValue) {
                         this.element.setAttribute('tabindex', '0');
-                        if (document.activeElement === document.body) {
+                        const activeElement = document.activeElement;
+                        if (activeElement === document.body || this.element.contains(activeElement)) {
                             this._processFocus = false;
                             this.element.focus();
                         }
@@ -5288,60 +5529,6 @@ class PreviewEditingFieldsElement extends external_DevExpress_Analytics_Internal
         element.addEventListener('focus', this._activateHandler);
         element.addEventListener('blur', this._blur);
     }
-}
-
-;// ./dist/viewer/internal/_brickUtils.js
-function convertToPercent(childSize, parentSize) {
-    return childSize * 100 / parentSize + '%';
-}
-function getBrickValueForKey(brick, key = 'text') {
-    const brickTextProperty = brick.content && brick.content.filter(x => x.Key === key)[0];
-    return brickTextProperty && brickTextProperty.Value;
-}
-function brickText(brick, editingFieldsProvider) {
-    const fields = editingFieldsProvider ? editingFieldsProvider() : [];
-    if (brick.efIndex && brick.efIndex > 0 && brick.efIndex <= fields.length && fields[brick.efIndex - 1].type() === 'text') {
-        return fields[brick.efIndex - 1].getEditValue();
-    }
-    else {
-        return getBrickValueForKey(brick);
-    }
-}
-function updateBricksPosition(brick, height, width) {
-    if (!brick) {
-        return;
-    }
-    brick[brick.rtl ? 'rightP' : 'leftP'] = convertToPercent(brick.left, width);
-    brick.widthP = convertToPercent(brick.width, width);
-    brick.topP = convertToPercent(brick.top, height);
-    brick.heightP = convertToPercent(brick.height, height);
-    brick.bricks && brick.bricks.forEach((childBrick) => {
-        updateBricksPosition(childBrick, height, width);
-    });
-}
-function initializeBrick(brick, processClick, editingFieldBricks, activeBricksMap) {
-    if (!brick) {
-        return;
-    }
-    if (activeBricksMap && activeBricksMap[brick.indexes]) {
-        brick.active = true;
-    }
-    else {
-        brick.active = false;
-    }
-    brick['onClick'] = (e) => { processClick && processClick(brick, e); };
-    brick.bricks && brick.bricks.forEach(childBrick => {
-        if (!childBrick)
-            return;
-        childBrick.top += brick.top;
-        childBrick.left += brick.left;
-        initializeBrick(childBrick, processClick, editingFieldBricks, activeBricksMap);
-    });
-    if (brick.efIndex > 0) {
-        editingFieldBricks.push(brick);
-    }
-    brick.text = () => brickText(brick);
-    brick.accessibleDescription = getBrickValueForKey(brick, 'AccessibleDescription');
 }
 
 ;// ./dist/viewer/internal/_page.viewModel.js
@@ -7201,14 +7388,16 @@ class ReportPreview extends ReportHolder {
             let result = '';
             const clipboardSeparator = ClipboardSeparator();
             sortedActiveBricks.forEach((row, index) => {
+                const isLastRow = index === sortedActiveBricks.length - 1;
                 for (let c = firstUsedColumn; c <= lastUsedColumn; c++) {
-                    const cellText = row[c] ? row[c] + punctuationMark : '';
+                    const isLastCell = isLastRow && c === lastUsedColumn;
+                    const cellText = row[c] ? row[c] + (isLastCell ? '' : punctuationMark) : '';
                     result += c == lastUsedColumn ? cellText : extendWithSpaces(currentPage.brickColumnWidthArray[c], cellText);
                     if (c != lastUsedColumn && clipboardSeparator) {
                         result += clipboardSeparator;
                     }
                 }
-                if (index != sortedActiveBricks.length - 1) {
+                if (!isLastRow) {
                     result += '\r\n';
                 }
             });
@@ -8394,15 +8583,18 @@ class PreviewDesignerActions extends external_DevExpress_Analytics_Utils_namespa
     }
 }
 class ActionLists extends external_DevExpress_Analytics_Internal_namespaceObject.ActionListsBase {
-    constructor(reportPreview, globalActionProviders, customizeActions, enabled) {
+    constructor(reportPreview, globalActionProviders, customizeActions, enabled, panelShortcutActions = []) {
         super(enabled);
+        this.panelShortcutActions = panelShortcutActions;
         this.updateToolbarItems = () => {
             const globalActions = [];
             this.globalActionProviders.forEach((actionProvider) => {
                 globalActions.push.apply(globalActions, actionProvider.getActions(reportPreview));
             });
-            customizeActions && customizeActions(globalActions);
-            this.toolbarItems = globalActions;
+            const allActions = globalActions.concat(this.panelShortcutActions);
+            customizeActions && customizeActions(allActions);
+            this.panelShortcutActions = this.panelShortcutActions.filter(action => allActions.indexOf(action) !== -1);
+            this.toolbarItems = allActions.filter(action => this.panelShortcutActions.indexOf(action) === -1);
         };
         this.globalActionProviders = globalActionProviders;
     }
@@ -8410,13 +8602,31 @@ class ActionLists extends external_DevExpress_Analytics_Internal_namespaceObject
         if (args.propertyName === 'globalActionProviders')
             this.updateToolbarItems();
     }
+    getActions() {
+        return external_DevExpress_Analytics_Internal_namespaceObject.koUtils.unwrap(this.toolbarItems).concat(this.panelShortcutActions);
+    }
     processShortcut(e) {
         if (this.shouldIgnoreProcessing(e))
             return;
         super.processShortcut(e);
     }
+    actionAvailableAtTarget(action, e) {
+        const target = e?.target;
+        if (!target)
+            return true;
+        switch (action.id) {
+            case ActionId.NextPage:
+            case ActionId.PrevPage:
+                if (target.classList.contains('dx-accessibility-page-item'))
+                    return true;
+                return false;
+            default:
+                return true;
+        }
+    }
     dispose() {
         super.dispose();
+        this.panelShortcutActions = [];
         this.globalActionProviders = [];
         this.removeProperties();
     }
@@ -8500,12 +8710,18 @@ class FullScreenViewerAction extends FullScreenActionBase {
         this.visible = !reportPreview.canSwitchToDesigner;
     }
 }
+function getPageNumberAnnouncement(reportPreview) {
+    return (0,external_DevExpress_Analytics_Internal_namespaceObject.formatUnicorn)((0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('{0} of {1}', 'PreviewStringId.SB_PageInfo'), reportPreview.pageIndex + 1, reportPreview.pages.length);
+}
 class NavigationAction extends ViewerAction {
     constructor(reportPreview) {
         super(reportPreview, ['previewVisible'], ['pageIndex', 'pages']);
     }
     isVisible() {
         return this.reportPreview.previewVisible;
+    }
+    getAccessibilityActivationMessage() {
+        return getPageNumberAnnouncement(this.reportPreview);
     }
 }
 class GoBackwardsAction extends NavigationAction {
@@ -8547,7 +8763,7 @@ class PaginationAction extends NavigationAction {
     constructor(reportPreview) {
         super(reportPreview);
         this.id = ActionId.Pagination;
-        this.text = 'Pagination';
+        this.text = (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('Select Page', 'ASPxReportsStringId.ToolBarItemText_SelectPage');
         this.selectedItem = this.getSelectedItem();
         this.addDisposable(reportPreview.events.on('pageIndexChanged', (args) => {
             this.selectedItem = this.getSelectedItem();
@@ -8697,7 +8913,7 @@ class MultipageModeAction extends ViewerAction {
     constructor(reportPreview) {
         super(reportPreview, ['previewVisible']);
         this.id = ActionId.MultipageToggle;
-        this.text = (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('Toggle Multipage Mode', 'ASPxReportsStringId.WebDocumentViewer_ToggleMultipageMode');
+        this.text = this.getMultipageToggleTooltip(reportPreview.showMultipagePreview);
         this.imageClassName = this.getMultipageToggleImageClassName(reportPreview.showMultipagePreview);
         this.imageTemplateName = this.getMultipageToggleImageTemplateName(reportPreview.showMultipagePreview);
         this.hotKey = { altKey: true, ctrlKey: undefined, keyCode: 77 };
@@ -8709,8 +8925,19 @@ class MultipageModeAction extends ViewerAction {
         this.addDisposable(reportPreview.events.on('showMultipagePreviewChanged', (args) => {
             this.imageClassName = this.getMultipageToggleImageClassName(reportPreview.showMultipagePreview);
             this.imageTemplateName = this.getMultipageToggleImageTemplateName(reportPreview.showMultipagePreview);
+            this.text = this.getMultipageToggleTooltip(reportPreview.showMultipagePreview);
         }));
         this.hasSeparator = true;
+    }
+    getMultipageToggleTooltip(showMultipagePreview) {
+        return showMultipagePreview
+            ? (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('Switch to Single-Page Mode', 'ASPxReportsStringId.WebDocumentViewer_MultipageToggle_ToSinglePageMode_Tooltip')
+            : (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('Switch to Multi-Page Mode', 'ASPxReportsStringId.WebDocumentViewer_MultipageToggle_ToMultiPageMode_Tooltip');
+    }
+    getAccessibilityActivationMessage() {
+        return this.reportPreview.showMultipagePreview
+            ? (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('Multi-Page Mode Enabled', 'ASPxReportsStringId.WebDocumentViewer_MultipageToggle_MultiPageModeEnabled')
+            : (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('Single-Page Mode Enabled', 'ASPxReportsStringId.WebDocumentViewer_MultipageToggle_SinglePageModeEnabled');
     }
     getMultipageToggleImageClassName(showMultipagePreview) {
         return showMultipagePreview ? 'dxrd-image-preview-single-page' : 'dxrd-image-preview-multipage';
@@ -8722,7 +8949,15 @@ class MultipageModeAction extends ViewerAction {
         return this.reportPreview.previewVisible;
     }
 }
-class ZoomOutAction extends ViewerAction {
+function getZoomLevelAnnouncement(reportPreview) {
+    return (0,external_DevExpress_Analytics_Internal_namespaceObject.formatUnicorn)((0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('Zoom {0}', 'ASPxReportsStringId.WebDocumentViewer_AriaZoomLevel'), Math.round(reportPreview.zoom * 100) + '%');
+}
+class ZoomButtonAction extends ViewerAction {
+    getAccessibilityActivationMessage() {
+        return getZoomLevelAnnouncement(this.reportPreview);
+    }
+}
+class ZoomOutAction extends ZoomButtonAction {
     constructor(reportPreview) {
         super(reportPreview);
         this.id = ActionId.ZoomOut;
@@ -8746,6 +8981,7 @@ class ZoomAction extends ViewerAction {
     constructor(reportPreview) {
         super(reportPreview);
         this.id = ActionId.ZoomSelector;
+        this.text = (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('Select Zoom', 'ASPxReportsStringId.ToolBarItemText_SelectZoom');
         this.hotKey = { ctrlKey: true, keyCode: 48 };
         this.templateName = 'dxrd-zoom-autofit-select-template';
         this.displayExpr = (val) => {
@@ -8813,7 +9049,7 @@ _actions_decorate([
 _actions_decorate([
     (0,external_DevExpress_Analytics_Serializer_Native_namespaceObject.mutable)(() => [])
 ], ZoomAction.prototype, "zoomLevels", void 0);
-class ZoomInAction extends ViewerAction {
+class ZoomInAction extends ZoomButtonAction {
     constructor(reportPreview) {
         super(reportPreview);
         this.id = ActionId.ZoomIn;
@@ -8894,6 +9130,55 @@ class PrintPageAction extends ExportActionBase {
             }
             reportPreview.printDocument(reportPreview.pageIndex);
         };
+    }
+}
+class OpenPreviewTabAction extends ViewerAction {
+    constructor(reportPreview, tabInfo) {
+        super(reportPreview);
+        this.visible = tabInfo.visible;
+        this.addDisposable(tabInfo.events.on('visibleChanged', () => {
+            this.visible = tabInfo.visible;
+        }));
+        this.clickAction = () => {
+            if (tabInfo.active && !tabInfo.collapsed) {
+                tabInfo.active = false;
+                tabInfo.collapsed = true;
+            }
+            else {
+                tabInfo.active = true;
+                tabInfo.collapsed = false;
+            }
+        };
+    }
+}
+class ParametersPanelAction extends OpenPreviewTabAction {
+    constructor(reportPreview, tabInfo) {
+        super(reportPreview, tabInfo);
+        this.id = ActionId.ParametersPanel;
+        this.text = (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('Parameters', 'PreviewStringId.RibbonPreview_Parameters_Caption');
+        this.imageClassName = 'dxrd-image-parameters';
+        this.imageTemplateName = 'dxrd-svg-tabs-parameters';
+        this.hotKey = { ctrlKey: true, keyCode: 73 };
+    }
+}
+class DocumentMapPanelAction extends OpenPreviewTabAction {
+    constructor(reportPreview, tabInfo) {
+        super(reportPreview, tabInfo);
+        this.id = ActionId.DocumentMapPanel;
+        this.text = (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('Document Map', 'DevExpress.XtraPrinting.PrintingSystemCommand.DocumentMap');
+        this.imageClassName = 'dxrd-image-reportexplorer';
+        this.imageTemplateName = 'dxrd-svg-tabs-reportexplorer';
+        this.hotKey = { ctrlKey: true, keyCode: 77 };
+    }
+}
+class ExportOptionsPanelAction extends OpenPreviewTabAction {
+    constructor(reportPreview, tabInfo) {
+        super(reportPreview, tabInfo);
+        this.id = ActionId.ExportOptionsPanel;
+        this.text = (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('Export Options', 'DevExpress.XtraPrinting.ExportOptions');
+        this.imageClassName = 'dxrd-image-properties';
+        this.imageTemplateName = 'dxrd-svg-tabs-properties';
+        this.hotKey = { ctrlKey: true, keyCode: 69 };
     }
 }
 
@@ -12206,6 +12491,7 @@ class PreviewModel extends PreviewDisposableModel {
         this._disposables.push(options.tabPanel);
         this._disposables.push(options.actionLists);
         this.keyboardHelper = new external_DevExpress_Analytics_Internal_namespaceObject.ToolbarKeyboardHelper(this.actionLists.toolbarItems);
+        this.actionLists.accessibilityAnnouncer = message => this.keyboardHelper.liveRegion(true)?.changeText?.(message, 0);
         this._disposables.push(this.keyboardHelper);
     }
 }
@@ -13654,7 +13940,12 @@ function createDesktopPreview(bindingSettings) {
     const previewActions = new PreviewActions(reportPreview);
     const designPreviewActions = new PreviewDesignerActions(reportPreview, fullscreenEnabled);
     const globalActionProviders = [previewActions, exportModel, searchModel, designPreviewActions];
-    const actionLists = new ActionLists(reportPreview, globalActionProviders, callbacks && callbacks.customizeActions, () => reportPreview.previewVisible);
+    const previewTabActions = [
+        new ParametersPanelAction(reportPreview, parametersModel.tabInfo),
+        new ExportOptionsPanelAction(reportPreview, exportModel.tabInfo),
+        new DocumentMapPanelAction(reportPreview, documentMapModel.tabInfo)
+    ];
+    const actionLists = new ActionLists(reportPreview, globalActionProviders, callbacks && callbacks.customizeActions, () => reportPreview.previewVisible, previewTabActions);
     const designerModelOptions = {
         rootStyle: 'dxrd-preview dxd-back-primary-invariant' + (reportPreview.canSwitchToDesigner ? ' dxrd-designer-preview' : ''),
         reportPreview: reportPreview,
@@ -13671,6 +13962,7 @@ function createDesktopPreview(bindingSettings) {
     const designerModel = new PreviewModel(designerModelOptions);
     designerModel.addDisposable(previewActions);
     designerModel.addDisposable(designPreviewActions);
+    designerModel.addDisposable(...previewTabActions);
     const designerViewModel = designerModel.getViewModel();
     designerModel.parts = [
         { id: PreviewElements.Toolbar, templateName: PreviewElements.Toolbar, model: designerViewModel.toolBar, viewModel: designerViewModel.toolBar },
@@ -14138,7 +14430,106 @@ class PredefinedDateRangesKeyboardHelper extends external_DevExpress_Analytics_I
     }
 }
 
+;// ./dist/viewer/accessibility/_pictureEditorToolbarKeyboardHelper.js
+
+class PictureEditorKeyboardHelperBase extends external_DevExpress_Analytics_Internal_namespaceObject.KeyboardHelperWithArrowButtonBase {
+    constructor(_leaveHandler) {
+        super();
+        this._leaveHandler = _leaveHandler;
+    }
+    itemHandleUpArrowKey(e, index) {
+        this.setFocusToPrevious(index);
+        return true;
+    }
+    itemHandleDownArrowKey(e, index) {
+        this.setFocusToNext(index);
+        return true;
+    }
+    itemHandleLeftArrowKey(e, index) {
+        return this.itemHandleUpArrowKey(e, index);
+    }
+    itemHandleRightArrowKey(e, index) {
+        return this.itemHandleDownArrowKey(e, index);
+    }
+    itemHandleEnterKey(e, index) {
+        this.controlElements[index].element.click();
+        return true;
+    }
+    itemHandleSpaceKey(e, index) {
+        return this.itemHandleEnterKey(e, index);
+    }
+    itemHandleEscKey(e, index) {
+        this._leaveHandler();
+        return true;
+    }
+}
+class PictureEditorToolbarKeyboardHelper extends PictureEditorKeyboardHelperBase {
+    constructor() {
+        super(...arguments);
+        this.controlElementClassName = 'dx-picture-editing-toolbar-item';
+    }
+    initialize() {
+        super.initialize();
+        const toolbar = this.getContainer()?.querySelector('.dx-picture-editing-toolbar');
+        if (toolbar) {
+            toolbar.setAttribute('role', 'toolbar');
+            toolbar.setAttribute('aria-orientation', 'vertical');
+        }
+        this.controlElements.forEach(item => item.element.setAttribute('role', 'button'));
+    }
+    itemHandleTabKey(e, index) {
+        this._leaveHandler();
+        return false;
+    }
+    itemHandleShiftTabKey(e, index) {
+        return this.itemHandleTabKey(e, index);
+    }
+    handleEscKey(e) {
+        return false;
+    }
+}
+class PictureEditorPopoverKeyboardHelper extends PictureEditorKeyboardHelperBase {
+    constructor() {
+        super(...arguments);
+        this.focusFirstFocusableDescendant = true;
+    }
+    initialize() {
+        super.initialize();
+        this.controlElements.forEach(item => item.element.setAttribute('role', 'button'));
+    }
+    getElements(predicate) {
+        const container = this.getContainer();
+        if (!container)
+            return;
+        let htmlElements = Array.prototype.slice.call(container.querySelectorAll(PictureEditorPopoverKeyboardHelper.itemSelectors.join(', ')));
+        htmlElements = htmlElements.filter(element => !element.hasAttribute('hidden') && element.style.display !== 'none');
+        if (predicate)
+            htmlElements = htmlElements.filter(predicate);
+        if (!htmlElements.length)
+            return;
+        return htmlElements;
+    }
+    handleEscKey(e) {
+        this._leaveHandler();
+        return true;
+    }
+    _keyDownHandler(e) {
+        const index = this.getIndexByElement(e.target);
+        if (index > -1 && this.processChildrenShortcut(e, index) || this.processShortcut(e)) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+    }
+}
+PictureEditorPopoverKeyboardHelper.itemSelectors = [
+    '.dx-picture-editing-brush-options-color-cell',
+    '.dx-picture-editing-sizemode-alignment-value',
+    '.dx-picture-editing-block'
+];
+
 ;// ./dist/scopes/reporting-viewer.js
+
+
 
 
 
@@ -15115,6 +15506,7 @@ external_DevExpress_Analytics_Widgets_Internal_namespaceObject.SvgTemplatesEngin
 (0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('template: { name: \'dx-picture-editing-popup\' }', function ($context, $element) { return { 'template': function () { return { 'name': 'dx-picture-editing-popup' }; } }; });
 (0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('if: popupData.showContent', function ($context, $element) { return { 'if': function () { return $context.$data.popupData.showContent; } }; });
 (0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('template: { name: popupData.contentTemplate, afterRender: popupData.renderedHandler }', function ($context, $element) { return { 'template': function () { return { 'name': $context.$data.popupData.contentTemplate, 'afterRender': $context.$data.popupData.renderedHandler }; } }; });
+(0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('attr: { \'aria-label\': $data.displayText }', function ($context, $element) { return { 'attr': function () { return { 'aria-label': $context.$data.displayText }; } }; });
 (0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('dxSelectBox: { items: widget.dataSource, value: widget.value, onValueChanged: widget.onValueChanged, displayExpr: widget.displayExpr, displayCustomValue: true, acceptCustomValue: true, onCustomItemCreating: widget.onCustomItemCreating, useItemTextAsTitle: true, width: 140, dropDownOptions: { container: getPopupContainer($element), position: { my: \'left top\', at: \'left bottom\', of: $element }, wrapperAttr: { class: \'dx-zoom-selectbox-popup-wrapper\' } }, tabIndex: \'-1\', inputAttr: widget.inputAttr }', function ($context, $element) { return { 'dxSelectBox': function () { return { 'items': $context.$data.widget.dataSource, 'value': $context.$data.widget.value, 'onValueChanged': $context.$data.widget.onValueChanged, 'displayExpr': $context.$data.widget.displayExpr, 'displayCustomValue': true, 'acceptCustomValue': true, 'onCustomItemCreating': $context.$data.widget.onCustomItemCreating, 'useItemTextAsTitle': true, 'width': 140, 'dropDownOptions': { 'container': $context.$data.getPopupContainer($element), 'position': { 'my': 'left top', 'at': 'left bottom', 'of': $element }, 'wrapperAttr': { 'class': 'dx-zoom-selectbox-popup-wrapper' } }, 'tabIndex': '-1', 'inputAttr': $context.$data.widget.inputAttr }; } }; });
 (0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('dxScrollView: { showScrollbar: \'onHover\', direction: \'horizontal\', useNative: false, scrollByThumb: true, onInitialized: function(e) { e.component.option(\'useKeyboard\', false); } }', function ($context, $element) { return { 'dxScrollView': function () { return { 'showScrollbar': 'onHover', 'direction': 'horizontal', 'useNative': false, 'scrollByThumb': true, 'onInitialized': function (e) { e.component.option('useKeyboard', false); } }; } }; });
 (0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('keyDownActions: actionLists, dxMutationObserver: keyboardHelper', function ($context, $element) { return { 'keyDownActions': function () { return $context.$data.actionLists; }, 'dxMutationObserver': function () { return $context.$data.keyboardHelper; } }; });
@@ -15343,7 +15735,7 @@ external_DevExpress_Analytics_Widgets_Internal_namespaceObject.SvgTemplatesEngin
     'dxrp-editing-field-datetime': '<div  class="dxrp-editing-field-datetime dxrd-width-100" data-bind="dxDateBox: $data.getOptions({ dropDownOptions: { container: $root.getPopupContainer($element), position: { at: \'left bottom\', collision: \'flipfit flip\', my: \'left top\', boundary: $root.getPopupContainer($element), of: $element } } }), childStyle: { style: textStyle, selector: \'.dx-texteditor-input\'}"></div>',
     'dxrp-editing-field-image': '<div class="dxrp-editing-field-container dx-accessibility-editing-field-item dx-accessibility-border-accented" data-bind="style: containerStyle "> <!-- ko template: \'dxrp-editing-field-image-editor\' --> <!-- /ko --> </div>',
     'dxrp-editing-field-image-editor': '<div class="dxrd-height-100 dxrd-width-100" data-bind="dxPictureEditor: $data"></div>',
-    'dxrp-editing-field-checkbox': '<div class="dxrp-editing-field-check-container dx-accessibility-editing-field-item dx-accessibility-border-accented" data-bind="style: containerStyle, zoom: zoom, click: onClick"> <div class="dxrp-editing-field-check" tabindex="1" data-bind="style: checkStyle, template: { name: checkStateStyleIcon, if: !!checkStateStyleIcon }"> </div> </div>',
+    'dxrp-editing-field-checkbox': '<div class="dxrp-editing-field-check-container dx-accessibility-editing-field-item dx-accessibility-border-accented" data-bind="style: containerStyle, zoom: zoom, click: onClick"> <div class="dxrp-editing-field-check" data-bind="style: checkStyle, template: { name: checkStateStyleIcon, if: !!checkStateStyleIcon }"> </div> </div>',
     'dxrp-editing-field-radio': '<div class="dxrp-editing-field-check-container dx-accessibility-editing-field-item dx-accessibility-border-accented" data-bind="style: containerStyle, zoom: zoom, click: onClick"> <div class="dxrp-editing-field-check" data-bind="style: checkStyle"> <svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 760 760" preserveAspectRatio="xMidYMid meet"> <g fill="#010101" stroke="none"> <path d="M32,380a348,348 0 1,0 696,0a348,348 0 1,0 -696,0" class="highlight dxrd-stroke-width-50 dxrd-stroke-rgb-0"  /> <path d="M185,380a195,195 0 1,0 390,0a195,195 0 1,0 -390,0" data-bind="style: { fill: checked ? \'black\' : \'transparent\' }" /> </g> </svg> </div> </div>',
     'dxrp-character-comb-editing-field': '<div class="dxrp-editing-field-charactercomb dx-accessibility-editing-field-item dx-accessibility-border-accented" data-bind="style: containerStyle, dxclick: activateEditor, zoom: zoom, css: { active: active, readonly: field.readOnly }"> <!-- ko if: !active || field.readOnly  --> <!-- ko foreach: cells --> <div class="dxrp-editing-field-charactercomb-cell" data-bind="style: style, text: text"></div> <!-- /ko --> <!-- /ko --> <!-- ko if: active && !field.readOnly --> <textarea  class="dxrp-editing-field-text dxrd-background-white" data-bind="value: field.editorValue, valueUpdate: \'keypress\', style: textStyle, event: { blur: hideEditor, input: onInput, keyup: keypressAction }"></textarea> <!--/ko--> </div>',
     'dxrd-export-tool-content': '<div class="dxrd-visually-hidden"> <form method="post"> </form> </div> <div data-bind="dxPopup: { width: popupOptions.width, height: popupOptions.height, title: popupOptions.title, visible: popupOptions.visible, showCloseButton: true, onHidden: popupOptions.onHidden, toolbarItems: popupOptions.toolbarItems, wrapperAttr: popupOptions.wrapperAttr, container: popupOptions.getPopupContainer($element), position: { of: popupOptions.getPopupContainer($element) } }"> <div class="dxrd-print-dialog-content"> <div data-bind="text: printingTexts.caption"></div> <p></p> <!-- ko if: printingTexts.prefix --> <div class="dxrdp-print-text-prefix" data-bind="text: printingTexts.prefix"></div> <!-- /ko --> <a href="" class="dxrd-preview-printing-link" data-bind="click: printingLinkCallback, text: printingTexts.link"></a> <!-- ko if: printingTexts.postfix --> <div class="dxrdp-print-text-postfix" data-bind="text: printingTexts.postfix"></div> <!-- /ko --> </div> </div>',
@@ -15353,14 +15745,14 @@ external_DevExpress_Analytics_Widgets_Internal_namespaceObject.SvgTemplatesEngin
     'dxrd-preview-page': '<div data-bind="dxLoadPanel: { visible: loading, position: { of: \'#\' + page_id } }"></div> <!-- ko if: $data.aiOperationInProgress --> <div data-bind="dxAILoadingPanel: getAILoadingPanelOptions()"></div> <!-- /ko --> <div role="img" class="dxrd-report-preview-content dxrd-position-relative dxrd-width-100 dxrd-height-100"  data-bind="attr: {\'aria-label\': currentPageAriaLabelImgAlt, \'id\': page_id }, dxclick: clickToBrick, \'brick-selection-prog\': brickSelectionProg"> <div class="dxrd-report-preview-content-loading-wrapper dxrd-background-white"  data-bind="styleunit: { \'width\': width + 2, \'height\': height + 2 }, visible: pageLoading"> <div class="dxrd-report-preview-content-loading-panel dxrd-text-align-center"  data-bind="styleunit: { \'paddingTop\': height / 2.3 }"> <div class="dxrd-report-preview-content-loading-panel-text" data-bind="text: loadingText"></div> </div> </div> <div data-bind="dxPreviewPageRenderer: imageOptions, visible: !pageLoading"> <!-- ko foreach: activeBricks --> <!-- ko template: { name: "dxrd-page-brick-mobile", data: $data } --> <!--/ko--> <!--/ko--> <!-- ko foreach: clickableBricks --> <!-- ko template: { name: "dxrd-page-brick-clickable", data: $data } --> <!--/ko--> <!--/ko--> <!-- ko if: !brickLoading && $data.editingFields--> <div data-bind="dxMutationObserver: editingFieldsKeyboardHelper"> <!-- ko foreach: editingFields --> <!-- ko template: template --> <!--/ko--> <!--/ko--> </div> <!--/ko--> <!-- ko if: aiServicesEnabled && active --> <div data-bind="style: { \'position\': \'absolute\', top: smartTagAIMenuPosition.topP, left: smartTagAIMenuPosition.leftP, right: smartTagAIMenuPosition.rightP, height: smartTagAIMenuPosition.heightP, width: smartTagAIMenuPosition.widthP }"> <div class="dxrd-control-ai-smart-tag dxd-icon-accented" data-bind="dxMenu: smartTagAIMenu"> <div class="dxrd-ai-floating-smart-tag-container"> <!-- ko if: $data.text --> <div class="dxrd-ai-floating-smart-tag-text" data-bind="text: text"></div> <!-- ko if: $data.items --> <div class="dx-icon dxrd-ai-floating-smart-tag-items" data-bind="css: { \'dx-icon-spinright\': !$root.rtl, \'dx-icon-spinleft\': $root.rtl }"></div> <!-- /ko --> <!-- /ko --> <!-- ko if: $data.icon --> <div class="dxrd-ai-floating-smart-tag-icon"> <div data-bind="template: icon"> </div> </div> <!-- /ko --> </div> </div> </div> <!-- /ko --> <!-- ko if: aiServicesEnabled && !!aiCustomDocumentStorageId --> <div class="dxrd-report-preview-page-modified"> <span data-bind="text: translatedPageBadgeText" class="dxrd-report-preview-page-modified-text"></span> <div data-bind="dxButton: { onClick: revertToOriginal, icon: \'revert\', width: 22, height: 22 }, attr: { title: revertToOriginalBtnTxt }" class="dxrd-report-preview-page-modified-button"></div> </div> <!-- /ko --> </div> </div>',
     'dxrp-popup-editing-field-image': '<div class="dxrp-editing-field-container" data-bind="style: containerStyle"> <div class="dx-accessibility-editing-field-item dx-accessibility-border-accented" data-bind="dxclick: activateEditor, css: parentPopupClass"> <div class="dxrp-editing-field-popup-container-cloned" data-bind="dxPainter: getPainterOptions()"></div> <!-- ko template: { name: \'dx-picture-editing-popup\' } --> <!-- /ko --> </div> </div>',
     'dx-picture-editing-popup': '<div class="dx-picture-edit-popup-content dx-picture-edit-popup-content-fullscreen" data-bind="dxPopup: { width: containerStyle.width, height: containerStyle.height, position: { boundary: popupData.getPopupContainer($element), of: popupData.getPositionTarget($element), collision: \'flipfit flipfit\' }, container: popupData.getPopupContainer($element), showTitle: false, target: popupData.getPopupContainer($element), deferRendering: false, hideOnOutsideClick: true, showCloseButton: false, onContentReady: popupData.onContentReady, onHiding: popupData.onHiding, onShown: popupData.onShown, shading: popupData.shading, wrapperAttr: { class: \'dx-picture-edit-popup-content dx-picture-edit-popup-content-fullscreen\' }, animation: { show: { type: \'slide\', duration: 0, to: { opacity: 1 }, from: { opacity: 0 } }, hide: { type: \'fade\', duration: 100, to: { opacity: 0 }, from: { opacity: 1 } } }, visible: popupData.visible }, cacheElement: { action: function(elt) { setEditingFieldElement(elt); } }"> <!-- ko if: popupData.showContent --> <!-- ko template: { name: popupData.contentTemplate, afterRender: popupData.renderedHandler } --> <!--/ko--> <!--/ko--> </div>',
-    'dxrd-zoom-autofit-select-template': '<div class="dxrd-toolbar-item-zoom" data-bind="visible: visible"> <div class="dx-accessibility-toolbar-item dx-accessibility-focus-border-accented" > <div class="dxrd-toolbar-item-zoom-editor" data-bind="dxSelectBox: { items: widget.dataSource, value: widget.value, onValueChanged: widget.onValueChanged, displayExpr: widget.displayExpr, displayCustomValue: true, acceptCustomValue: true, onCustomItemCreating: widget.onCustomItemCreating, useItemTextAsTitle: true, width: 140, dropDownOptions: { container: getPopupContainer($element), position: { my: \'left top\', at: \'left bottom\', of: $element }, wrapperAttr: { class: \'dx-zoom-selectbox-popup-wrapper\' } }, tabIndex: \'-1\', inputAttr: widget.inputAttr }"> </div> </div> </div>',
-    'dxrd-preview-toolbar-scrollable': '<div class="dxrd-toolbar-wrapper dxrdp-toolbar-scrollable dx-shadow-top dxd-back-secondary-invariant" data-bind="dxScrollView: { showScrollbar: \'onHover\', direction: \'horizontal\', useNative: false, scrollByThumb: true, onInitialized: function(e) { e.component.option(\'useKeyboard\', false); } }"> <div class="dxrd-toolbar" role="toolbar" data-bind="keyDownActions: actionLists, dxMutationObserver: keyboardHelper"> <div id="dxrd-preview-toolbar-live-region" class="dxrd-visually-hidden" aria-live="polite" aria-atomic="true"></div> <div class="dx-accessibility-container-background dxd-back-accented"></div> <!-- ko template: {name: \'dxrd-toolbar-tmplt\', data: actionLists.toolbarItems } --> <!-- /ko --> </div> </div>',
+    'dxrd-zoom-autofit-select-template': '<div class="dxrd-toolbar-item-zoom" data-bind="visible: visible"> <div class="dx-accessibility-toolbar-item dx-accessibility-focus-border-accented" data-bind="attr: { \'aria-label\': $data.displayText }" > <div class="dxrd-toolbar-item-zoom-editor" data-bind="dxSelectBox: { items: widget.dataSource, value: widget.value, onValueChanged: widget.onValueChanged, displayExpr: widget.displayExpr, displayCustomValue: true, acceptCustomValue: true, onCustomItemCreating: widget.onCustomItemCreating, useItemTextAsTitle: true, width: 140, dropDownOptions: { container: getPopupContainer($element), position: { my: \'left top\', at: \'left bottom\', of: $element }, wrapperAttr: { class: \'dx-zoom-selectbox-popup-wrapper\' } }, tabIndex: \'-1\', inputAttr: widget.inputAttr }"> </div> </div> </div>',
+    'dxrd-preview-toolbar-scrollable': '<div class="dxrd-toolbar-wrapper dxrdp-toolbar-scrollable dx-shadow-top dxd-back-secondary-invariant" data-bind="dxScrollView: { showScrollbar: \'onHover\', direction: \'horizontal\', useNative: false, scrollByThumb: true, onInitialized: function(e) { e.component.option(\'useKeyboard\', false); } }"> <div class="dxrd-toolbar" role="toolbar" data-bind="keyDownActions: actionLists, dxMutationObserver: keyboardHelper"> <div id="dxrd-preview-toolbar-live-region" class="dxrd-visually-hidden" aria-live="polite" aria-atomic="true"></div> <div id="dxrd-preview-toolbar-live-region-assertive" class="dxrd-visually-hidden" aria-live="assertive" aria-atomic="true"></div> <div class="dx-accessibility-container-background dxd-back-accented"></div> <!-- ko template: {name: \'dxrd-toolbar-tmplt\', data: actionLists.toolbarItems } --> <!-- /ko --> </div> </div>',
     'dxrd-preview-breadcrumb': '<!-- ko if: listItems.length > 1 --><div class="dxrd-breadcrumbs-wrapper" data-bind="dxMutationObserver: keyboardHelper" aria-label="Breadcrumbs" role="navigation"> <!-- ko foreach: listItems --> <!-- ko if: $index() !== ($parent.listItems.length - 1) --> <a class="dxrd-breadcrump-link dxrd-breadcrumb-item dxd-text-accented dx-accessibility-border-accented" data-bind="click: function(s, e) { $parent.onClick($data.position); }"> <span data-bind="text: $data.displayText"></span> </a> <span class="dxrd-breadcrumb-item-seperator" data-bind="template: { name: \'dxrd-svg-preview-breadcrumbs_seperator\' }"> </span> <!-- /ko --> <!-- ko if: $index() === ($parent.listItems.length - 1) --> <div class="dxrd-breadcrumb-item dxd-text-primary dx-accessibility-border-accented" aria-current="location"> <span data-bind="text: $data.displayText"></span> </div> <!-- /ko --> <!-- /ko --></div><!-- /ko -->',
     'dxrd-preview-search': '<div role="search" aria-haspopup="listbox" class="dxrd-preview-search-wrapper" data-bind="visible: active && visible, dxMutationObserver: keyboardHelper"> <div id="dxrd-preview-search-live-region" class="dxrd-visually-hidden" aria-live="polite" aria-atomic="true"></div> <!-- ko with: model.getViewModel() --> <div class="dxrd-preview-search-tab-header"> <div class="dxrd-right-panel-header dxd-text-primary"> <span data-bind="text: headerText"></span> </div> <div class="dxrd-preview-search-tab-editor-button-container"> <div class="dxrd-preview-search-editor dx-searcheditor" data-bind="dxTextBox: searchEditor"></div> <div data-bind="dxButton: buttons.searchButton" class="dxrd-preview-search-button"></div> </div> <div class="dxrd-preview-search-tab-header-text"> <div class="dxrd-preview-search-checkbox" data-bind="dxCheckBox: matchCaseEditor"></div> <div class="dxrd-preview-search-checkbox dxrd-preview-search-checkbox-second" data-bind="dxCheckBox: matchWholeWordEditor"></div> </div> </div> <!-- ko if: (searchResultCount > 0 || loading) --> <div class="dxrd-preview-search-result-wrapper"> <div  class="dxrd-preview-search-result-header dxd-border-primary dxd-text-primary"> <div class="dxrd-preview-search-tab-header dxrd-preview-search-indicator-group"> <div class = "dxrd-preview-search-results dxrd-preview-search-result-text" data-bind="attr: { id: searchResultHeaderId, \'aria-busy\': loading ? \'true\' : \'false\' }"> <span class="dxrd-preview-search-result-text-bold" data-bind="text: searchResultCount"></span>&nbsp <span data-bind="text: resultsInText"></span>&nbsp <span class="dxrd-preview-search-result-text-bold" data-bind="text: searchResultPageCount"></span>&nbsp <span data-bind="text: resultsPagesText"></span> </div> <div class="dxrd-preview-search-results-navigation"> <div class="dxrdp-search-loading" data-bind="dxLoadIndicator: { visible: loading }"></div> <div data-bind="dxButton: buttons.upButton " class="dxrd-preview-search-results-navigation-button dx-searcheditor-button dx-widget dx-dropdowneditor-button dxd-icon-highlighted dx-shape-standard"></div> <div data-bind="dxButton: buttons.downButton " class="dxrd-preview-search-results-navigation-button dx-searcheditor-button dx-widget dx-dropdowneditor-button dxd-icon-highlighted dx-shape-standard"></div> </div> </div> </div> <div class="dx-accessibility-container-background dxd-back-accented"></div> <div class="dxrd-preview-search-result dxd-border-accented" data-bind="dxList: { dataSource: searchResultDataSource, pageLoadMode: \'scrollBottom\', focusStateEnabled:false, hoverStateEnabled:false, onItemRendered: onItemRendered, noDataText: \'\', encodeNoDataText: true }, attr: { \'aria-labelledby\': searchResultHeaderId }"> <div class="dxrd-preview-search-result-item dxd-list-item-back-color dxd-back-highlighted dx-accessibility-list-item dx-accessibility-focus-border-accented" data-bind="dxAction: { model: data, action: itemClickAction }, attr: attr" data-options="dxTemplate : { name: \'item\' }" > <div class="dx-accessibility-field-background dxd-back-accented"></div> <div class="dxrd-preview-search-tab-item-text propertygrid-editor-displayName dxd-text-primary" data-bind="text: data.text"></div> <div class="dxrd-preview-search-tab-item-info dxd-text-primary" data-bind="text: info"></div> </div> </div> </div> <!-- /ko --> <!-- ko if: (searchCompleted && searchResultCount == 0) --> <div  class="dxrd-preview-search-result-header dxd-border-primary dxd-text-primary"> <div class="dxrd-preview-search-tab-header dxrd-preview-search-indicator-group"> <div data-bind="text: noResultText" class = "dxrd-preview-search-result-text"> </div> </div> </div> <!-- /ko --> <!-- /ko --> </div>',
     'dxrd-preview-ai-panel': '<div id="dxrd-preview-ai-panel-id" class="dxrd-preview-ai-panel" data-bind="visible: active && visible"> <!-- ko with: model.getViewModel() --> <div class="dxrd-right-panel-header dxd-text-primary"> <span data-bind="text: aiPanelHeaderLabel"></span> </div> <div class="dxrd-preview-ai-panel-wrapper dx-editors"> <div class="dx-fieldset"> <div class="dx-field dxrd-preview-ai-select-box"> <label class="dxrd-preview-ai-form-label" for="dxrv-ai-target-select" data-bind="text: targetContentText"></label> <div class="dxrd-preview-ai-form-input" data-bind="dxSelectBox: getSelectBoxOptions(targetSelectBoxOptions, $element)"></div> </div> <!-- ko if: languageSelectBoxOptions.visible --> <div class="dx-field dxrd-preview-ai-select-box"> <label class="dxrd-preview-ai-form-label" for="dxrv-ai-language-select" data-bind="text: targetLanguageText"></label> <div class="dxrd-preview-ai-form-input" data-bind="dxSelectBox: getSelectBoxOptions(languageSelectBoxOptions, $element)"></div> </div> <!-- /ko --> <!-- ko if: pageSelectBoxVisible --> <div class="dx-field dxrd-preview-ai-select-box"> <label class="dxrd-preview-ai-form-label" for="dxrv-ai-page-select" data-bind="text: pageSelectText"></label> <div class="dxrd-preview-ai-form-input" data-bind="dxSelectBox: getSelectBoxOptions(pageSelectBoxOptions, $element)"> </div> </div> <!-- /ko --> <div class="dx-field"> <div class="dxrd-preview-ai-buttons-wrapper"> <div class="dxrd-preview-ai-buttons dx-accessibility-focus-border-accented" data-bind="dxButton: buttons.translateTextButton"> </div> <div class="dxrd-preview-ai-buttons dx-accessibility-focus-border-accented" data-bind="dxButton: buttons.summarizeTextButton"> </div> </div> </div> </div> <div class="dxrd-ai-panel-result-container"> <!-- ko if: resultVisible --> <div class="dxrd-right-panel-header dxd-text-primary dxd-border-primary dxrd-ai-result-text"> <span data-bind="text: textProcessingResultHeaderText" class="dxrd-right-panel-result-text"></span> <div role="button" class="dxrd-right-panel-copy-button dx-accessibility-focus-border-accented" tabindex="0" data-bind="event: { keydown: copyText }"> <div class="dxd-icon-highlighted" data-bind="template: { name: buttons.copyResultButton.template }, dxclick: buttons.copyResultButton.onClick"></div> </div> </div> <div id="dxrd-ai-panel-text-area-id" tabindex="0" role="presentation" class="dx-accessibility-focus-border-accented dxrd-preview-ai-panel-textarea dxd-back-primary2" data-bind="dxTextArea: { value: aiProcessingResultText, onInput: function(e) { e.event.preventDefault(); }, onPaste: function(e) { e.event.preventDefault(); }, onKeyDown: function(e) { if (e.event.key !== \'Tab\') e.event.preventDefault(); }, hoverStateEnabled: false, inputAttr: { spellcheck: \'false\' }, tabIndex: -1 }"> </div> <!-- /ko --> <!-- ko if: loading --> <div data-bind="dxAILoadingPanel: getLoadPanelOptions($element)"></div> <!-- /ko --> </div> </div> <div data-bind="dxPopup: { width: 350, height: 200, shading: false, focusStateEnabled: false, visible: warningTextLimitPopupVisible, container: \'.dxrd-preview-ai-panel\', target: \'.dxrd-preview-ai-panel\', position: { at: \'top\', my: \'top\', collision: \'fit\', of: \'.dxrd-preview-ai-panel\' }, showCloseButton: false, showTitle: false, wrapperAttr: { class: \'dxrd-preview-ai-panel-warning-popup\' }, }"> <span data-bind="text: limitExceededWarningMsg" class="dxrd-preview-ai-panel-warning-popup-text"></span> <div class="dxrd-preview-ai-panel-warning-popup-checkbox" data-bind="dxCheckBox: proceedForAllCheckBoxOptions"> </div> <div class="dxrd-preview-ai-panel-warning-popup-button-group"> <div class="dxrd-preview-ai-panel-warning-popup-button dx-button-default" data-bind="dxButton: { text: proceedNextChunkButtonText, onClick: proceedNextButtonClick }"> </div> <div class="dxrd-preview-ai-panel-warning-popup-button" data-bind="dxButton: { text: cancelChunkedOperationButtonText, onClick: cancelProcessButtonClick }"> </div> </div> </div> <!-- /ko --></div>',
     'dxrd-preview-progress-bar': '<div role="dialog" class="dxrd-preview-progress dxd-popup-back-color dxd-back-primary2 dxd-border-primary" data-bind="visible: visible, css: cssClasses, dxMutationObserver: progressBarAccessibilityKeyboardHelper"> <div class="dxrd-preview-progress-text dxd-text-primary" data-bind="text : text"></div> <div class="dxrd-preview-progress-bar dxd-back-primary"> <div class="dxrd-preview-progress-value dxd-preview-progress-bar-value-color dxd-back-accented" data-bind="style : { width: progress  + \'%\' }"></div> </div> <div role="button" class="dxrd-preview-progress-cancel dxd-hyperlink-color dxd-border-accented dxd-text-accented dx-accessibility-list-item dx-accessibility-border-accented" data-bind="text: cancelButton.text, visible: cancelButton.visible, click: function() { cancelButton.action && cancelButton.action(); }"></div> </div>',
     'dxrd-preview-parameters': '<div class="dxrd-preview-parameters-wrapper dxrd-preview-property-wrapper" data-bind="visible: active && visible"> <div class="dxrd-right-panel-header dxd-text-primary"> <span data-bind="text: model.headerText, visible: model.showHeader"></span> <!-- ko if: (model && !model.isEmpty) --> <!-- /ko --> </div> <!-- ko if: (!model || model.isEmpty) --> <div class="dxrd-group-header-parameters-empty dxd-text-primary" data-bind="text: model.emptyText"></div> <!-- /ko --> <!-- ko if: (model && !model.isEmpty) --> <div class="dxrd-right-panel-body" id="propertiesPanel" data-bind="dxScrollView: { showScrollbar: \'onHover\', useNative: false, scrollByThumb: true, onInitialized: function(e) { e.component.option(\'useKeyboard\', false); } }, dxValidationGroup: {}, dxMutationObserver: keyboardHelper"> <div role="tree" class="dx-fieldset dxrd-right-panel-content"> <!-- ko template: { name: \'dx-propertieseditor\', data: propertyGrid } --> <!-- /ko --> </div> <div class="dxrd-preview-parameter-actions-container" data-bind="visible: model.showButtons"> <div class="dxrd-preview-parameter-action dxrd-preview-loading" data-bind="dxLoadIndicator: { visible: model.parametersLoading }"></div> <!-- ko foreach: model.buttons --> <div class="dxrd-preview-parameter-action dx-accessibility-focus-border-accented" data-bind="dxButton: $data"></div> <!-- /ko --> </div> </div> <!-- /ko --> </div>',
-    'dxrd-preview-pager': '<div class="dxrd-preview-pager dxrd-toolbar-item" data-bind="visible: visible"> <div class="dx-accessibility-toolbar-item dx-accessibility-focus-border-accented" > <div class="dxrd-preview-pager-selectbox" data-bind="dxSelectBox: { dataSource: widget.dataSource, onValueChanged: widget.onValueChanged, value: widget.value, displayExpr: widget.displayExpr, useItemTextAsTitle: true, itemTemplate: widget.itemTemplate, searchMode: widget.searchMode, searchEnabled: widget.searchEnabled, searchTimeout: widget.searchTimeout, disabled: widget.disabled, dropDownOptions: { container: getPopupContainer($element), wrapperAttr: widget.wrapperAttr, }, tabIndex: \'-1\', inputAttr: widget.inputAttr }"> </div> </div> <div class="dxrd-toolbar-item-separator dxd-toolbar-separator-color dxd-border-secondary" data-bind="visible: $data.hasSeparator"></div> </div>',
+    'dxrd-preview-pager': '<div class="dxrd-preview-pager dxrd-toolbar-item" data-bind="visible: visible"> <div class="dx-accessibility-toolbar-item dx-accessibility-focus-border-accented" data-bind="attr: { \'aria-label\': $data.displayText }"> <div class="dxrd-preview-pager-selectbox" data-bind="dxSelectBox: { dataSource: widget.dataSource, onValueChanged: widget.onValueChanged, value: widget.value, displayExpr: widget.displayExpr, useItemTextAsTitle: true, itemTemplate: widget.itemTemplate, searchMode: widget.searchMode, searchEnabled: widget.searchEnabled, searchTimeout: widget.searchTimeout, disabled: widget.disabled, dropDownOptions: { container: getPopupContainer($element), wrapperAttr: widget.wrapperAttr, }, tabIndex: \'-1\', inputAttr: widget.inputAttr }"> </div> </div> <div class="dxrd-toolbar-item-separator dxd-toolbar-separator-color dxd-border-secondary" data-bind="visible: $data.hasSeparator"></div> </div>',
     'dxrd-preview-document-map': '<div class="dxrd-preview-document-map dxrd-height-100 dxrd-overflow-hidden" data-bind="visible: active && visible" > <div class="dxrd-right-panel-header dxd-text-primary"> <div class="dxrd-display-inline-block" data-bind="text: $root.getLocalization(\'Document Map\', \'ASPxReportsStringId.DocumentViewer_RibbonCommandText_DocumentMap\')"></div> </div> <!-- ko if: model --> <!-- ko with: model.getViewModel() --> <div class="dxrd-right-panel-body" data-bind="dxScrollView: { showScrollbar: \'onHover\', useNative: false, scrollByThumb: true, onInitialized: function(e) { e.component.option(\'useKeyboard\', false); } }, dxMutationObserver: keyboardHelper"> <div role="tree" id="documentMapTree" data-bind="treelist: treeListOptions" class="dxrd-width-100 dxrd-height-100"></div> </div> <!-- /ko --> <!-- /ko --></div>',
     'dxrd-report-preview': '<div class="dxrd-preview dxrd-designer-wrapper dxd-scrollbar-color dxd-surface-back-color" data-bind="visible: reportPreview.previewVisible, cssArray: [ $data.rootStyle , { \'dx-rtl\' : $data.rtl, \'dx-ltr\': !$data.rtl } ]"> <!-- ko foreach: parts --> <!-- ko template: { name: templateName, data: viewModel || model }--> <!-- /ko --> <!-- /ko --> </div>',
     'dxrdp-surface': '<div class="dxrd-preview-wrapper" data-bind="textCopier, css: { \'dx-rtl\': rtlReport, \'dxrp-editing-fields-hightlighted\': editingFieldsHighlighted } "> <!-- ko with: progressBar --> <!-- ko template: \'dxrd-preview-progress-bar\'--> <!-- /ko --> <!-- /ko --> <div class="dxrd-preview-surface" data-bind="dxMutationObserver: previewBrickKeyboardHelper"> <!-- ko if: !showMultipagePreview --> <div class="dxrd-report-preview-holder" role="tablist"> <!-- ko with: currentPage --> <!-- ko if: pageLoading || (!pageLoading && pageLoaded) --> <div role="tab" class="dxrd-report-preview dx-accessibility-page-item dx-accessibility-border-accented" data-bind="autoFit: autoFitOptions, styleunit: { width: width, height: height }"> <!-- ko template: { name: \'dxrd-preview-page\', afterRender: function() { delayedInit() } }--> <!-- /ko --> </div> <!-- /ko --> <!-- /ko --> </div> <!-- /ko --> <!-- ko if: showMultipagePreview && !!currentPage --> <div class="dxrd-report-preview-holder" role="list" data-bind="lazyImages: lazyImagesOptions"> <!-- ko foreach: {data: pages, afterRender: function() { delayedInit() } }  --> <!-- ko lazy: { if: pageLoading || (!pageLoading && pageLoaded) } --> <div role="listitem" class="dxrd-report-preview dxrd-report-preview-multipage dx-accessibility-page-item dx-accessibility-border-accented" data-bind="styleunit: { \'width\': width, \'height\': height }, toView: { setPageActiveChangedEvent: setPageActiveChangedEvent }, css : { \'dxrd-report-preview-active\': active }"> <!-- ko template: \'dxrd-preview-page\'--> <!-- /ko --> </div> <!-- /ko --> <!-- /ko --> </div> <!-- /ko --> <div data-bind="css: { \'dxrd-visually-hidden\': !!currentPage || _aiOperationInProgress }" class="dxrd-report-preview-placeholder"> <div aria-live="assertive" aria-atomic="true" class="dxd-empty-area-placeholder-text-color dxd-text-info" data-bind="text: emptyDocumentCaption"></div> </div> <!-- ko if: _aiOperationInProgress --> <div data-bind="dxAILoadingPanel: _getAILoadingPanelOptions($element)"></div> <!-- /ko --> </div> <div data-bind="dxPopup: { width: 450, height: 150, visible: _exportTranslatedDocPopupVisible, container: \'.dxrd-preview-surface\', target: \'.dxrd-preview-surface\', position: { at: \'center\', my: \'center\', collision: \'fit\', of: \'.dxrd-preview-surface\' }, dragEnabled: false, hideOnOutsideClick: true, showCloseButton: false, showTitle: false, onHiding: function(e) { onExportPopupHiding(); } }"> <span data-bind="text: _exportTranslatedDodumentWarningMsg" class="dxrd-preview-export-warning-popup-text"></span> <div class="dxrd-preview-export-warning-popup-button-group"> <div class="dxrd-preview-export-warning-popup-button dx-button-default" data-bind="dxButton: { text: _exportTranslatedDocumentButtonText, onClick: _exportTranslatedHandler }"> </div> <div class="dxrd-preview-export-warning-popup-button" data-bind="dxButton: { text: _exportOriginalDocumentButtonText, onClick: _exportTranslatedCancel }"> </div> </div> </div> </div> <div id="dxrd-preview-bricks-live-region" class="dxrd-visually-hidden" aria-live="polite" aria-atomic="true"></div>',
@@ -17610,7 +18002,70 @@ var _pictureEditorModel_decorate = (undefined && undefined.__decorate) || functi
 
 
 
+
 class PictureEditorModel extends external_DevExpress_Analytics_Serializer_Native_namespaceObject.BaseRenderingModel {
+    _initToolbarKeyboardNavigation(popup) {
+        const content = (0,external_DevExpress_Analytics_Internal_namespaceObject.$dx)(popup.content()).element;
+        if (!content)
+            return;
+        const overlayContent = content.closest('.dx-overlay-content');
+        overlayContent && overlayContent.removeAttribute('tabindex');
+        this._toolbarKeyboardHelper && this._toolbarKeyboardHelper.dispose();
+        this._toolbarKeyboardHelper = new PictureEditorToolbarKeyboardHelper(this._leaveEditingField);
+        this._toolbarKeyboardHelper.bindHandler(content);
+        if (this.editingFieldModel.active) {
+            this._toolbarFocusTimeout && clearTimeout(this._toolbarFocusTimeout);
+            this._toolbarFocusTimeout = setTimeout(() => {
+                if (!this._toolbarKeyboardHelper)
+                    return;
+                this._toolbarKeyboardHelper.initialize();
+                this._toolbarKeyboardHelper.focus();
+            }, 100);
+        }
+    }
+    _disposePopoverKeyboardNavigation() {
+        this._popoverFocusTimeout && clearTimeout(this._popoverFocusTimeout);
+        this._popoverKeyboardHelper && this._popoverKeyboardHelper.dispose();
+        this._popoverKeyboardHelper = null;
+        this._activePopoverItem = null;
+    }
+    _focusToolbarItem(item) {
+        const index = this.actions.indexOf(item);
+        if (this._toolbarKeyboardHelper && index > -1 && this._toolbarKeyboardHelper.controlElements[index])
+            this._toolbarKeyboardHelper.changeFocus(index);
+    }
+    _closePopover(item) {
+        item.active = false;
+        this._focusToolbarItem(item);
+    }
+    _activatePopoverKeyboardNavigation(item, popover) {
+        const content = popover && (0,external_DevExpress_Analytics_Internal_namespaceObject.$dx)(popover.content()).element;
+        if (!content)
+            return;
+        const overlayContent = content.closest('.dx-overlay-content');
+        overlayContent && overlayContent.removeAttribute('tabindex');
+        this._disposePopoverKeyboardNavigation();
+        this._popoverKeyboardHelper = new PictureEditorPopoverKeyboardHelper(() => this._closePopover(item));
+        this._popoverKeyboardHelper.bindHandler(content);
+        this._activePopoverItem = item;
+        this._popoverFocusTimeout = setTimeout(() => this._popoverKeyboardHelper && this._popoverKeyboardHelper.focus(), 100);
+    }
+    _wrapPopoverKeyboardNavigation(item) {
+        const templateOptions = item.templateOptions;
+        if (!templateOptions)
+            return;
+        const originalOnShown = templateOptions.onShown;
+        templateOptions.onShown = (e) => {
+            originalOnShown && originalOnShown(e);
+            this._activatePopoverKeyboardNavigation(item, e.component);
+        };
+        const originalOnHidden = templateOptions.onHidden;
+        templateOptions.onHidden = (e) => {
+            originalOnHidden && originalOnHidden(e);
+            if (this._activePopoverItem === item)
+                this._disposePopoverKeyboardNavigation();
+        };
+    }
     _takeFocus() {
         if (!this.editingFieldModel.active) {
             this._callbacks && this._callbacks.onFocusIn && this._callbacks.onFocusIn(this);
@@ -17653,7 +18108,10 @@ class PictureEditorModel extends external_DevExpress_Analytics_Serializer_Native
             this.painter.clear();
         }));
         customizeActionsCallback && customizeActionsCallback(this, this.actions);
-        this.actions.forEach((item) => this._wrapButtonAction(item, this));
+        this.actions.forEach((item) => {
+            this._wrapButtonAction(item, this);
+            this._wrapPopoverKeyboardNavigation(item);
+        });
     }
     _loadImage(event) {
         event.stopPropagation();
@@ -17707,6 +18165,14 @@ class PictureEditorModel extends external_DevExpress_Analytics_Serializer_Native
             const popupInstance = external_DevExpress_ui_dxPopup_default().getInstance(this.$element.find(this.ACTIVE_POPUP_CLASS).element);
             return popupInstance && (0,external_DevExpress_Analytics_Internal_namespaceObject.$dx)(popupInstance.content());
         };
+        this._leaveEditingField = () => {
+            if (!this.editingFieldModel)
+                return;
+            const focusedElement = document.activeElement;
+            focusedElement && focusedElement.blur && focusedElement.blur();
+            this.editingFieldModel.editingFieldElement && this.editingFieldModel.editingFieldElement.focus();
+            this._releaseFocus();
+        };
         this.actions = [];
         this._initialImageType = editingFieldModel.getImageType() || 'png';
         this.editMode = editingFieldModel.editMode || PictureEditMode.Image;
@@ -17741,10 +18207,10 @@ class PictureEditorModel extends external_DevExpress_Analytics_Serializer_Native
             .generateProperty('shadingEnabled', this.shadingEnabled)
             .generateProperty('getPopupContainer', external_DevExpress_Analytics_Internal_namespaceObject.getParentContainer)
             .generateProperty('onContentReady', (event) => {
-            event.component && event.component.registerKeyHandler('tab', () => {
-                this.editingFieldModel.editingFieldElement.focus();
-                this.editingFieldModel.active = false;
-            });
+            if (!event.component)
+                return;
+            event.component.registerKeyHandler('tab', this._leaveEditingField);
+            this._initToolbarKeyboardNavigation(event.component);
         })
             .generateProperty('painter', this.painter.getViewModel())
             .generateProperty('actions', this.actions)
@@ -17768,6 +18234,10 @@ class PictureEditorModel extends external_DevExpress_Analytics_Serializer_Native
         external_DevExpress_events_namespaceObject.off(element, 'dxpointercancel', this._pointerCancelHandler);
         external_DevExpress_events_namespaceObject.off(document, 'dxpointerup', this._pointerUpHandler);
         this.actions.forEach(action => action.dispose && action.dispose());
+        this._toolbarFocusTimeout && clearTimeout(this._toolbarFocusTimeout);
+        this._toolbarKeyboardHelper && this._toolbarKeyboardHelper.dispose();
+        this._toolbarKeyboardHelper = null;
+        this._disposePopoverKeyboardNavigation();
         this.$element = null;
         this.editingFieldModel = null;
     }
