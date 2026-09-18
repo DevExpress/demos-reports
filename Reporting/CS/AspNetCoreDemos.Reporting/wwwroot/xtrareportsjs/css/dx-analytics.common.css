@@ -1,7 +1,7 @@
 ﻿/**
 * DevExpress Analytics (css\dx-analytics.common.css)
-* Version:  26.1.4
-* Build date: Jul 27, 2026
+* Version:  26.1.5
+* Build date: Sep 14, 2026
 * Copyright (c) 2012 - 2026 Developer Express Inc. ALL RIGHTS RESERVED
 * License: https://www.devexpress.com/Support/EULAs/universal.xml
 */
@@ -98,6 +98,9 @@
 }
 .propertygrid-editor-description-popover-content {
   padding: 10px 10px;
+}
+.propertygrid-editor-description:not(.dx-state-hover):not(.dx-state-focused):not(.dx-state-active) {
+  background-color: transparent;
 }
 .dx-editors .dx-widget .dx-dropdowneditor-icon {
   padding: 0;
@@ -221,6 +224,7 @@
   right: 60%;
   width: auto;
   padding-right: 10px;
+  overflow: visible;
 }
 .dx-editors .dx-editor .dx-field-label.dx-accordion-header .propertygrid-editor-displayName,
 .dx-editors .dx-editor .dx-field-label.dx-accordion-header .dx-group-header-font {
@@ -230,11 +234,16 @@
 }
 .dx-editors .dx-editor .dx-field-label.dx-accordion-header .propertygrid-editor-description {
   float: right;
-  border-radius: 50%;
   cursor: pointer;
   position: relative;
   bottom: 2px;
   border-style: none;
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  margin: -3px;
+}
+.dx-editors .dx-editor .dx-field-label.dx-accordion-header .propertygrid-editor-description svg {
   width: 18px;
   height: 18px;
 }
@@ -349,6 +358,9 @@
 }
 .dx-editors .dx-collectioneditor .dx-collectioneditor-items .dx-collectioneditor-item-container .dx-collection-item .dx-field .dx-field-value .dx-dropdowneditor {
   top: inherit;
+}
+.dx-editors .dx-collectioneditor .dx-accordion-content .dx-scrollable-container {
+  overflow: visible;
 }
 .dx-editors .dx-collectioneditor .dx-collectioneditor-actions-wrapper {
   display: flex;
@@ -3101,6 +3113,9 @@
   left: 375px;
   right: 48px;
 }
+.dxrd-designer-wrapper .dxrd-toolbar-wrapper .dxrd-toolbar {
+  box-sizing: border-box;
+}
 .dx-ltr.dxrd-designer-wrapper .dxrd-toolbar-wrapper .dxrd-toolbar {
   padding-left: 12px;
 }
@@ -3131,6 +3146,9 @@
   left: 50%;
   transform: translateX(-50%) translateY(-50%);
   pointer-events: none;
+}
+.dxrd-designer-wrapper .dxrd-toolbar-wrapper .dxrd-toolbar .dxrd-toolbar-item .dxrd-toolbar-item-image.dxrd-image-fullscreen {
+  border-radius: 4px;
 }
 .dxrd-designer-wrapper .dxrd-toolbar-wrapper .dxrd-toolbar .dxrd-toolbar-item .dxrd-toolbar-item-separator {
   border-right-width: 1px;
@@ -3172,6 +3190,9 @@
   left: 50%;
   transform: translateX(-50%) translateY(-50%);
   pointer-events: none;
+}
+.dxrd-designer-wrapper .dxrd-toolbar-wrapper .dxrd-toolbar .dxrd-toolbar-item-zoom .dxrd-toolbar-item-image.dxrd-image-fullscreen {
+  border-radius: 4px;
 }
 .dxrd-designer-wrapper .dxrd-toolbar-wrapper .dxrd-toolbar .dxrd-toolbar-item-zoom .dxrd-toolbar-item-separator {
   border-right-width: 1px;
@@ -3329,7 +3350,7 @@
   padding-top: 6px;
 }
 .dxrd-designer-wrapper .dxrd-right-panel .dxrd-right-panel-body .dxrd-right-panel-content.dxrd-export-options-content {
-  padding-top: 12px;
+  padding-top: 0px;
 }
 .dx-accessibility .dxrd-parameters-bottom-border .dxrd-designer-wrapper .dxrd-right-panel .dxrd-right-panel-body .dxrd-right-panel-content {
   padding-top: 12px;
@@ -3438,6 +3459,11 @@
 .dx-designer-viewport .dx-treelist-wrapper .dx-scrollable-container {
   max-height: 200px;
   cursor: default;
+}
+.dx-designer-viewport .dxrd-ai-panel-loading-indicator {
+  display: inline-flex;
+  align-items: center;
+  flex-direction: column;
 }
 .dx-designer-viewport .dxd-opacity-50 {
   opacity: 0.5;

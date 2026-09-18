@@ -574,7 +574,7 @@ Namespace DevExpress.Web.Demos
                 Dim url = HttpContext.Current.Request.Url.AbsolutePath
                 Dim productUrl = "/" & CurrentDemo.Product.Url
                 url = url.Substring(0, url.IndexOf(productUrl, StringComparison.InvariantCultureIgnoreCase) + 1)
-                str.AppendFormat("{0}{1}/", url, demo.Product.Url)
+                str.AppendFormat("{0}{1}{2}/", url, demo.Product.Url, AppUrlPostfix)
             End If
             Dim demoPage As DemoPageModel = TryCast(demo, DemoPageModel)
             Dim hasDemoVirtualGroupKey As Boolean = demoPage IsNot Nothing AndAlso Not String.IsNullOrEmpty(demoPage.VirtualGroupKey)
@@ -640,6 +640,15 @@ Namespace DevExpress.Web.Demos
                     _isSiteMode = ConfigurationManager.AppSettings("SiteMode").Equals("true", StringComparison.InvariantCultureIgnoreCase)
                 End If
                 Return _isSiteMode.Value
+            End Get
+        End Property
+        Private Shared _appUrlPostfix As String
+        Public Shared ReadOnly Property AppUrlPostfix() As String
+            Get
+                If _appUrlPostfix Is Nothing Then
+                    _appUrlPostfix = If(ConfigurationManager.AppSettings("AppUrlPostfix"), "")
+                End If
+                Return _appUrlPostfix
             End Get
         End Property
         Private Shared _patchConnectionStrings? As Boolean

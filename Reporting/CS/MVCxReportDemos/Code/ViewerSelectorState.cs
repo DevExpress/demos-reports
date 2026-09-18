@@ -6,12 +6,10 @@ namespace DevExpress.Web.Demos {
     public static class ViewerSelectorState {
         public const string Key = "CurrentViewer";
         public const string Html5Viewer = "HTML5";
-        public const string MobileViewer = "Mobile";
         public const string DefaultViewer = Html5Viewer;
 
         public static Item[] Items = {
-            new Item(GenerateHtml5ViewerUrl) { Name = Html5Viewer, Text = "HTML5 Viewer", CssClass = "viewer-selector-html5" },
-            new Item(GenerateMobileViewerUrl) { Name = MobileViewer, Text = "Mobile Viewer", CssClass = "viewer-selector-html5" }
+            new Item(GenerateHtml5ViewerUrl) { Name = Html5Viewer, Text = "HTML5 Viewer", CssClass = "viewer-selector-html5" }
         };
 
         public static Item GetByName(string name) {
@@ -21,12 +19,6 @@ namespace DevExpress.Web.Demos {
         static string GenerateHtml5ViewerUrl(Uri requestUrl) {
             var builder = new UriBuilder(requestUrl);
             builder.Query = "";
-            return builder.ToString();
-        }
-
-        static string GenerateMobileViewerUrl(Uri requestUrl) {
-            var builder = new UriBuilder(requestUrl);
-            builder.Query = Key + "=" + MobileViewer;
             return builder.ToString();
         }
 

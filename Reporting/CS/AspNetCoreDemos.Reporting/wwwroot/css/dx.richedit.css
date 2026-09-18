@@ -1978,7 +1978,7 @@
 }
 .dxTouchUI .dxreInputTarget {
   -webkit-user-select: auto;
-  user-select: all;
+  user-select: auto;
   position: absolute;
   font-size: 1px;
   color: transparent;

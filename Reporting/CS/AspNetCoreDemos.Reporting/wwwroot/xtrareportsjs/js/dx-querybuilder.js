@@ -1,7 +1,7 @@
 ﻿/**
 * DevExpress Analytics (js\dx-querybuilder.js)
-* Version:  26.1.4
-* Build date: Jul 27, 2026
+* Version:  26.1.5
+* Build date: Sep 14, 2026
 * Copyright (c) 2012 - 2026 Developer Express Inc. ALL RIGHTS RESERVED
 * License: https://www.devexpress.com/Support/EULAs/universal.xml
 */
@@ -3005,14 +3005,15 @@ const toDisplayedValueArray = (typeArray) => {
 
 
 
+
 function validateName(nameCandidate) {
-    return nameCandidate && !nameCandidate.match(/[~`!"№;%\^:\?*\(\)&\-\+={}\[\]\|\\\/,\.<>'\s]/);
+    return !!nameCandidate && (0,external_DevExpress_Analytics_Internal_namespaceObject.isValidNameSymbols)(nameCandidate);
 }
-const dsParameterNameValidationRules = [{
+const dsParameterNameValidationRules = [external_DevExpress_Analytics_Internal_namespaceObject.nameRequiredValidationRule, {
         type: 'custom',
         validationCallback: (options) => { return validateName(options.value); },
         get message() {
-            return (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('Name is required and should be a valid identifier.', 'AnalyticsCoreStringId.NameIsRequired_Error');
+            return (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('Name must start with a letter or underscore and contain only letters, numbers, and underscores.', 'AnalyticsCoreStringId.NameHasInvalidFormat_Error');
         }
     }];
 const parameterValueSerializationsInfo = { propertyName: 'value', displayName: 'Value', localizationId: 'DevExpress.DataAccess.Parameter.Value', editor: external_DevExpress_Analytics_Widgets_namespaceObject.editorTemplates.getEditor('text') };

@@ -5,34 +5,30 @@
 }
 
 @section TopRightMenuRegion {
-    @Html.Partial("ViewerSelectorPartial", Model)
     @Html.Partial("ReportControlToggleButtonPartial", Model)
 }
 
-@if(Model.IsHTML5Viewer) {
-    @Html.DevExpress().WebDocumentViewer(settings => {
-        settings.Name = "webDocumentViewer";
-    }).Bind(Model.ReportID).GetHtml()
+@Html.DevExpress().WebDocumentViewer(settings =>
+{
+    settings.Name = "webDocumentViewer";
+}).Bind(Model.ReportID).GetHtml()
 
-    <script>
-        if(webDocumentViewer) {
-            webDocumentViewer.CustomizeParameterEditors.AddHandler(function(_, e) {
-                if(e.parameter.name === 'OrderIdParameter') {
-                    e.info.editor = { header: 'param-order-id' };
-                } else if(e.parameter.name === 'MaxRowCountParameter') {
-                    e.info.editor = { header: 'param-rows-count' };
-                }
-            });
-        }
-    </script>
+<script>
+    if(webDocumentViewer) {
+        webDocumentViewer.CustomizeParameterEditors.AddHandler(function(_, e) {
+            if(e.parameter.name === 'OrderIdParameter') {
+                e.info.editor = { header: 'param-order-id' };
+            } else if(e.parameter.name === 'MaxRowCountParameter') {
+                e.info.editor = { header: 'param-rows-count' };
+            }
+        });
+    }
+</script>
 
-    <script type="text/html" id="param-order-id">
-        <div data-bind="dxNumberBox: { value: value, showSpinButtons: true, min: 10248, max: 11077}"></div>
-    </script>
-    <script type="text/html" id="param-rows-count">
-        <div data-bind="dxNumberBox: { value: value, showSpinButtons: true, min: 1, max: 13}"></div>
-    </script>
-}
-else if(Model.IsMobileViewer) {
-    @Html.Partial("MobileEmulator", Model.EmulatorModel)
+<script type="text/html" id="param-order-id">
+    <div data-bind="dxNumberBox: { value: value, showSpinButtons: true, min: 10248, max: 11077}"></div>
+</script>
+<script type="text/html" id="param-rows-count">
+    <div data-bind="dxNumberBox: { value: value, showSpinButtons: true, min: 1, max: 13}"></div>
+</script>
 }

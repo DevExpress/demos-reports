@@ -270,7 +270,6 @@
     <Compile Include="Controllers\LayoutFeatures\LayoutFeaturesController.CrossBandContent.cs" />
     <Compile Include="Controllers\LayoutFeatures\LayoutFeaturesController.ShrinkGrowReport.cs" />
     <Compile Include="Controllers\DataBinding\DataBindingController.MailMergeReport.cs" />
-    <Compile Include="Controllers\MobileViewerController.cs" />
     <Compile Include="Controllers\ReportController.cs" />
     <Compile Include="Controllers\ReportControlsController.cs" />
     <Compile Include="Controllers\ReportControls\ReportControlsController.BarCodeReport.cs" />
@@ -300,14 +299,12 @@
     <Compile Include="Controllers\Interaction\InteractionController.DrillDownReport.cs" />
     <Compile Include="Controllers\ReportTypes\ReportTypesController.TableReport.cs" />
     <Compile Include="Controllers\WebSpecificFeaturesController.cs" />
-    <Compile Include="Controllers\WebSpecificFeatures\WebSpecificFeaturesController.MobileViewer.cs" />
     <Compile Include="Controllers\WebSpecificFeatures\WebSpecificFeaturesController.Theming.cs" />
     <Compile Include="Controllers\LayoutFeatures\LayoutFeaturesController.VerticalAnchoringReport.cs" />
     <Compile Include="Controllers\ComplexReports\ComplexReportsController.SalesSummary.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Models\MobileEmulatorModel.cs" />
     <Compile Include="Models\ReportDemoHelper.cs" />
     <Compile Include="Models\ReportDesignerDemoModel.cs" />
     <Compile Include="Models\ReportsDemoModel.cs" />
@@ -400,7 +397,6 @@
     <Content Include="Content\ios-landscape.png" />
     <Content Include="Content\ios.png" />
     <Content Include="Content\Loading.gif" />
-    <Content Include="Content\MobileEmulator.css" />
     <Content Include="Content\Platform.css" />
     <Content Include="Content\QRCode.png" />
     <Content Include="Content\RunDesigner.png" />
@@ -426,7 +422,6 @@
     <Content Include="Scripts\Demo.js" />
     <Content Include="Scripts\Designer.js" />
     <Content Include="Scripts\Feedback.js" />
-    <Content Include="Scripts\MobileEmulator.js" />
     <Content Include="Scripts\Theming\beautify-css.js" />
     <Content Include="Scripts\Theming\index.css" />
     <Content Include="Scripts\Theming\index.js" />
@@ -499,9 +494,6 @@
     <Content Include="Views\Shared\EventMonitor.cshtml" />
     <Content Include="Views\Interaction\DrillDown.cshtml" />
     <Content Include="Views\ReportTypes\Table.cshtml" />
-    <Content Include="Views\Shared\MobileEmulator.cshtml" />
-    <Content Include="Views\MobileViewer\Index.cshtml" />
-    <Content Include="Views\WebSpecificFeatures\MobileViewer.cshtml" />
     <Content Include="Views\Interaction\EmployeePerformanceReview.cshtml" />
     <Content Include="App_Data\Questions.xlsx" />
     <Content Include="Views\Shared\ThemeParametersSelectorPartial.cshtml" />

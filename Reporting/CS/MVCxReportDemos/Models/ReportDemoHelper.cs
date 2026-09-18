@@ -69,8 +69,7 @@ namespace DevExpress.Web.Demos {
             return new ReportsDemoModel {
                 ReportID = reportID,
                 Report = ReportStorageHelper.LoadReport(reportID, session),
-                CurrentViewer = currentViewer,
-                EmulatorModel = new MobileEmulatorModel(reportID, request)
+                CurrentViewer = currentViewer
             };
         }
 

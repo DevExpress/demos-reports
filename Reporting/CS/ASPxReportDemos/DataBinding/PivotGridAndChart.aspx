@@ -5,13 +5,8 @@
     <link rel="stylesheet" type="text/css" href="<%= this.GetUrlWithVersionSuffix("~/Content/ViewerSelector.css") %>" />
 </asp:Content>
 <asp:Content ID="Content3" ContentPlaceHolderID="TopRightMenuRegion" runat="Server">
-    <dx:ViewerSelector ID="viewerSelector" runat="server" />
     <dx:ReportControlToggleButton ID="showDesignerButton" runat="server" />
 </asp:Content>
 <asp:Content ID="Content1" ContentPlaceHolderID="ContentHolder" runat="Server">
-    <% if(IsHTML5Viewer) { %>
     <dx:ASPxWebDocumentViewer runat="server" ID="webDocumentViewer" ClientInstanceName="webDocumentViewer" Height="770px" EnableViewState="False" />
-    <% } else if(IsMobileViewer) { %>
-    <dx:MobileEmulator ID="mobileEmulator" runat="server" />
-    <% } %>
 </asp:Content>

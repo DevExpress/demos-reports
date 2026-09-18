@@ -21,9 +21,6 @@ namespace DevExpress.Web.Demos {
             if(!string.IsNullOrEmpty(redirectDemoUrl)) {
                 string redirectUrlWithQuery = redirectDemoUrl;
                 var routeValues = new RouteValueDictionary();
-                if(ViewerSelectorState.GetSafeCurrentViewerArgFromQuery(Request) == ViewerSelectorState.MobileViewer)
-                    routeValues[ViewerSelectorState.Key] = ViewerSelectorState.MobileViewer;
-
                 redirectUrlInputValue = Url.Action(fromDemo, fromGroup, routeValues);
             }
 

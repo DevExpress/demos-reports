@@ -1,7 +1,7 @@
 ﻿/**
 * DevExpress HTML/JS Reporting (js\dx-reporting.d.ts)
-* Version:  26.1.4
-* Build date: Jul 27, 2026
+* Version:  26.1.5
+* Build date: Sep 14, 2026
 * Copyright (c) 2012 - 2026 Developer Express Inc. ALL RIGHTS RESERVED
 * License: https://www.devexpress.com/Support/EULAs/universal.xml
 */
@@ -706,14 +706,13 @@ declare module DevExpress.Reporting.Designer.Internal {
     import IDisplayedValue = DevExpress.Analytics.Utils.IDisplayedValue;
     import ISerializationInfo = DevExpress.Analytics.Utils.ISerializationInfo;
     import ISerializationInfoWithBindings = DevExpress.Reporting.Designer.Controls.Metadata.ISerializationInfoWithBindings;
-    import AnalyticDesignControlsHelper = DevExpress.Analytics.Internal.AnalyticDesignControlsHelper;
+    import AnalyticDesignControlsHelper = DevExpress.Analytics.Internal.DesignControlsHelper;
     import IDisplayedObject = DevExpress.Analytics.Internal.IDisplayedObject;
     import SurfaceSelection = DevExpress.Analytics.Internal.SurfaceSelection;
     import IDesignControlsHelper = DevExpress.Analytics.Internal.IDesignControlsHelper;
     import DesignControlsHelper = DevExpress.Reporting.Designer.Internal.DesignControlsHelper;
     import UndoEngine = DevExpress.Analytics.Utils.UndoEngine;
-    import dxDataGridOptions = ;
-    null.dxDataGridOptions;
+    import dxDataGridOptions = DevExpress.ui.dxDataGrid.Properties;
     import ReportDesignerControlsHelper = DevExpress.Reporting.Designer.Internal.ReportDesignerControlsHelper;
     import IReportDesignerErrorPanelSettings = DevExpress.Reporting.Designer.Utils.IReportDesignerErrorPanelSettings;
     import ControlScrollingTool = DevExpress.Reporting.Designer.Internal.ControlScrollingTool;
@@ -796,7 +795,7 @@ declare module DevExpress.Reporting.Designer.Internal {
     import IConnectionStringDefinition = DevExpress.Analytics.Wizard.IConnectionStringDefinition;
     import IObjectDataSourceWizardState = DevExpress.Analytics.Wizard.IObjectDataSourceWizardState;
     import RequestWrapper = DevExpress.QueryBuilder.Utils.RequestWrapper;
-    import analyticIDataSourceInfo = DevExpress.Analytics.Internal.analyticIDataSourceInfo;
+    import analyticIDataSourceInfo = DevExpress.Analytics.Internal.IDataSourceInfo;
     import DxDeferred = DevExpress.Analytics.Internal.DxDeferred;
     import DataSourceWizard = DevExpress.Analytics.Wizard.DataSourceWizard;
     import DataSourceWizardPageIterator = DevExpress.Analytics.Wizard.DataSourceWizardPageIterator;
@@ -806,7 +805,7 @@ declare module DevExpress.Reporting.Designer.Internal {
     import IRebuildSchemaResponse = DevExpress.QueryBuilder.Utils.IRebuildSchemaResponse;
     import MasterDetailEditor = DevExpress.QueryBuilder.Widgets.Internal.MasterDetailEditor;
     import ExtensionModel = DevExpress.Reporting.Designer.Controls.ExtensionModel;
-    import IAnalyticDataSourceInfo = DevExpress.Analytics.Internal.IAnalyticDataSourceInfo;
+    import IAnalyticDataSourceInfo = DevExpress.Analytics.Internal.IDataSourceInfo;
     import PageFactory = DevExpress.Analytics.Wizard.PageFactory;
     import WizardPageBase = DevExpress.Analytics.Wizard.WizardPageBase;
     import IDataSourceInfo = DevExpress.Reporting.Designer.Internal.IDataSourceInfo;
@@ -902,7 +901,7 @@ declare module DevExpress.Reporting.Designer.Internal {
     import IChartDesignerOptions = DevExpress.Reporting.Chart.Internal.IChartDesignerOptions;
     import ReportControlsDragDropHelper = DevExpress.Reporting.Designer.Internal.ReportControlsDragDropHelper;
     import SnapLinesCollector = DevExpress.Analytics.Internal.SnapLinesCollector;
-    import AnalyticSelectionDragDropHandler = DevExpress.Analytics.Internal.AnalyticSelectionDragDropHandler;
+    import AnalyticSelectionDragDropHandler = DevExpress.Analytics.Internal.SelectionDragDropHandler;
     import IDataSourceSettings = DevExpress.Reporting.Designer.Utils.IDataSourceSettings;
     import ReportExplorerDragDropHandler = DevExpress.Reporting.Designer.Internal.ReportExplorerDragDropHandler;
     import ICopyPasteStrategy = DevExpress.Analytics.Internal.ICopyPasteStrategy;
@@ -1191,8 +1190,7 @@ declare module DevExpress.Reporting.Designer.Internal {
         private _createMessage;
         private _createAvailableSourcesArray;
         private _expandParentBands;
-        _dataGridOptions: null;
-        dxDataGridOptions;
+        _dataGridOptions: DevExpress.ui.dxDataGrid.Properties;
         collapsed: ko.Observable<boolean>;
         position: ko.Observable<any>;
         _suppressedErrorCodes: ko.ObservableArray<string>;
@@ -1680,7 +1678,7 @@ declare module DevExpress.Reporting.Designer.Internal {
         _rtl?: boolean;
         abstract getActions(context: any): DevExpress.Analytics.Utils.IAction[];
         constructor(_dsHelper: ko.Observable<DevExpress.Reporting.Designer.Internal.DataSourceHelper> | ko.Computed<DevExpress.Reporting.Designer.Internal.DataSourceHelper>, _wizard: DevExpress.Analytics.Wizard.DataSourceWizard, _reportViewModel: ko.Observable<DevExpress.Reporting.Designer.Controls.ReportViewModel> | ko.Computed<DevExpress.Reporting.Designer.Controls.ReportViewModel>, _undoEngine: ko.Observable<DevExpress.Analytics.Utils.UndoEngine> | ko.Computed<DevExpress.Analytics.Utils.UndoEngine>, _itemsProvider: ko.Observable<DevExpress.Analytics.Utils.IItemsProvider> | ko.Computed<DevExpress.Analytics.Utils.IItemsProvider>, _callbacks?: DevExpress.Analytics.Wizard.Internal.IMultiQueryDataSourceWizardCallbacks, _rtl?: boolean);
-        protected _findDataSource(dataSourceID: string): DevExpress.Analytics.Internal.analyticIDataSourceInfo;
+        protected _findDataSource(dataSourceID: string): DevExpress.Analytics.Internal.IDataSourceInfo;
         static _onFail(result: any, deferred: DevExpress.Analytics.Internal.DxDeferred<any>): void;
     }
     export interface IDataSourceInfo extends analyticIDataSourceInfo {
@@ -1736,7 +1734,7 @@ declare module DevExpress.Reporting.Designer.Internal {
         createMongoDBDataSourceInfo?: (dataSource: DevExpress.Analytics.Data.MongoDBDataSource) => DevExpress.Analytics.Internal.DxPromise<IDataSourceInfo>;
     }
     export interface IReportWizardFieldsCallback {
-        (request: DevExpress.Analytics.Utils.IPathRequest, dataSource: DevExpress.Analytics.Internal.IAnalyticDataSourceInfo, useCache?: boolean): DevExpress.Analytics.Internal.DxPromise<IDataMemberInfo[]>;
+        (request: DevExpress.Analytics.Utils.IPathRequest, dataSource: DevExpress.Analytics.Internal.IDataSourceInfo, useCache?: boolean): DevExpress.Analytics.Internal.DxPromise<IDataMemberInfo[]>;
     }
     export const _masterDetailWizardHeight = "600";
     export const _masterDetailWizardWidth = "840";
@@ -1971,9 +1969,9 @@ declare module DevExpress.Reporting.Designer.Internal {
         applyFederationDataSourceWizardChanges(dataSourceWizardModel: DevExpress.Analytics.Wizard.IDataSourceWizardState): DevExpress.Analytics.Internal.DxPromise<IDataSourceInfo>;
         static createFederationDataSourceInfo(dataSource: DevExpress.Analytics.Data.FederationDataSource): DevExpress.Analytics.Internal.DxPromise<IDataSourceInfo>;
         private _wrapFieldListCallback;
-        getFederationDataSourceByInfo(dataSourceInfo: DevExpress.Analytics.Internal.analyticIDataSourceInfo): DevExpress.Analytics.Internal.DxPromise<FederationDataSource>;
+        getFederationDataSourceByInfo(dataSourceInfo: DevExpress.Analytics.Internal.IDataSourceInfo): DevExpress.Analytics.Internal.DxPromise<FederationDataSource>;
         editMasterDetailRelations(dataSourceID: string): void;
-        saveDataSourceInfo(federationDataSource: DevExpress.Analytics.Data.FederationDataSource, dataSourceInfo: DevExpress.Analytics.Internal.analyticIDataSourceInfo): void;
+        saveDataSourceInfo(federationDataSource: DevExpress.Analytics.Data.FederationDataSource, dataSourceInfo: DevExpress.Analytics.Internal.IDataSourceInfo): void;
         openManageQueriesEditor(dataSourceID: string): void;
         addAction: {
             clickAction: (item: DevExpress.Analytics.Widgets.Internal.TreeListItemViewModel) => void;
@@ -2800,6 +2798,7 @@ declare module DevExpress.Reporting.Designer.Internal {
         getLocation(adjustedTarget: any, item: any): DevExpress.Analytics.Elements.IArea;
         canDrop(dropTarget: any, controlModel: any, metaData: any): boolean;
     }
+    export function getBoundFieldPath(control: DevExpress.Reporting.Designer.Controls.XRControlViewModel): string;
     export class ReportExplorerModel extends Disposable {
         private _dataSourceSettings?;
         static getPathByMember(model: any): any;
@@ -4418,7 +4417,7 @@ declare module DevExpress.Reporting.Designer.Controls {
     import XRCrossBandSurface = DevExpress.Reporting.Designer.Controls.XRCrossBandSurface;
     import DisplayNameProvider = DevExpress.Reporting.Designer.Internal.DisplayNameProvider;
     import IElementMetadata = DevExpress.Analytics.Elements.IElementMetadata;
-    import AnalyticControlsFactory = DevExpress.Analytics.Utils.AnalyticControlsFactory;
+    import AnalyticControlsFactory = DevExpress.Analytics.Utils.ControlsFactory;
     import IDisposable = DevExpress.Analytics.Utils.IDisposable;
     import ISerializationInfoWithBindings = DevExpress.Reporting.Designer.Controls.Metadata.ISerializationInfoWithBindings;
     import IDisplayedValue = DevExpress.Analytics.Utils.IDisplayedValue;
@@ -4881,7 +4880,6 @@ declare module DevExpress.Reporting.Designer.Controls {
         dragDropFileEnabled: ko.Observable<boolean>;
     }
     export class XRShapeViewModel extends XRControlViewModel {
-        static unitProperties: any[];
         static timeout: number;
         static shapes: ({
             displayName: string;
@@ -4924,6 +4922,7 @@ declare module DevExpress.Reporting.Designer.Controls {
         onAdd(): void;
         Shape: any;
         shapeFake: any;
+        lineWidth: ko.Observable<number> | ko.Computed<number>;
     }
     export class ImageBase64Model {
         imageBase64: string;
@@ -5030,7 +5029,6 @@ declare module DevExpress.Reporting.Designer.Controls {
         Indeterminate: ko.Observable<DevExpress.Reporting.ImageSource>;
     }
     export class GlyphOptions extends Disposable implements ISerializableModel {
-        static unitProperties: string[];
         constructor(model: {}, serializer?: DevExpress.Analytics.Utils.IModelSerializer);
         getInfo: ko.Observable<DevExpress.Analytics.Utils.ISerializationInfoArray>;
         alignment: ko.Observable<string> | ko.Computed<string>;
@@ -5064,7 +5062,6 @@ declare module DevExpress.Reporting.Designer.Controls {
         dragDropFileEnabled: ko.Observable<boolean>;
     }
     export class XRCheckBoxViewModel extends XRControlViewModel {
-        static unitProperties: any[];
         static _patchModel(model: any): any;
         constructor(control: any, parent: DevExpress.Analytics.Elements.ElementViewModel<ControlType>, serializer?: DevExpress.Analytics.Utils.ModelSerializer);
         checked: ko.Observable<boolean> | ko.Computed<boolean>;
@@ -6279,15 +6276,14 @@ declare module DevExpress.Reporting.Designer.Widgets {
     }
 }
 declare module DevExpress.Reporting {
-    import type IEnumValue = DevExpress.Analytics.Utils.type;
-    IEnumValue;
+    import IEnumValue = DevExpress.Analytics.Utils.IEnumValue;
     import IPreviewExportOptionsCustomizationArgs = DevExpress.Reporting.Viewer.Utils.IPreviewExportOptionsCustomizationArgs;
     import BaseAction = DevExpress.Analytics.Internal.BaseAction;
     import IAction = DevExpress.Analytics.Utils.IAction;
     import DxPromise = DevExpress.Analytics.Internal.DxPromise;
     export interface IEnumType {
         enumType: string;
-        values: Array<DevExpress.Analytics.Utils.type>;
+        values: Array<DevExpress.Analytics.Utils.IEnumValue>;
     }
     export class ImageSource {
         sourceType: string;
@@ -7398,7 +7394,7 @@ declare module DevExpress.Reporting.Viewer.Parameters {
     import PropertyChangedEventArgs = DevExpress.Analytics.Serializer.Native.PropertyChangedEventArgs;
     import BaseRenderingModel = DevExpress.Analytics.Serializer.Native.BaseRenderingModel;
     import SubscribableProperty = DevExpress.Analytics.Serializer.Native.SubscribableProperty;
-    import dxButtonProperties = DevExpress.ui.dxButton.dxButtonProperties;
+    import dxButtonProperties = DevExpress.ui.dxButton.Properties;
     import ParametersPanelModelBase = DevExpress.Reporting.Viewer.Parameters.ParametersPanelModelBase;
     import ReportPreview = DevExpress.Reporting.Viewer.ReportPreview;
     import DxDeferred = DevExpress.Analytics.Internal.DxDeferred;
@@ -7470,7 +7466,7 @@ declare module DevExpress.Reporting.Viewer.Parameters {
         emptyText: string;
         isEmpty: boolean;
         parametersLoading: boolean;
-        buttons: DevExpress.ui.dxButton.dxButtonProperties[];
+        buttons: DevExpress.ui.dxButton.Properties[];
         showButtons: boolean;
         showHeader: boolean;
     }
@@ -7789,6 +7785,8 @@ declare module DevExpress.Reporting.Viewer.Utils {
         absoluteBounds?: DevExpress.Reporting.Viewer.Editing.IBounds;
         text: () => string;
         accessibleDescription: string;
+        type?: string;
+        state?: string;
         onClick?: (args?: any) => void;
     }
     export interface IBrickNodeNavigation {
@@ -8065,9 +8063,9 @@ declare module DevExpress.Reporting.Viewer.Widgets {
     import BaseModel = DevExpress.Analytics.Serializer.Native.BaseModel;
     import PropertyChangedEventArgs = DevExpress.Analytics.Serializer.Native.PropertyChangedEventArgs;
     import IViewModel = DevExpress.Analytics.Serializer.Native.IViewModel;
-    import PopupProperties = DevExpress.ui.dxPopup.PopupProperties;
-    import ScrollViewProperties = DevExpress.ui.dxScrollView.ScrollViewProperties;
-    import CalendarProperties = DevExpress.ui.dxCalendar.CalendarProperties;
+    import PopupProperties = DevExpress.ui.dxPopup.Properties;
+    import ScrollViewProperties = DevExpress.ui.dxScrollView.Properties;
+    import CalendarProperties = DevExpress.ui.dxCalendar.Properties;
     import DateRangeEditor = DevExpress.Reporting.Viewer.Widgets.DateRangeEditor;
     import DateRangeDialogElementsKeyboardHelper = DevExpress.Reporting.Viewer.DateRangeDialogElementsKeyboardHelper;
     import PredefinedDateRangesKeyboardHelper = DevExpress.Reporting.Viewer.PredefinedDateRangesKeyboardHelper;
@@ -8135,13 +8133,13 @@ declare module DevExpress.Reporting.Viewer.Widgets {
     };
     export type IDateRangeCalendarViewModel = {
         value: Date;
-        onValueChanged: DevExpress.ui.dxCalendar.CalendarProperties["onValueChanged"];
+        onValueChanged: DevExpress.ui.dxCalendar.Properties["onValueChanged"];
         min: Date;
         height: string;
         inRange: (date: Date) => boolean;
     };
     export interface IDateRangeEditorViewModel extends IViewModel {
-        getPopupSettings: (isTimeOnly: boolean) => DevExpress.ui.dxPopup.PopupProperties;
+        getPopupSettings: (isTimeOnly: boolean) => DevExpress.ui.dxPopup.Properties;
         onRangeItemsRendered: (e: any) => void;
         onRangeItemClick: (e: any) => void;
         _displayName: string;
@@ -8151,11 +8149,11 @@ declare module DevExpress.Reporting.Viewer.Widgets {
         popupModel: DevExpress.Reporting.Viewer.Widgets.IDateRangeEditorViewModel | any;
         popupTemplate: string;
         dialogKeyboardHelper: DevExpress.Reporting.Viewer.DateRangeDialogElementsKeyboardHelper | DevExpress.Reporting.Viewer.TimeRangeDialogElementsKeyboardHelper;
-        scrollViewOptions: DevExpress.ui.dxScrollView.ScrollViewProperties;
+        scrollViewOptions: DevExpress.ui.dxScrollView.Properties;
         predefinedDateRanges: {
             attr: object;
             accessibilityKeyboardHelper: DevExpress.Reporting.Viewer.PredefinedDateRangesKeyboardHelper;
-            scrollViewOptions: DevExpress.ui.dxScrollView.ScrollViewProperties;
+            scrollViewOptions: DevExpress.ui.dxScrollView.Properties;
             items: IDateRangeEditorPredefinedItemViewModel[];
             groupedItems: IDateRangeEditorPredefinedItemViewModel[][];
         };
@@ -8271,8 +8269,7 @@ declare module DevExpress.Reporting.Editing {
 }
 declare module DevExpress.Reporting.Viewer.Internal {
     import PreviewPage = DevExpress.Reporting.Viewer.Internal.PreviewPage;
-    import type ISignatureField = DevExpress.Reporting.Viewer.Internal.type;
-    ISignatureField;
+    import ISignatureField = DevExpress.Reporting.Viewer.Internal.ISignatureField;
     import DxPromise = DevExpress.Analytics.Internal.DxPromise;
     import ListKeyboardHelper = DevExpress.Analytics.Internal.ListKeyboardHelper;
     import ArrayPropertyChangedEventArgs = DevExpress.Analytics.Serializer.Native.ArrayPropertyChangedEventArgs;
@@ -8285,9 +8282,9 @@ declare module DevExpress.Reporting.Viewer.Internal {
     import ZoomAutoBy = DevExpress.Reporting.Viewer.ZoomAutoBy;
     import IJQueryWrapper = DevExpress.Analytics.Internal.IJQueryWrapper;
     import ReportPreview = DevExpress.Reporting.Viewer.ReportPreview;
-    import SelectBoxOptions = DevExpress.ui.dxSelectBox.SelectBoxOptions;
-    import CheckBoxOptions = DevExpress.ui.dxCheckBox.CheckBoxOptions;
-    import ButtonOptions = DevExpress.ui.dxButton.ButtonOptions;
+    import SelectBoxOptions = DevExpress.ui.dxSelectBox.Properties;
+    import CheckBoxOptions = DevExpress.ui.dxCheckBox.Properties;
+    import ButtonOptions = DevExpress.ui.dxButton.Properties;
     import AIPanelViewModel = DevExpress.Reporting.Viewer.Internal.AIPanelViewModel;
     import getParentContainer = DevExpress.Analytics.Internal.getParentContainer;
     import dxPopupToolbarItem = DevExpress.ui.dxPopup.dxPopupToolbarItem;
@@ -8298,7 +8295,7 @@ declare module DevExpress.Reporting.Viewer.Internal {
     import IExportToolViewModel = DevExpress.Reporting.Viewer.Internal.IExportToolViewModel;
     import IExportProgressStatus = DevExpress.Reporting.Viewer.Internal.IExportProgressStatus;
     import TabInfo = DevExpress.Analytics.Utils.TabInfo;
-    import DxMenuOptions = DevExpress.ui.dxMenu.DxMenuOptions;
+    import DxMenuOptions = DevExpress.ui.dxMenu.Properties;
     import IBrickNode = DevExpress.Reporting.Viewer.Utils.IBrickNode;
     import AILanguageInfo = DevExpress.Reporting.Viewer.Settings.AILanguageInfo;
     import IAIPanelViewModel = DevExpress.Reporting.Viewer.Internal.IAIPanelViewModel;
@@ -8350,7 +8347,7 @@ declare module DevExpress.Reporting.Viewer.Internal {
     import ISearchSettings = DevExpress.Reporting.Viewer.Utils.ISearchSettings;
     import FocusOutEvent = DevExpress.ui.dxTextBox.FocusOutEvent;
     import KeyDownEvent = DevExpress.ui.dxTextBox.KeyDownEvent;
-    import TextChangedEvent = DevExpress.ui.dxTextBox.TextChangedEvent;
+    import TextChangedEvent = DevExpress.ui.dxTextBox.ValueChangedEvent;
     import ClickEvent = DevExpress.ui.dxButton.ClickEvent;
     import ValueChangedEvent = DevExpress.ui.dxCheckBox.ValueChangedEvent;
     import ItemRenderedEvent = DevExpress.ui.dxList.ItemRenderedEvent;
@@ -8412,7 +8409,7 @@ declare module DevExpress.Reporting.Viewer.Internal {
     export function getImageBase64(url: any): DevExpress.Analytics.Internal.DxPromise<string>;
     export function getEnumValues(enumType: any): string[];
     export function safelyRunWindowOpen(url: string, target?: string): Window;
-    export function generateSignatureDisplay(fields: DevExpress.Reporting.Viewer.Internal.type[]): string;
+    export function generateSignatureDisplay(fields: DevExpress.Reporting.Viewer.Internal.ISignatureField[]): string;
     export interface IElementPosition {
         top: boolean;
         bottom?: boolean;
@@ -8483,15 +8480,15 @@ declare module DevExpress.Reporting.Viewer.Internal {
     }
     export interface IAIPanelViewModel extends IViewModel {
         buttons: {
-            translateTextButton: DevExpress.ui.dxButton.ButtonOptions;
-            summarizeTextButton: DevExpress.ui.dxButton.ButtonOptions;
-            copyResultButton: DevExpress.ui.dxButton.ButtonOptions;
+            translateTextButton: DevExpress.ui.dxButton.Properties;
+            summarizeTextButton: DevExpress.ui.dxButton.Properties;
+            copyResultButton: DevExpress.ui.dxButton.Properties;
         };
-        proceedForAllCheckBoxOptions: DevExpress.ui.dxCheckBox.CheckBoxOptions;
-        languageSelectBoxOptions: DevExpress.ui.dxSelectBox.SelectBoxOptions;
-        targetSelectBoxOptions: DevExpress.ui.dxSelectBox.SelectBoxOptions;
-        pageSelectBoxOptions: DevExpress.ui.dxSelectBox.SelectBoxOptions;
-        getSelectBoxOptions: (options: DevExpress.ui.dxSelectBox.SelectBoxOptions, element: HTMLElement) => DevExpress.ui.dxSelectBox.SelectBoxOptions;
+        proceedForAllCheckBoxOptions: DevExpress.ui.dxCheckBox.Properties;
+        languageSelectBoxOptions: DevExpress.ui.dxSelectBox.Properties;
+        targetSelectBoxOptions: DevExpress.ui.dxSelectBox.Properties;
+        pageSelectBoxOptions: DevExpress.ui.dxSelectBox.Properties;
+        getSelectBoxOptions: (options: DevExpress.ui.dxSelectBox.Properties, element: HTMLElement) => DevExpress.ui.dxSelectBox.Properties;
         aiProcessingResultText: string;
         warningTextLimitPopupVisible: boolean;
         resultVisible: boolean;
@@ -8678,7 +8675,7 @@ declare module DevExpress.Reporting.Viewer.Internal {
             key: DevExpress.Reporting.Viewer.Internal.TextSourceTarget;
             text: any;
         }[];
-        smartTagAIMenu: DevExpress.ui.dxMenu.DxMenuOptions;
+        smartTagAIMenu: DevExpress.ui.dxMenu.Properties;
         languageSelectBoxComponent: any;
         pagesListDataSource: {
             key: number;
@@ -8754,7 +8751,7 @@ declare module DevExpress.Reporting.Viewer.Internal {
         active: boolean;
         editingFieldsKeyboardHelper: DevExpress.Reporting.Viewer.PreviewEditingFieldsKeyboardHelper;
         imageOptions: DevExpress.Reporting.Viewer.Internal.IPreviewImageOptions;
-        smartTagAIMenu: DevExpress.ui.dxMenu.DxMenuOptions;
+        smartTagAIMenu: DevExpress.ui.dxMenu.Properties;
         smartTagAIMenuPosition: DevExpress.Reporting.Viewer.Internal.SurfacePosition;
         aiServicesEnabled: boolean;
         loading: boolean;
@@ -8910,7 +8907,7 @@ declare module DevExpress.Reporting.Viewer.Internal {
         loading: boolean;
         shouldSkipBrickLoading: boolean;
         brickColumnWidthArray: Array<number>;
-        smartTagAIMenu: DevExpress.ui.dxMenu.DxMenuOptions;
+        smartTagAIMenu: DevExpress.ui.dxMenu.Properties;
         smartTagAIMenuPosition: DevExpress.Reporting.Viewer.Internal.SurfacePosition;
         bricks: DevExpress.Reporting.Viewer.Utils.IBrickNode[];
         activeBricks: DevExpress.Reporting.Viewer.Utils.IBrickNode[];
@@ -9269,7 +9266,7 @@ declare module DevExpress.Reporting.Viewer.Internal {
         getActions(context: object): DevExpress.Analytics.Utils.IAction[];
         noResultText(): string;
         getSearchButtonText(): string;
-        onSearchTextChanged(e: DevExpress.ui.dxTextBox.FocusOutEvent | DevExpress.ui.dxTextBox.TextChangedEvent): void;
+        onSearchTextChanged(e: DevExpress.ui.dxTextBox.FocusOutEvent | DevExpress.ui.dxTextBox.ValueChangedEvent): void;
         tabInfo: DevExpress.Analytics.Utils.TabInfo;
         actions: DevExpress.Analytics.Utils.IAction[];
         matchWholeWord: boolean;
@@ -9332,7 +9329,7 @@ declare module DevExpress.Reporting.Viewer.Internal {
         key: string;
         image: string;
         displayName: string;
-        fields: DevExpress.Reporting.Viewer.Internal.type[];
+        fields: DevExpress.Reporting.Viewer.Internal.ISignatureField[];
         accessibleDescription?: string;
     }
     export interface IGeneratedDocumentData {
@@ -9543,6 +9540,12 @@ declare module DevExpress.Reporting.Viewer.Editing {
         onDraw(s: DevExpress.Reporting.Viewer.Widgets.Internal.PictureEditorModel): void;
         onBlur(s: DevExpress.Reporting.Viewer.Widgets.Internal.PictureEditorModel): void;
     }
+    export function getEditingFieldValueText(field: DevExpress.Reporting.Viewer.Editing.EditingField): string;
+    export function getEditingFieldLabel(field: DevExpress.Reporting.Viewer.Editing.EditingField): string;
+    export function getEditingFieldValueAnnouncement(field: DevExpress.Reporting.Viewer.Editing.EditingField): string;
+    export function getEditingFieldAccessibleText(field: DevExpress.Reporting.Viewer.Editing.EditingField, includeValue?: boolean): string;
+    export function getEditingFieldActivationText(field: DevExpress.Reporting.Viewer.Editing.EditingField): string;
+    export function getEditingFieldEditorDisplayName(field: DevExpress.Reporting.Viewer.Editing.EditingField): string;
     export interface ITextEditingFieldViewModelBase extends IEditingFieldViewModelBase {
         textStyle: {
             [key: string]: string;
@@ -9576,6 +9579,7 @@ declare module DevExpress.Reporting.Viewer.Editing {
         options: any;
         getOptions: (options: any) => any;
         getPopupContainer: typeof DevExpress.Analytics.Internal.getParentContainer;
+        editorAriaLabel: string;
     }
     export interface ITextEditingFieldViewModel extends ITextEditingFieldViewModelBase {
         borderStyle: {
@@ -9614,6 +9618,7 @@ declare module DevExpress.Reporting.Viewer.Editing {
     }
     export interface ICharacterCombEditingFieldViewModel extends ITextEditingFieldViewModelBase {
         cells: ICharacterCombCell[];
+        editorAriaLabel: string;
     }
     export class CharacterCombEditingFieldViewModel extends TextEditingFieldViewModelBase<ICharacterCombEditingFieldViewModel> implements IEditingFieldModel {
         field: DevExpress.Reporting.Viewer.Editing.EditingField<string>;
@@ -9664,9 +9669,11 @@ declare module DevExpress.Reporting.Viewer.Editing {
             [key: string]: string;
         };
         checked: boolean;
+        ariaChecked: string;
     }
     export class CheckEditingFieldViewModel extends EditingFieldBase<ICheckEditingFieldViewModel> implements IEditingFieldModel {
         private _editingFieldsProvider;
+        protected _includeValueInAriaLabel: boolean;
         private _toggleCheckState;
         private _updateCustomGlyphStyleCss;
         private _updateCheckStateStyleIcon;
@@ -9686,6 +9693,7 @@ declare module DevExpress.Reporting.Viewer.Editing {
         };
         focused: boolean;
         checked: boolean;
+        ariaChecked: string;
         onKeyDown(event: KeyboardEvent): void;
         onBlur(): void;
         onFocus(): void;
@@ -9847,6 +9855,7 @@ declare module DevExpress.Reporting.Viewer.Editing {
         type(): string;
         model(): IEditingFieldSerializedModel;
         createModel(page: DevExpress.Reporting.Viewer.Internal.PreviewPage, pageWidth: number, pageHeight: number, editingFieldsProvider: () => DevExpress.Reporting.Viewer.Editing.EditingField[], bounds: IBounds): DevExpress.Reporting.Viewer.Editing.EditingFieldBase;
+        private _createModel;
     }
     export interface IEditingFieldViewModelBase extends IViewModel {
         zoom: number;
@@ -9863,11 +9872,14 @@ declare module DevExpress.Reporting.Viewer.Editing {
         containerStyle: {
             [key: string]: string;
         };
+        ariaLabel: string;
     }
     export class EditingFieldBase<T extends DevExpress.Reporting.Viewer.Editing.IEditingFieldViewModelBase = DevExpress.Reporting.Viewer.Editing.IEditingFieldViewModelBase> extends BaseRenderingModel<T> implements IEditingFieldModelBase {
         deferredUpdateViewModel(): boolean;
         protected _updateContainerStyle: () => void;
+        protected _includeValueInAriaLabel: boolean;
         constructor(page: DevExpress.Reporting.Viewer.Internal.PreviewPage);
+        initAccessibility(): void;
         createViewModel(): T;
         updateViewModel(args: DevExpress.Analytics.Serializer.Native.PropertyChangedEventArgs<EditingFieldBase> | DevExpress.Analytics.Serializer.Native.ArrayPropertyChangedEventArgs<EditingFieldBase>): void;
         onPropertyChanged(args: DevExpress.Analytics.Serializer.Native.PropertyChangedEventArgs<EditingFieldBase> | DevExpress.Analytics.Serializer.Native.ArrayPropertyChangedEventArgs<EditingFieldBase>): void;
@@ -9885,6 +9897,7 @@ declare module DevExpress.Reporting.Viewer.Editing {
         };
         zoom: number;
         active: boolean;
+        ariaLabel: string;
     }
 }
 declare module DevExpress.Reporting.Viewer {
@@ -9902,7 +9915,7 @@ declare module DevExpress.Reporting.Viewer {
     import ISignatureDisplayItem = DevExpress.Reporting.Viewer.Internal.ISignatureDisplayItem;
     import IProgressBarViewModel = DevExpress.Reporting.Viewer.Internal.IProgressBarViewModel;
     import ReportPreview = DevExpress.Reporting.Viewer.ReportPreview;
-    import dxLoadingPanelProperties = DevExpress.ui.dxLoadPanel.dxLoadingPanelProperties;
+    import dxLoadingPanelProperties = DevExpress.ui.dxLoadPanel.Properties;
     import BreadcrumbModel = DevExpress.Reporting.Viewer.Internal.BreadcrumbModel;
     import DxPromise = DevExpress.Analytics.Internal.DxPromise;
     import TabPanel = DevExpress.Analytics.Utils.TabPanel;
@@ -10108,7 +10121,7 @@ declare module DevExpress.Reporting.Viewer {
         _exportTranslatedCancel: () => void;
         onExportPopupHiding: () => void;
         _aiOperationInProgress?: boolean;
-        _getAILoadingPanelOptions: (element: HTMLElement) => DevExpress.ui.dxLoadPanel.dxLoadingPanelProperties;
+        _getAILoadingPanelOptions: (element: HTMLElement) => DevExpress.ui.dxLoadPanel.Properties;
     }
     export function createReportPreviewViewModel(this: DevExpress.Reporting.Viewer.ReportPreview, base: DevExpress.Reporting.Viewer.IReportPreviewViewModel): DevExpress.Reporting.Viewer.IReportPreviewViewModel;
     export function updateReportPreviewViewModel(this: DevExpress.Reporting.Viewer.ReportPreview, args: DevExpress.Analytics.Serializer.Native.PropertyChangedEventArgs<ReportPreview> | DevExpress.Analytics.Serializer.Native.ArrayPropertyChangedEventArgs<ReportPreview>): void;
@@ -10140,11 +10153,13 @@ declare module DevExpress.Reporting.Viewer {
         constructor(viewModel: DevExpress.Reporting.Viewer.ReportPreview);
         reset: () => void;
         private _getLiveRegionText;
+        private _getEditingFieldLiveRegionText;
         initialize(): void;
         clickHandler(): void;
         itemHandleEscKey(e: any, index: any): boolean;
         private _getRestoreNavigationIndex;
         private _restoreActiveBrick;
+        private _announce;
         private _actionExecute;
         private _getNonEmptyBrick;
         private _pageChangeHandle;
@@ -10775,7 +10790,7 @@ declare module DevExpress.Reporting.Designer.Data {
     import IFederationDataSource = DevExpress.Analytics.Data.IFederationDataSource;
     import ISerializableDataFederationDataSourceInfo = DevExpress.Analytics.Data.ISerializableDataFederationDataSourceInfo;
     import ISerializableSourceMapItem = DevExpress.Analytics.Data.ISerializableSourceMapItem;
-    import AnalyticsSerializableFederationDataSource = DevExpress.Analytics.Data.AnalyticsSerializableFederationDataSource;
+    import AnalyticsSerializableFederationDataSource = DevExpress.Analytics.Data.SerializableDataFederationDataSource;
     import ISerializableModel = DevExpress.Analytics.Utils.ISerializableModel;
     import ModelSerializer = DevExpress.Analytics.Utils.ModelSerializer;
     import ObjectStorageItem = DevExpress.Reporting.Designer.Data.ObjectStorageItem;
@@ -10981,7 +10996,6 @@ declare module DevExpress.Reporting.Designer.Data {
         isSelected?: boolean;
         dataType?: string;
         innerActions?: any;
-        relationPath?: string;
         noDragable?: any;
         dragData?: any;
         icon?: string;
@@ -12937,7 +12951,7 @@ declare module DevExpress.Reporting.Designer.Wizard {
     import ChooseAvailableItemPage = DevExpress.Analytics.Wizard.ChooseAvailableItemPage;
     import PageFactory = DevExpress.Analytics.Wizard.PageFactory;
     import _ReportWizardOptions = DevExpress.Reporting.Designer.Wizard._ReportWizardOptions;
-    import AnalyticChooseDataSourceTypePage = DevExpress.Analytics.Wizard.AnalyticChooseDataSourceTypePage;
+    import AnalyticChooseDataSourceTypePage = DevExpress.Analytics.Wizard.ChooseDataSourceTypePage;
     import FullscreenWizardPageFactory = DevExpress.Analytics.Wizard.FullscreenWizardPageFactory;
     import IReportWizardState = DevExpress.Reporting.Designer.Wizard.IReportWizardState;
     import DxPromise = DevExpress.Analytics.Internal.DxPromise;
@@ -12957,14 +12971,14 @@ declare module DevExpress.Reporting.Designer.Wizard {
     import ISummaryDataMemberInfo = DevExpress.Reporting.Designer.Internal.ISummaryDataMemberInfo;
     import SummaryInfoFieldlist = DevExpress.Reporting.Designer.Internal.SummaryInfoFieldlist;
     import FullscreenWizardPage = DevExpress.Analytics.Wizard.FullscreenWizardPage;
-    import AnalyticSpecifyFederationDataSourceSettingsPage = DevExpress.Analytics.Wizard.AnalyticSpecifyFederationDataSourceSettingsPage;
+    import AnalyticSpecifyFederationDataSourceSettingsPage = DevExpress.Analytics.Wizard.SpecifyFederationDataSourceSettingsPage;
     import JsonDataSource = DevExpress.Analytics.Data.JsonDataSource;
-    import ChooseAnalyticJsonSchemaPage = DevExpress.Analytics.Wizard.ChooseAnalyticJsonSchemaPage;
+    import ChooseAnalyticJsonSchemaPage = DevExpress.Analytics.Wizard.ChooseJsonSchemaPage;
     import IDataSourceInfo = DevExpress.Reporting.Designer.Internal.IDataSourceInfo;
-    import AnalyticSpecifyJsonDataSourceSettingsPage = DevExpress.Analytics.Wizard.AnalyticSpecifyJsonDataSourceSettingsPage;
+    import AnalyticSpecifyJsonDataSourceSettingsPage = DevExpress.Analytics.Wizard.SpecifyJsonDataSourceSettingsPage;
     import ILabelProduct = DevExpress.Reporting.Designer.Wizard.ILabelProduct;
     import IPaperKind = DevExpress.Reporting.Designer.Wizard.IPaperKind;
-    import AnalyticSpecifyObjectDataSourceSettingsPage = DevExpress.Analytics.Wizard.AnalyticSpecifyObjectDataSourceSettingsPage;
+    import AnalyticSpecifyObjectDataSourceSettingsPage = DevExpress.Analytics.Wizard.SpecifyObjectDataSourceSettingsPage;
     import ColorScheme = DevExpress.Reporting.Designer.Wizard.ColorScheme;
     import CustomColorScheme = DevExpress.Reporting.Designer.Wizard.CustomColorScheme;
     import IColorSchemeState = DevExpress.Reporting.Designer.Wizard.IColorSchemeState;
@@ -12973,15 +12987,15 @@ declare module DevExpress.Reporting.Designer.Wizard {
     import ChooseReportColorSchemePage = DevExpress.Reporting.Designer.Wizard.ChooseReportColorSchemePage;
     import ConfigureReportPageSettingsPage = DevExpress.Reporting.Designer.Wizard.ConfigureReportPageSettingsPage;
     import PreviewPageHelper = DevExpress.Reporting.Designer.Wizard.PreviewPageHelper;
-    import SpecifyAnalyticSqlDataSourceSettingsPage = DevExpress.Analytics.Wizard.SpecifyAnalyticSqlDataSourceSettingsPage;
+    import SpecifyAnalyticSqlDataSourceSettingsPage = DevExpress.Analytics.Wizard.SpecifySqlDataSourceSettingsPage;
     import ReportViewModel = DevExpress.Reporting.Designer.Controls.ReportViewModel;
     import ISelectReportTypePageOptions = DevExpress.Reporting.Designer.Wizard.ISelectReportTypePageOptions;
     import SelectReportTypePage = DevExpress.Reporting.Designer.Wizard.SelectReportTypePage;
-    import dxListProperties = DevExpress.ui.dxList.dxListProperties;
-    import dxTextAreaProperties = DevExpress.ui.dxTextArea.dxTextAreaProperties;
-    import dxLoadingPanelProperties = DevExpress.ui.dxLoadPanel.dxLoadingPanelProperties;
+    import dxListProperties = DevExpress.ui.dxList.Properties;
+    import dxTextAreaProperties = DevExpress.ui.dxTextArea.Properties;
+    import dxLoadingPanelProperties = DevExpress.ui.dxLoadPanel.Properties;
     import IAIReportWizardPromt = DevExpress.Reporting.Designer.Utils.IAIReportWizardPromt;
-    import AnalyticSpecifyMongoDBDataSourceSettingsPage = DevExpress.Analytics.Wizard.AnalyticSpecifyMongoDBDataSourceSettingsPage;
+    import AnalyticSpecifyMongoDBDataSourceSettingsPage = DevExpress.Analytics.Wizard.SpecifyMongoDBDataSourceSettingsPage;
     import IWizardPage = DevExpress.Analytics.Wizard.IWizardPage;
     import IPromptClarificationQuestion = DevExpress.Reporting.Designer.Internal.IPromptClarificationQuestion;
     import IDataSourceInfo = DevExpress.Analytics.Internal.IDataSourceInfo;
@@ -12991,9 +13005,9 @@ declare module DevExpress.Reporting.Designer.Wizard {
     import _WrappedWizardPage = DevExpress.Analytics.Wizard._WrappedWizardPage;
     import MasterDetailRequestModel = DevExpress.Reporting.Designer.Internal.MasterDetailRequestModel;
     import SqlDataSource = DevExpress.Analytics.Data.SqlDataSource;
-    import ConfigureAnalyticMasterDetailRelationshipsPage = DevExpress.Analytics.Wizard.ConfigureAnalyticMasterDetailRelationshipsPage;
-    import AnalyticMultiQueryConfigurePage = DevExpress.Analytics.Wizard.AnalyticMultiQueryConfigurePage;
-    import AnalyticMultiQueryConfigureParametersPage = DevExpress.Analytics.Wizard.AnalyticMultiQueryConfigureParametersPage;
+    import ConfigureAnalyticMasterDetailRelationshipsPage = DevExpress.Analytics.Wizard.ConfigureMasterDetailRelationshipsPage;
+    import AnalyticMultiQueryConfigurePage = DevExpress.Analytics.Wizard.MultiQueryConfigurePage;
+    import AnalyticMultiQueryConfigureParametersPage = DevExpress.Analytics.Wizard.MultiQueryConfigureParametersPage;
     import IReportTitleState = DevExpress.Reporting.Designer.Wizard.IReportTitleState;
     import MultiQueryDataSourceWizardPageIterator = DevExpress.Analytics.Wizard.MultiQueryDataSourceWizardPageIterator;
     import PopupWizard = DevExpress.Analytics.Wizard.PopupWizard;
@@ -13827,9 +13841,9 @@ declare module DevExpress.Reporting.Designer.Wizard {
         canNext(): boolean;
         canFinish(): boolean;
         commit(): JQuery.Promise<Partial<DevExpress.Reporting.Designer.Wizard.IReportWizardState>, any, any>;
-        _getSuggentionListOptions(): DevExpress.ui.dxList.dxListProperties;
-        _customLoadPanelViewModel(element: any, isLoading: any): DevExpress.ui.dxLoadPanel.dxLoadingPanelProperties;
-        _getPromptTextAreaOptions(): DevExpress.ui.dxTextArea.dxTextAreaProperties;
+        _getSuggentionListOptions(): DevExpress.ui.dxList.Properties;
+        _customLoadPanelViewModel(element: any, isLoading: any): DevExpress.ui.dxLoadPanel.Properties;
+        _getPromptTextAreaOptions(): DevExpress.ui.dxTextArea.Properties;
         _reportPromptPlaceholder: any;
         _dataStructureSectionTitle: any;
         _promptSectionTitle: any;
@@ -14605,12 +14619,14 @@ declare module DevExpress.Reporting.Designer.Controls.CrossTab {
             propertyName: string;
             modelName: string;
             defaultVal: boolean;
+            from: typeof DevExpress.Analytics.Utils.parseBool;
         } | {
             propertyName: string;
             modelName: string;
             displayName: string;
             localizationId: string;
             defaultVal: number;
+            from: typeof DevExpress.Analytics.Utils.floatFromModel;
         } | {
             propertyName: string;
             modelName: string;
@@ -14626,6 +14642,7 @@ declare module DevExpress.Reporting.Designer.Controls.CrossTab {
             modelName: string;
             localizationId: string;
             defaultVal: number;
+            from: typeof DevExpress.Analytics.Utils.floatFromModel;
         } | {
             propertyName: string;
             modelName: string;
@@ -14635,6 +14652,7 @@ declare module DevExpress.Reporting.Designer.Controls.CrossTab {
             propertyName: string;
             modelName: string;
             defaultVal: boolean;
+            from: typeof DevExpress.Analytics.Utils.parseBool;
         })[];
         width: ko.Observable<number> | ko.Computed<number>;
         autoWidthMode: ko.Observable<string>;
@@ -15730,7 +15748,7 @@ declare module DevExpress.Reporting.Designer.Controls.RichEdit.Internal.Toolbar 
         private _extendTemplateOptions;
         constructor(options: IOptions);
         onCommandStateChanged(sender: DevExpress.RichEdit.RichEdit, args: DevExpress.RichEdit.CommandStateChangedEventArgs): void;
-        onContentReady: (e: DevExpress.Reporting.ContentReadyEvent) => void;
+        onContentReady: (e: DevExpress.ui.dxPopup.ContentReadyEvent) => void;
         getPositionTarget: (element: HTMLElement) => HTMLElement;
         hideOnOutsideClick: (e: any) => boolean;
         template: string;

@@ -7,19 +7,12 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
+namespace DevExpress.Web.Demos
+{
 
 
-namespace DevExpress.Web.Demos {
-    public partial class ComplexReports_ProductList {
-
-        /// <summary>
-        /// viewerSelector control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::DevExpress.Web.Demos.UserControls_ViewerSelectorControl viewerSelector;
+    public partial class ComplexReports_ProductList
+    {
 
         /// <summary>
         /// showDesignerButton control.
@@ -38,14 +31,5 @@ namespace DevExpress.Web.Demos {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::DevExpress.XtraReports.Web.ASPxWebDocumentViewer webDocumentViewer;
-
-        /// <summary>
-        /// mobileEmulator control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::DevExpress.Web.Demos.UserControls_MobileEmulator mobileEmulator;
     }
 }

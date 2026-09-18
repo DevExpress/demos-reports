@@ -1,7 +1,7 @@
 ﻿/**
 * DevExpress Analytics (css\dx-analytics.softblue.css)
-* Version:  26.1.4
-* Build date: Jul 27, 2026
+* Version:  26.1.5
+* Build date: Sep 14, 2026
 * Copyright (c) 2012 - 2026 Developer Express Inc. ALL RIGHTS RESERVED
 * License: https://www.devexpress.com/Support/EULAs/universal.xml
 */
@@ -35,19 +35,37 @@
 }
 .dx-designer-viewport .dx-accessibility-border-accented {
   outline-color: #7AB8EB;
+  outline-width: 2px;
 }
-.dx-designer-viewport .dx-accessibility-focus-border-accented,
-.dx-designer-viewport .dx-accessibility-focus-border-accented:focus {
+.dx-designer-viewport .dxrd-right-tabs .dx-accessibility-focus-border-accented:focus {
+  outline-offset: -2px;
+}
+.dx-designer-viewport .propertygrid-editor-description:focus {
   outline-color: #7AB8EB;
+  outline-width: 2px;
+  outline-offset: -1px;
+}
+.dx-designer-viewport .dx-accessibility-focus-border-accented:focus,
+.dx-designer-viewport .dx-accessibility-focus-border-accented > .dx-menu.dx-state-focused {
+  outline-color: #7AB8EB;
+  outline-width: 2px;
+  outline-offset: 1px;
+  outline-style: solid;
+  border-radius: 2px;
+}
+.dx-designer-viewport .dx-accessibility-toolbar-item > .dx-menu .dx-menu-item:not(.dx-menu-item-expanded).dx-state-focused .dxd-icon-fill {
+  fill: #6688a5;
 }
 .dx-designer-viewport .dxd-icon-accented .dxd-icon-fill {
   fill: #7AB8EB;
 }
-.dx-designer-viewport .dxd-icon-highlighted:hover .dxd-icon-fill {
+.dx-designer-viewport .dxd-icon-highlighted:hover .dxd-icon-fill,
+.dx-designer-viewport .propertygrid-editor-description:hover .dxd-icon-highlighted .dxd-icon-fill {
   fill: #7AB8EB;
   opacity: 1;
 }
-.dx-designer-viewport .dxd-icon-highlighted:hover .dxd-description_info-icon-path-fill {
+.dx-designer-viewport .dxd-icon-highlighted:hover .dxd-description_info-icon-path-fill,
+.dx-designer-viewport .propertygrid-editor-description:hover .dxd-icon-highlighted .dxd-description_info-icon-path-fill {
   fill: #FFFFFF;
   opacity: 1;
 }

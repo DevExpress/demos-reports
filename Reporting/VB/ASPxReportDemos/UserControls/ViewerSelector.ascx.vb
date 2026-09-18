@@ -5,7 +5,6 @@ Imports DevExpress.Web.Demos
 Namespace DevExpress.Web.Demos
     Partial Public Class UserControls_ViewerSelectorControl
         Inherits UserControl
-        Implements IMobileEmulator
 
         Public ReadOnly Property CurrentViewer() As String
             Get
@@ -26,7 +25,5 @@ Namespace DevExpress.Web.Demos
                 AddMenuItem(selectorItem)
             Next selectorItem
         End Sub
-
-        Public Property ReportTypeName() As String Implements IMobileEmulator.ReportTypeName
     End Class
 End Namespace

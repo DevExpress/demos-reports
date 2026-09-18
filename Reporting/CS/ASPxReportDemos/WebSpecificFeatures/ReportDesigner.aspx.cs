@@ -15,9 +15,6 @@ namespace DevExpress.Web.Demos {
                 string redirectDemoUrl = DevExpress.Web.Demos.Helper.GetDemoLocalUrl(Utils.CurrentDemoPage?.Product, fromGroup, fromDemo);
                 if(!string.IsNullOrEmpty(redirectDemoUrl)) {
                     string redirectUrlWithQuery = redirectDemoUrl;
-                    if(query[ViewerSelectorState.Key] == ViewerSelectorState.MobileViewer)
-                        redirectUrlWithQuery += $"?{ViewerSelectorState.Key}={ViewerSelectorState.MobileViewer}";
-
                     redirectUrlInputValue = Page.ResolveUrl(redirectUrlWithQuery);
                 }
             } else {

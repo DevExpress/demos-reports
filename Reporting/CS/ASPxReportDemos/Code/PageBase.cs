@@ -10,11 +10,6 @@ namespace DevExpress.Web.Demos {
             }
         }
 
-        public virtual bool IsMobileViewer {
-            get {
-                return ViewerSelectorState.GetCurrentViewer() == ViewerSelectorState.MobileViewer;
-            }
-        }
         protected void Page_Init(object sender, EventArgs e) {
             DemoHelper.Instance.ControlAreaMaxWidth = System.Web.UI.WebControls.Unit.Percentage(100);
 
@@ -29,20 +24,8 @@ namespace DevExpress.Web.Demos {
             if(webDocumentViewer != null && IsHTML5Viewer) {
                 webDocumentViewer.OpenReport(ReportTypeName);
             }
-            var mobileEmulator = contentPlaceHolder.FindControl("mobileEmulator") as IMobileEmulator;
-            if(mobileEmulator != null) {
-                mobileEmulator.ReportTypeName = ReportTypeName;
-            }
-            var viewerSelector = topRightMenuRegion.FindControl("viewerSelector") as IMobileEmulator;
-            if(viewerSelector != null) {
-                viewerSelector.ReportTypeName = ReportTypeName;
-            }
 
-            if(IsHTML5Viewer) {
-                DemoHelper.Instance.UseDevExtremeThemeSelector = true;
-            } else {
-                DemoHelper.Instance.UseDevExtremeThemeSelector = false;
-            }
+            DemoHelper.Instance.UseDevExtremeThemeSelector = true;
         }
 
         protected string ReportTypeName {

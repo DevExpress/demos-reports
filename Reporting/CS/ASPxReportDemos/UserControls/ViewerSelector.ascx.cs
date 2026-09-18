@@ -3,7 +3,7 @@ using System.Web.UI;
 using DevExpress.Web.Demos;
 
 namespace DevExpress.Web.Demos {
-    public partial class UserControls_ViewerSelectorControl : UserControl, IMobileEmulator {
+    public partial class UserControls_ViewerSelectorControl : UserControl {
         public string CurrentViewer {
             get {
                 return ViewerSelectorState.GetCurrentViewer();
@@ -22,11 +22,6 @@ namespace DevExpress.Web.Demos {
             foreach(ViewerSelectorState.Item selectorItem in ViewerSelectorState.Items) {
                 AddMenuItem(selectorItem);
             }
-        }
-
-        public string ReportTypeName {
-            get;
-            set;
         }
     }
 }

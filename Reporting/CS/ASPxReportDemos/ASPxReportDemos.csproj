@@ -368,7 +368,6 @@
     <Content Include="Content\ios-landscape.png" />
     <Content Include="Content\ios.png" />
     <Content Include="Content\Loading.gif" />
-    <Content Include="Content\MobileEmulator.css" />
     <Content Include="Content\PageBorders\bottom-left-corner.gif" />
     <Content Include="Content\PageBorders\bottom-left-corner.png" />
     <Content Include="Content\PageBorders\bottom-right-corner.gif" />
@@ -426,7 +425,6 @@
     <Content Include="LayoutFeatures\HiddenColumns.aspx" />
     <Content Include="LayoutFeatures\ShrinkGrow.aspx" />
     <Content Include="LayoutFeatures\VerticalAnchoring.aspx" />
-    <Content Include="MobileViewer.aspx" />
     <Content Include="ReportControls\BarCode.aspx" />
     <Content Include="ReportControls\Charts.aspx" />
     <Content Include="ReportControls\CrossBand.aspx" />
@@ -472,7 +470,6 @@
     <Content Include="UserControls\FeedbackPanel.ascx" />
     <Content Include="UserControls\FooterText.ascx" />
     <Content Include="UserControls\Head.ascx" />
-    <Content Include="UserControls\MobileEmulator.ascx" />
     <Content Include="UserControls\Navigation.ascx" />
     <Content Include="UserControls\Products.ascx" />
     <Content Include="UserControls\ReportControlToggleButton.ascx" />
@@ -483,7 +480,6 @@
     <Content Include="UserControls\ViewerSelector.ascx" />
     <Content Include="Web.config" />
     <Content Include="WebSpecificFeatures\ColorSchemeCustomization.aspx" />
-    <Content Include="WebSpecificFeatures\MobileViewer.aspx" />
     <Content Include="WebSpecificFeatures\ReportDesigner.aspx" />
   </ItemGroup>
   <ItemGroup>
@@ -505,12 +501,14 @@
     </Compile>
     <Compile Include="UserControls\EventMonitor.ascx.cs">
       <DependentUpon>EventMonitor.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="UserControls\EventMonitor.ascx.designer.cs">
       <DependentUpon>EventMonitor.ascx</DependentUpon>
     </Compile>
     <Compile Include="UserControls\ServerEventMonitor.ascx.cs">
       <DependentUpon>ServerEventMonitor.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="UserControls\ServerEventMonitor.ascx.designer.cs">
       <DependentUpon>ServerEventMonitor.ascx</DependentUpon>
@@ -597,11 +595,9 @@
     <Compile Include="LayoutFeatures\VerticalAnchoring.aspx.designer.cs">
       <DependentUpon>VerticalAnchoring.aspx</DependentUpon>
     </Compile>
-    <Compile Include="MobileViewer.aspx.designer.cs">
-      <DependentUpon>MobileViewer.aspx</DependentUpon>
-    </Compile>
     <Compile Include="DeviceViewer.master.cs">
       <DependentUpon>DeviceViewer.master</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="DeviceViewer.master.designer.cs">
       <DependentUpon>DeviceViewer.master</DependentUpon>
@@ -614,9 +610,10 @@
     <Compile Include="Code\DemoReportResolver.cs" />
     <Compile Include="Code\DemoReportStorageExtension.cs" />
     <Compile Include="Code\Helpers.cs" />
-    <Compile Include="Code\IMobileEmulator.cs" />
     <Compile Include="Code\IReportControlToggleButton.cs" />
-    <Compile Include="Code\PageBase.cs" />
+    <Compile Include="Code\PageBase.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
     <Compile Include="Code\DemoQueryKeys.cs" />
     <Compile Include="Code\ReportStorageHelper.cs" />
     <Compile Include="Code\RightPlaceHolder.cs" />
@@ -802,10 +799,6 @@
       <DependentUpon>VerticalAnchoring.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="MobileViewer.aspx.cs">
-      <DependentUpon>MobileViewer.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReportControls\BarCode.aspx.cs">
       <DependentUpon>BarCode.aspx</DependentUpon>
@@ -954,13 +947,6 @@
     <Compile Include="UserControls\FeedbackPanel.ascx.designer.cs">
       <DependentUpon>FeedbackPanel.ascx</DependentUpon>
     </Compile>
-    <Compile Include="UserControls\MobileEmulator.ascx.cs">
-      <DependentUpon>MobileEmulator.ascx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="UserControls\MobileEmulator.ascx.designer.cs">
-      <DependentUpon>MobileEmulator.ascx</DependentUpon>
-    </Compile>
     <Compile Include="UserControls\ReportControlToggleButton.ascx.cs">
       <DependentUpon>ReportControlToggleButton.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -988,13 +974,6 @@
     </Compile>
     <Compile Include="WebSpecificFeatures\ColorSchemeCustomization.aspx.designer.cs">
       <DependentUpon>ColorSchemeCustomization.aspx</DependentUpon>
-    </Compile>
-    <Compile Include="WebSpecificFeatures\MobileViewer.aspx.cs">
-      <DependentUpon>MobileViewer.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="WebSpecificFeatures\MobileViewer.aspx.designer.cs">
-      <DependentUpon>MobileViewer.aspx</DependentUpon>
     </Compile>
     <Compile Include="WebSpecificFeatures\ReportDesigner.aspx.cs">
       <DependentUpon>ReportDesigner.aspx</DependentUpon>

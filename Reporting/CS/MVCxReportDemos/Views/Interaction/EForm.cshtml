@@ -14,18 +14,13 @@
 }
 
 @section TopRightMenuRegion {
-    @Html.Partial("ViewerSelectorPartial", Model)
     @Html.Partial("ReportControlToggleButtonPartial", Model)
 }
 
-@if(Model.IsHTML5Viewer) {
-    @Html.DevExpress().WebDocumentViewer(settings => {
+@Html.DevExpress().WebDocumentViewer(settings =>
+{
     settings.Name = "webDocumentViewer";
     settings.ClientSideEvents.BeforeRender = "EditingFieldsHighlightingEnable";
     settings.ClientSideEvents.Init = "OnInit";
     settings.Height = Unit.Pixel(500);
 }).Bind(Model.ReportID).GetHtml()
-}
-else if(Model.IsMobileViewer) {
-    @Html.Partial("MobileEmulator", Model.EmulatorModel)
-}

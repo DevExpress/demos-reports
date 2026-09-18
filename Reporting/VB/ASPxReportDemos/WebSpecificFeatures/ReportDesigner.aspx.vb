@@ -17,10 +17,6 @@ Namespace DevExpress.Web.Demos
                 Dim redirectDemoUrl As String = DevExpress.Web.Demos.Helper.GetDemoLocalUrl(Utils.CurrentDemoPage?.Product, fromGroup, fromDemo)
                 If Not String.IsNullOrEmpty(redirectDemoUrl) Then
                     Dim redirectUrlWithQuery As String = redirectDemoUrl
-                    If query(ViewerSelectorState.Key) = ViewerSelectorState.MobileViewer Then
-                        redirectUrlWithQuery &= $"?{ViewerSelectorState.Key}={ViewerSelectorState.MobileViewer}"
-                    End If
-
                     redirectUrlInputValue = Page.ResolveUrl(redirectUrlWithQuery)
                 End If
             Else

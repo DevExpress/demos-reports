@@ -14,21 +14,10 @@
     </script>
 </asp:Content>
 <asp:Content ID="Content3" ContentPlaceHolderID="TopRightMenuRegion" runat="Server">
-    <dx:ViewerSelector ID="viewerSelector" runat="server" />
     <dx:ReportControlToggleButton ID="showDesignerButton" runat="server" />
 </asp:Content>
 <asp:Content ID="Content1" ContentPlaceHolderID="ContentHolder" runat="Server">
-    <%
-    If IsHTML5Viewer Then
-    %>
     <dx:ASPxWebDocumentViewer runat="server" ID="webDocumentViewer" ClientInstanceName="webDocumentViewer" EnableViewState="False" Height="500px" >
         <ClientSideEvents Init="onInit" BeforeRender="EditingFieldsHighlightingEnable" />
     </dx:ASPxWebDocumentViewer>
-    <%
-    ElseIf IsMobileViewer Then
-    %>
-    <dx:MobileEmulator ID="mobileEmulator" runat="server" />
-    <%
-    End If
-    %>
 </asp:Content>

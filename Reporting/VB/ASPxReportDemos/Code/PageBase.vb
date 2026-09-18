@@ -12,11 +12,6 @@ Namespace DevExpress.Web.Demos
             End Get
         End Property
 
-        Public Overridable ReadOnly Property IsMobileViewer() As Boolean
-            Get
-                Return ViewerSelectorState.GetCurrentViewer() = ViewerSelectorState.MobileViewer
-            End Get
-        End Property
         Protected Sub Page_Init(ByVal sender As Object, ByVal e As EventArgs)
             DemoHelper.Instance.ControlAreaMaxWidth = System.Web.UI.WebControls.Unit.Percentage(100)
 
@@ -31,20 +26,8 @@ Namespace DevExpress.Web.Demos
             If webDocumentViewer IsNot Nothing AndAlso IsHTML5Viewer Then
                 webDocumentViewer.OpenReport(ReportTypeName)
             End If
-            Dim mobileEmulator = TryCast(contentPlaceHolder.FindControl("mobileEmulator"), IMobileEmulator)
-            If mobileEmulator IsNot Nothing Then
-                mobileEmulator.ReportTypeName = ReportTypeName
-            End If
-            Dim viewerSelector = TryCast(topRightMenuRegion.FindControl("viewerSelector"), IMobileEmulator)
-            If viewerSelector IsNot Nothing Then
-                viewerSelector.ReportTypeName = ReportTypeName
-            End If
 
-            If IsHTML5Viewer Then
-                DemoHelper.Instance.UseDevExtremeThemeSelector = True
-            Else
-                DemoHelper.Instance.UseDevExtremeThemeSelector = False
-            End If
+            DemoHelper.Instance.UseDevExtremeThemeSelector = True
         End Sub
 
         Protected ReadOnly Property ReportTypeName() As String

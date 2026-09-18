@@ -1,7 +1,7 @@
 ﻿/**
 * DevExpress Analytics (js\dx-analytics-core.d.ts)
-* Version:  26.1.4
-* Build date: Jul 27, 2026
+* Version:  26.1.5
+* Build date: Sep 14, 2026
 * Copyright (c) 2012 - 2026 Developer Express Inc. ALL RIGHTS RESERVED
 * License: https://www.devexpress.com/Support/EULAs/universal.xml
 */
@@ -300,10 +300,10 @@ declare module DevExpress.Analytics.Serializer.Native {
 declare module DevExpress.Analytics.Utils {
     import PropertyChangedEvents = DevExpress.Analytics.Serializer.Native.PropertyChangedEvents;
     import Disposable = DevExpress.Analytics.Utils.Disposable;
-    import IModelSerializerOptionsNative = DevExpress.Analytics.Serializer.Native.IModelSerializerOptionsNative;
+    import IModelSerializerOptionsNative = DevExpress.Analytics.Serializer.Native.IModelSerializerOptions;
     import NativeModelSerializer = DevExpress.Analytics.Serializer.Native.NativeModelSerializer;
-    import IModelSerializerNative = DevExpress.Analytics.Serializer.Native.IModelSerializerNative;
-    import IModelSerializerRefNative = DevExpress.Analytics.Serializer.Native.IModelSerializerRefNative;
+    import IModelSerializerNative = DevExpress.Analytics.Serializer.Native.IModelSerializer;
+    import IModelSerializerRefNative = DevExpress.Analytics.Serializer.Native.IModelSerializerRef;
     import IModel = DevExpress.Analytics.Serializer.Native.IModel;
     import EngineType = DevExpress.Analytics.Serializer.Native.EngineType;
     import IModelSerializer = DevExpress.Analytics.Utils.IModelSerializer;
@@ -599,7 +599,7 @@ declare module DevExpress.Analytics.Utils {
         dataType?: string;
         templateName?: string;
         innerActions?: any;
-        relationPath?: string;
+        relationPath?: string[];
         noDragable?: any;
         dragData?: any;
         icon?: string;
@@ -860,6 +860,7 @@ declare module DevExpress.Analytics.Utils {
         propertyGrid: DevExpress.Analytics.Widgets.ObjectProperties;
     }
     export function floatFromModel(val: string, serializer?: DevExpress.Analytics.Serializer.Native.IModelSerializer): DevExpress.Analytics.Serializer.Native.MultiPlatformObservable<number>;
+    export function fromEnum(value: string, serializer?: DevExpress.Analytics.Serializer.Native.IModelSerializer): DevExpress.Analytics.Serializer.Native.MultiPlatformObservable<string>;
     export function parseBool(val: any, serializer?: DevExpress.Analytics.Serializer.Native.IModelSerializer): any;
     export function colorFromString(val: string, serializer?: DevExpress.Analytics.Serializer.Native.IModelSerializer): DevExpress.Analytics.Serializer.Native.MultiPlatformObservable<string>;
     export function saveAsInt(val: number): string;
@@ -941,10 +942,8 @@ declare module DevExpress.Analytics.Internal {
     import IEditorViewModel = DevExpress.Analytics.Widgets.IEditorViewModel;
     import IRequestManager = DevExpress.Analytics.Internal.IRequestManager;
     import IRequestManagerSettings = DevExpress.Analytics.Internal.IRequestManagerSettings;
-    import DevExtremePromise = ;
-    null.DevExtremePromise;
-    import DxElement = ;
-    null.DxElement;
+    import DevExtremePromise = DevExpress.core.utils.DxPromise;
+    import DxElement = DevExpress.core.DxElement;
     import IJSDesignerBindingCommonOptions = DevExpress.Analytics.Internal.IJSDesignerBindingCommonOptions;
     import DragDropHandler = DevExpress.Analytics.Internal.DragDropHandler;
     import ControlsFactory = DevExpress.Analytics.Utils.ControlsFactory;
@@ -2215,7 +2214,7 @@ declare module DevExpress.Analytics.Internal {
     export const $promiseAdapter: <T>(promise: JQuery.Promise<T, any, any> | Promise<T>) => Promise<T>;
     export const $jqueryPromiseAdapter: <T>(promise: DevExpress.Analytics.Internal.DxPromise<T>) => JQueryPromise<T>;
     export const $wrap: (element: JQuery | Element | HTMLElement) => JQuery;
-    export const wrapPublicElement: (element: HTMLElement) => DxElement;
+    export const wrapPublicElement: (element: HTMLElement) => DevExpress.core.DxElement;
     export const wrapInner: (element: HTMLElement | Element, wrappingElement: HTMLElement | Element) => JQuery<HTMLElement>;
     export const accessJQueryData: (element: HTMLElement, key: string, value?: any) => any;
     /// <reference types="jquery" />
@@ -2478,8 +2477,10 @@ declare module DevExpress.Analytics.Internal {
         validationCallback?: (options: any) => boolean;
         readonly message: string;
     };
+    export function isValidNameSymbols(nameCandidate: string): boolean;
     export function validateName(nameCandidate: string): boolean;
     export function replaceInvalidSymbols(text: string): string;
+    export const nameRequiredValidationRule: ValidationRule;
     export const nameValidationRules: ValidationRule[];
     export {};
     export function dxtTemplate(): any;
@@ -3023,6 +3024,7 @@ declare module DevExpress.Analytics.Internal {
         private _toolbarItemModel;
         private _liveRegion;
         private _moveFocusToSibling?;
+        protected _borderCssClassName: string[];
         private _selectBox;
         private _menu;
         private _isComplexItem;
@@ -3454,19 +3456,9 @@ declare module DevExpress.Analytics.Widgets.Internal {
     export const defaultFontSerialization: DevExpress.Analytics.Internal.IGlobalSubscribableValue<string>;
     export function validateGuid(guid: any): boolean;
     export function validateNullableGuid(guid: any): boolean;
-    export const guidValidationRules: {
-        type: string;
-        validationCallback: (options: any) => boolean;
-        readonly message: any;
-    }[];
-    export const guidRequiredValidationRules: {
-        type: string;
-        readonly message: any;
-    }[];
-    export const requiredValidationRules: {
-        type: string;
-        readonly message: any;
-    }[];
+    export function createGuidValidationRules(): Array<any>;
+    export function createGuidRequiredValidationRules(): Array<any>;
+    export function createRequiredValidationRules(): Array<any>;
     export class ValueEditorHelper {
         private static _getCharFromKeyCode;
         private static _getCaretPosition;
@@ -5431,6 +5423,7 @@ declare module DevExpress.Analytics.Widgets {
         createObjectProperties(): DevExpress.Analytics.Widgets.ObjectProperties;
     }
     export function registerBaseEditors(): void;
+    export const ExpressionEditorWordWrapModeEnabled: DevExpress.Analytics.Internal.IGlobalSubscribableValue<boolean>;
     export interface IExpressionOptions {
         value: ko.Observable<string> | ko.Computed<string>;
         path?: ko.Observable<string> | ko.Computed<string>;
@@ -5492,6 +5485,7 @@ declare module DevExpress.Analytics.Widgets {
                 getValue: () => string;
                 setAnnotations: (any: any) => void;
             }) => void;
+            setUseWrapMode: boolean;
         };
         callbacks: {
             focus: () => any;

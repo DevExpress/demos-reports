@@ -1,7 +1,7 @@
 ﻿/**
 * DevExpress Analytics (js\dx-analytics-core.js)
-* Version:  26.1.4
-* Build date: Jul 27, 2026
+* Version:  26.1.5
+* Build date: Sep 14, 2026
 * Copyright (c) 2012 - 2026 Developer Express Inc. ALL RIGHTS RESERVED
 * License: https://www.devexpress.com/Support/EULAs/universal.xml
 */
@@ -291,6 +291,7 @@ __webpack_require__.d(analytics_internal_namespaceObject, {
   isNumeric: () => (isNumeric),
   isPlainObject: () => (isPlainObject),
   isPromise: () => (isPromise),
+  isValidNameSymbols: () => (isValidNameSymbols),
   jqueryStatic: () => (jqueryStatic),
   knockoutArrayWrapper: () => (knockoutArrayWrapper),
   koUtils: () => (koUtils),
@@ -302,6 +303,7 @@ __webpack_require__.d(analytics_internal_namespaceObject, {
   locationFake: () => (locationFake),
   messages: () => (messages),
   minHeightWithoutScroll: () => (minHeightWithoutScroll),
+  nameRequiredValidationRule: () => (nameRequiredValidationRule),
   nameValidationRules: () => (nameValidationRules),
   noDataText: () => (noDataText),
   objectsVisitor: () => (objectsVisitor),
@@ -446,7 +448,10 @@ __webpack_require__.d(analytics_widgets_internal_namespaceObject, {
   createDateEditor: () => (createDateEditor),
   createExpressionEditorCollectionToolOptions: () => (createExpressionEditorCollectionToolOptions),
   createFunctionCompletion: () => (createFunctionCompletion),
+  createGuidRequiredValidationRules: () => (createGuidRequiredValidationRules),
+  createGuidValidationRules: () => (createGuidValidationRules),
   createNumericEditor: () => (createNumericEditor),
+  createRequiredValidationRules: () => (createRequiredValidationRules),
   createTreeListEllipsisButtonViewModel: () => (createTreeListEllipsisButtonViewModel),
   createTreeListItemViewModel: () => (createTreeListItemViewModel),
   defaultFontSerialization: () => (defaultFontSerialization),
@@ -460,8 +465,6 @@ __webpack_require__.d(analytics_widgets_internal_namespaceObject, {
   getFromCache: () => (getFromCache),
   greaterOperatorsGroup: () => (greaterOperatorsGroup),
   groupOperatorsGroup: () => (groupOperatorsGroup),
-  guidRequiredValidationRules: () => (guidRequiredValidationRules),
-  guidValidationRules: () => (guidValidationRules),
   inOperatorsGroup: () => (inOperatorsGroup),
   initDisplayText: () => (initDisplayText),
   initTreeListBinding: () => (initTreeListBinding),
@@ -475,7 +478,6 @@ __webpack_require__.d(analytics_widgets_internal_namespaceObject, {
   operatorNames: () => (operatorNames),
   propertiesGridEditorsPaddingLeft: () => (propertiesGridEditorsPaddingLeft),
   registerBaseBinding: () => (registerBaseBinding),
-  requiredValidationRules: () => (requiredValidationRules),
   resetFunctionDisplay: () => (resetFunctionDisplay),
   setDefaultTreeListItemFactory: () => (setDefaultTreeListItemFactory),
   timeIntervalOperatorsGroup: () => (timeIntervalOperatorsGroup),
@@ -503,6 +505,7 @@ __webpack_require__.d(analytics_widgets_namespaceObject, {
   EditorTemplates: () => (EditorTemplates),
   EditorValidator: () => (EditorValidator),
   ExpressionEditor: () => (ExpressionEditor),
+  ExpressionEditorWordWrapModeEnabled: () => (ExpressionEditorWordWrapModeEnabled),
   FieldListEditor: () => (FieldListEditor),
   FilterEditor: () => (FilterEditor),
   FilterEditorHelper: () => (FilterEditorHelper),
@@ -3671,6 +3674,7 @@ class ToolbarItemElement extends ControlElementWithParentHighlight {
         this._toolbarItemModel = _toolbarItemModel;
         this._liveRegion = _liveRegion;
         this._moveFocusToSibling = _moveFocusToSibling;
+        this._borderCssClassName = ['dxd-border-accented'];
         this._selectBox = external_DevExpress_ui_dxSelectBox_default().getInstance(element.children[0]);
         this._menu = external_DevExpress_ui_dxMenu_default().getInstance(element.children[0]);
         if (this._menu) {
@@ -5029,7 +5033,7 @@ class WizardDragDropHandler extends DragDropHandler {
 ;// external "DevExpress.VERSION"
 const external_DevExpress_VERSION_namespaceObject = DevExpress.VERSION;
 ;// ./dist/analytics-version.js
-const version = '26.1.4';
+const version = '26.1.5';
 
 ;// ./dist/core/internal/dxtTemplate.js
 function dxtTemplate() {
@@ -5846,23 +5850,20 @@ class CssCalculator {
         return result;
     }
     createStrokeDashArray(style, width) {
-        if (style === 'Solid') {
-            return '';
-        }
-        else if (style === 'Dot') {
-            return [width, width * 2].join('px, ') + 'px';
-        }
-        else if (style === 'Dash') {
-            return [width * 4, width * 4].join('px, ') + 'px';
-        }
-        else if (style === 'DashDot') {
-            return [width * 4, width * 2, width, width * 2].join('px, ') + 'px';
-        }
-        else if (style === 'DashDotDot') {
-            return [width * 4, width * 2, width, width * 2, width, width * 2].join('px, ') + 'px';
-        }
-        else {
-            return '';
+        const buildStyleValue = (values) => {
+            return values.map(value => `${value * width}px`).join(', ');
+        };
+        switch (style) {
+            case 'Dot':
+                return buildStyleValue([1, 2]);
+            case 'Dash':
+                return buildStyleValue([3, 3]);
+            case 'DashDot':
+                return buildStyleValue([5, 3, 1, 3]);
+            case 'DashDotDot':
+                return buildStyleValue([5, 3, 1, 3, 1, 3]);
+            default:
+                return '';
         }
     }
     createWordWrap(wordwrap, multiline) {
@@ -5965,7 +5966,8 @@ class CssCalculator {
             return { 'strokeDasharray': dashArray };
         };
         this.strokeDashArrayWithWidth = () => {
-            const dashArray = this.createStrokeDashArray(currentMultiPlatformEngine.unwrap(control['lineStyle']) || '', currentMultiPlatformEngine.unwrap(control['width']) || '');
+            const width = this._getPixelValueFromUnit(currentMultiPlatformEngine.unwrap(control['width']) || '', control);
+            const dashArray = this.createStrokeDashArray(currentMultiPlatformEngine.unwrap(control['lineStyle']) || '', width);
             return { 'strokeDasharray': dashArray };
         };
         this.crossBandBorder = (position) => {
@@ -7526,21 +7528,37 @@ function _utils_blur(element) {
 ;// ./dist/core/internal/_validation.js
 
 const restrictedNames = ['Name', 'Version'];
-function validateName(nameCandidate) {
-    if (!nameCandidate)
-        return false;
+function isValidNameSymbols(nameCandidate) {
     const letter = '\\u0041-\\u005A\\u0061-\\u007A\\u00AA\\u00B5\\u00BA\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u02C1\\u02C6-\\u02D1\\u02E0-\\u02E4\\u02EC\\u02EE\\u0370-\\u0374\\u0376-\\u0377\\u037A-\\u037D\\u037F\\u0386\\u0388-\\u038A\\u038C\\u038E-\\u03A1\\u03A3-\\u03F5\\u03F7-\\u0481\\u048A-\\u052F\\u0531-\\u0556\\u0559\\u0561-\\u0587\\u05D0-\\u05EA\\u05F0-\\u05F2\\u0620-\\u064A\\u066E-\\u066F\\u0671-\\u06D3\\u06D5\\u06E5-\\u06E6\\u06EE-\\u06EF\\u06FA-\\u06FC\\u06FF\\u0710\\u0712-\\u072F\\u074D-\\u07A5\\u07B1\\u07CA-\\u07EA\\u07F4-\\u07F5\\u07FA\\u0800-\\u0815\\u081A\\u0824\\u0828\\u0840-\\u0858\\u08A0-\\u08B4\\u0904-\\u0939\\u093D\\u0950\\u0958-\\u0961\\u0971-\\u0980\\u0985-\\u098C\\u098F-\\u0990\\u0993-\\u09A8\\u09AA-\\u09B0\\u09B2\\u09B6-\\u09B9\\u09BD\\u09CE\\u09DC-\\u09DD\\u09DF-\\u09E1\\u09F0-\\u09F1\\u0A05-\\u0A0A\\u0A0F-\\u0A10\\u0A13-\\u0A28\\u0A2A-\\u0A30\\u0A32-\\u0A33\\u0A35-\\u0A36\\u0A38-\\u0A39\\u0A59-\\u0A5C\\u0A5E\\u0A72-\\u0A74\\u0A85-\\u0A8D\\u0A8F-\\u0A91\\u0A93-\\u0AA8\\u0AAA-\\u0AB0\\u0AB2-\\u0AB3\\u0AB5-\\u0AB9\\u0ABD\\u0AD0\\u0AE0-\\u0AE1\\u0AF9\\u0B05-\\u0B0C\\u0B0F-\\u0B10\\u0B13-\\u0B28\\u0B2A-\\u0B30\\u0B32-\\u0B33\\u0B35-\\u0B39\\u0B3D\\u0B5C-\\u0B5D\\u0B5F-\\u0B61\\u0B71\\u0B83\\u0B85-\\u0B8A\\u0B8E-\\u0B90\\u0B92-\\u0B95\\u0B99-\\u0B9A\\u0B9C\\u0B9E-\\u0B9F\\u0BA3-\\u0BA4\\u0BA8-\\u0BAA\\u0BAE-\\u0BB9\\u0BD0\\u0C05-\\u0C0C\\u0C0E-\\u0C10\\u0C12-\\u0C28\\u0C2A-\\u0C39\\u0C3D\\u0C58-\\u0C5A\\u0C60-\\u0C61\\u0C85-\\u0C8C\\u0C8E-\\u0C90\\u0C92-\\u0CA8\\u0CAA-\\u0CB3\\u0CB5-\\u0CB9\\u0CBD\\u0CDE\\u0CE0-\\u0CE1\\u0CF1-\\u0CF2\\u0D05-\\u0D0C\\u0D0E-\\u0D10\\u0D12-\\u0D3A\\u0D3D\\u0D4E\\u0D5F-\\u0D61\\u0D7A-\\u0D7F\\u0D85-\\u0D96\\u0D9A-\\u0DB1\\u0DB3-\\u0DBB\\u0DBD\\u0DC0-\\u0DC6\\u0E01-\\u0E30\\u0E32-\\u0E33\\u0E40-\\u0E46\\u0E81-\\u0E82\\u0E84\\u0E87-\\u0E88\\u0E8A\\u0E8D\\u0E94-\\u0E97\\u0E99-\\u0E9F\\u0EA1-\\u0EA3\\u0EA5\\u0EA7\\u0EAA-\\u0EAB\\u0EAD-\\u0EB0\\u0EB2-\\u0EB3\\u0EBD\\u0EC0-\\u0EC4\\u0EC6\\u0EDC-\\u0EDF\\u0F00\\u0F40-\\u0F47\\u0F49-\\u0F6C\\u0F88-\\u0F8C\\u1000-\\u102A\\u103F\\u1050-\\u1055\\u105A-\\u105D\\u1061\\u1065-\\u1066\\u106E-\\u1070\\u1075-\\u1081\\u108E\\u10A0-\\u10C5\\u10C7\\u10CD\\u10D0-\\u10FA\\u10FC-\\u1248\\u124A-\\u124D\\u1250-\\u1256\\u1258\\u125A-\\u125D\\u1260-\\u1288\\u128A-\\u128D\\u1290-\\u12B0\\u12B2-\\u12B5\\u12B8-\\u12BE\\u12C0\\u12C2-\\u12C5\\u12C8-\\u12D6\\u12D8-\\u1310\\u1312-\\u1315\\u1318-\\u135A\\u1380-\\u138F\\u13A0-\\u13F5\\u13F8-\\u13FD\\u1401-\\u166C\\u166F-\\u167F\\u1681-\\u169A\\u16A0-\\u16EA\\u16F1-\\u16F8\\u1700-\\u170C\\u170E-\\u1711\\u1720-\\u1731\\u1740-\\u1751\\u1760-\\u176C\\u176E-\\u1770\\u1780-\\u17B3\\u17D7\\u17DC\\u1820-\\u1877\\u1880-\\u18A8\\u18AA\\u18B0-\\u18F5\\u1900-\\u191E\\u1950-\\u196D\\u1970-\\u1974\\u1980-\\u19AB\\u19B0-\\u19C9\\u1A00-\\u1A16\\u1A20-\\u1A54\\u1AA7\\u1B05-\\u1B33\\u1B45-\\u1B4B\\u1B83-\\u1BA0\\u1BAE-\\u1BAF\\u1BBA-\\u1BE5\\u1C00-\\u1C23\\u1C4D-\\u1C4F\\u1C5A-\\u1C7D\\u1CE9-\\u1CEC\\u1CEE-\\u1CF1\\u1CF5-\\u1CF6\\u1D00-\\u1DBF\\u1E00-\\u1F15\\u1F18-\\u1F1D\\u1F20-\\u1F45\\u1F48-\\u1F4D\\u1F50-\\u1F57\\u1F59\\u1F5B\\u1F5D\\u1F5F-\\u1F7D\\u1F80-\\u1FB4\\u1FB6-\\u1FBC\\u1FBE\\u1FC2-\\u1FC4\\u1FC6-\\u1FCC\\u1FD0-\\u1FD3\\u1FD6-\\u1FDB\\u1FE0-\\u1FEC\\u1FF2-\\u1FF4\\u1FF6-\\u1FFC\\u2071\\u207F\\u2090-\\u209C\\u2102\\u2107\\u210A-\\u2113\\u2115\\u2119-\\u211D\\u2124\\u2126\\u2128\\u212A-\\u212D\\u212F-\\u2139\\u213C-\\u213F\\u2145-\\u2149\\u214E\\u2183-\\u2184\\u2C00-\\u2C2E\\u2C30-\\u2C5E\\u2C60-\\u2CE4\\u2CEB-\\u2CEE\\u2CF2-\\u2CF3\\u2D00-\\u2D25\\u2D27\\u2D2D\\u2D30-\\u2D67\\u2D6F\\u2D80-\\u2D96\\u2DA0-\\u2DA6\\u2DA8-\\u2DAE\\u2DB0-\\u2DB6\\u2DB8-\\u2DBE\\u2DC0-\\u2DC6\\u2DC8-\\u2DCE\\u2DD0-\\u2DD6\\u2DD8-\\u2DDE\\u2E2F\\u3005-\\u3006\\u3031-\\u3035\\u303B-\\u303C\\u3041-\\u3096\\u309D-\\u309F\\u30A1-\\u30FA\\u30FC-\\u30FF\\u3105-\\u312D\\u3131-\\u318E\\u31A0-\\u31BA\\u31F0-\\u31FF\\u3400-\\u4DB5\\u4E00-\\u9FD5\\uA000-\\uA48C\\uA4D0-\\uA4FD\\uA500-\\uA60C\\uA610-\\uA61F\\uA62A-\\uA62B\\uA640-\\uA66E\\uA67F-\\uA69D\\uA6A0-\\uA6E5\\uA717-\\uA71F\\uA722-\\uA788\\uA78B-\\uA7AD\\uA7B0-\\uA7B7\\uA7F7-\\uA801\\uA803-\\uA805\\uA807-\\uA80A\\uA80C-\\uA822\\uA840-\\uA873\\uA882-\\uA8B3\\uA8F2-\\uA8F7\\uA8FB\\uA8FD\\uA90A-\\uA925\\uA930-\\uA946\\uA960-\\uA97C\\uA984-\\uA9B2\\uA9CF\\uA9E0-\\uA9E4\\uA9E6-\\uA9EF\\uA9FA-\\uA9FE\\uAA00-\\uAA28\\uAA40-\\uAA42\\uAA44-\\uAA4B\\uAA60-\\uAA76\\uAA7A\\uAA7E-\\uAAAF\\uAAB1\\uAAB5-\\uAAB6\\uAAB9-\\uAABD\\uAAC0\\uAAC2\\uAADB-\\uAADD\\uAAE0-\\uAAEA\\uAAF2-\\uAAF4\\uAB01-\\uAB06\\uAB09-\\uAB0E\\uAB11-\\uAB16\\uAB20-\\uAB26\\uAB28-\\uAB2E\\uAB30-\\uAB5A\\uAB5C-\\uAB65\\uAB70-\\uABE2\\uAC00-\\uD7A3\\uD7B0-\\uD7C6\\uD7CB-\\uD7FB\\uF900-\\uFA6D\\uFA70-\\uFAD9\\uFB00-\\uFB06\\uFB13-\\uFB17\\uFB1D\\uFB1F-\\uFB28\\uFB2A-\\uFB36\\uFB38-\\uFB3C\\uFB3E\\uFB40-\\uFB41\\uFB43-\\uFB44\\uFB46-\\uFBB1\\uFBD3-\\uFD3D\\uFD50-\\uFD8F\\uFD92-\\uFDC7\\uFDF0-\\uFDFB\\uFE70-\\uFE74\\uFE76-\\uFEFC\\uFF21-\\uFF3A\\uFF41-\\uFF5A\\uFF66-\\uFFBE\\uFFC2-\\uFFC7\\uFFCA-\\uFFCF\\uFFD2-\\uFFD7\\uFFDA-\\uFFDC';
     const pattern = new RegExp('^[' + letter + '_][' + letter + '_\\d]*$');
-    return pattern.test(nameCandidate) && restrictedNames.every(name => nameCandidate != name);
+    return pattern.test(nameCandidate);
+}
+function isReservedName(nameCandidate) {
+    return restrictedNames.includes(nameCandidate);
+}
+function validateName(nameCandidate) {
+    return !!nameCandidate && isValidNameSymbols(nameCandidate) && !isReservedName(nameCandidate);
 }
 function replaceInvalidSymbols(text) {
     return text.replace(/[\W_]+/g, '_');
 }
-const nameValidationRules = [{
+const nameRequiredValidationRule = {
+    type: 'required',
+    get message() {
+        return localization_utils_getLocalization('Name is required and should be a valid identifier.', 'AnalyticsCoreStringId.NameIsRequired_Error');
+    }
+};
+const nameValidationRules = [nameRequiredValidationRule, {
         type: 'custom',
-        validationCallback: (options) => { return validateName(options.value); },
+        validationCallback: (options) => { return isValidNameSymbols(options.value); },
         get message() {
-            return localization_utils_getLocalization('Name is required and should be a valid identifier.', 'AnalyticsCoreStringId.NameIsRequired_Error');
+            return localization_utils_getLocalization('Name must start with a letter or underscore and contain only letters, numbers, and underscores.', 'AnalyticsCoreStringId.NameHasInvalidFormat_Error');
+        }
+    }, {
+        type: 'custom',
+        validationCallback: (options) => { return !isReservedName(options.value); },
+        get message() {
+            return localization_utils_getLocalization('This name is reserved. Enter a different name.', 'AnalyticsCoreStringId.NameIsReserved_Error');
         }
     }];
 
@@ -10257,26 +10275,32 @@ function validateNullableGuid(guid) {
     return !guid || RegexGuid(guid);
 }
 const guidValidationMessage = () => localization_utils_getLocalization('Guid is required and should have a valid format.', 'AnalyticsCoreStringId.GuidIsRequired_Error');
-const guidValidationRules = [{
-        type: 'custom',
-        validationCallback: (options) => { return validateNullableGuid(options.value); },
-        get message() {
-            return guidValidationMessage();
-        }
-    }];
-const guidRequiredValidationRules = [{
-        type: 'required',
-        get message() {
-            return guidValidationMessage();
-        }
-    }];
-const requiredValidationRule = {
-    type: 'required',
-    get message() {
-        return localization_utils_getLocalization('The value cannot be empty', 'AnalyticsCoreStringId.ParametersPanel_DateTimeValueValidationError');
-    }
-};
-const requiredValidationRules = [requiredValidationRule];
+const guidValidationCallback = (options) => { return validateNullableGuid(options.value); };
+function createGuidValidationRules() {
+    return [{
+            type: 'custom',
+            validationCallback: guidValidationCallback,
+            get message() {
+                return guidValidationMessage();
+            }
+        }];
+}
+function createGuidRequiredValidationRules() {
+    return [{
+            type: 'required',
+            get message() {
+                return guidValidationMessage();
+            }
+        }];
+}
+function createRequiredValidationRules() {
+    return [{
+            type: 'required',
+            get message() {
+                return localization_utils_getLocalization('The value cannot be empty', 'AnalyticsCoreStringId.ParametersPanel_DateTimeValueValidationError');
+            }
+        }];
+}
 
 ;// ./dist/widgets/criteria/operators/value.js
 
@@ -18883,7 +18907,7 @@ external_DevExpress_registerComponent_default()('dxFieldListPicker', dxFieldList
 
 class RequiredNullableEditor extends Editor {
     _getEditorValidationRules() {
-        return (super._getEditorValidationRules() || []).concat(this.nullable ? [] : requiredValidationRules);
+        return (super._getEditorValidationRules() || []).concat(this.nullable ? [] : createRequiredValidationRules());
     }
     get nullable() {
         return koUtils.unwrap(this.editorOptions?.showClearButton);
@@ -22657,12 +22681,12 @@ SvgTemplatesEngine.addTemplates({
     'dxrd-svg-operations-add_datasource': '<svg data-bind="svgAttrs" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" x="0" y="0" viewBox="0 0 24 24" xml:space="preserve"><ellipse class="dxd-icon-fill" cx="8" cy="2" rx="6" ry="2"/><path class="dxd-icon-fill" d="M16 10c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6-2.7-6-6-6zm3 7h-2v2h-2v-2h-2v-2h2v-2h2v2h2v2zM8 13c-3.1 0-6-.9-6-2v5c0 1.1 2.9 2 6 2h.3c-.2-.6-.3-1.3-.3-2 0-1.1.2-2.1.6-3H8zM14 8.3V4c0 1.1-2.9 2-6 2s-6-.9-6-2v5c0 1.1 2.9 2 6 2 .6 0 1.3 0 1.9-.1 1-1.3 2.5-2.2 4.1-2.6z"/></svg>',
     'dxrd-svg-operations-add_query': '<svg data-bind="svgAttrs" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path class="dxd-icon-fill" d="M0 0h11v2H0V0Zm0 3h2v2H0V3Zm5 0H3v2h2V3Zm1 0h2v2H6V3Zm5 0H9v2h2V3ZM0 6h2v2H0V6Zm5 0H3v2h2V6ZM0 9h2v2H0V9Zm5 0H3v2h2V9Zm3-1V6h2v2h2v2h-2v2H8v-2H6V8h2Z"/></svg>',
     'dxrd-svg-operations-ai': '<svg data-bind="svgAttrs" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><defs></defs><path class="dxd-icon-fill" d="M11.71 8.25C10.61 14.37 6.37 18.61.24 19.72c-.33.06-.33.51 0 .57 6.12 1.1 10.36 5.34 11.47 11.47.06.33.51.33.57 0 1.1-6.12 5.34-10.36 11.47-11.47.33-.06.33-.51 0-.57-6.12-1.1-10.36-5.34-11.47-11.47a.288.288 0 0 0-.57 0ZM23.81.17c-.74 4.08-3.56 6.91-7.64 7.64-.22.04-.22.34 0 .38 4.08.74 6.91 3.56 7.64 7.64.04.22.34.22.38 0 .74-4.08 3.56-6.91 7.64-7.64.22-.04.22-.34 0-.38-4.08-.74-6.91-3.56-7.64-7.64a.192.192 0 0 0-.38 0Z" fill="#FFF"/></svg>',
-    'dxrd-svg-operations-arrowdown': '<svg data-bind="svgAttrs" width="10" height="6" xmlns="http://www.w3.org/2000/svg"><path class="dxd-icon-fill" d="M.23.226a.75.75 0 0 1 1.058.02l3.704 3.927L8.696.245a.749.749 0 1 1 1.079 1.038L5.53 5.77a.749.749 0 0 1-1.078 0L.209 1.283A.748.748 0 0 1 .23.226Z" fill="#606060"/></svg>',
-    'dxrd-svg-operations-arrowup': '<svg data-bind="svgAttrs" version="1.1" id="Layer_1" width="10" height="6" xmlns="http://www.w3.org/2000/svg"><path class="dxd-icon-fill" d="M9.77 5.774a.75.75 0 0 1-1.058-.02L5.008 1.828 1.304 5.755A.749.749 0 1 1 .225 4.717L4.47.23a.749.749 0 0 1 1.078 0l4.244 4.488a.748.748 0 0 1-.02 1.057Z" fill="#606060"/></svg>',
+    'dxrd-svg-operations-arrowdown': '<svg data-bind="svgAttrs" width="10" height="6" viewBox="0 0 10 6" xmlns="http://www.w3.org/2000/svg"><path class="dxd-icon-fill" d="M.23.226a.75.75 0 0 1 1.058.02l3.704 3.927L8.696.245a.749.749 0 1 1 1.079 1.038L5.53 5.77a.749.749 0 0 1-1.078 0L.209 1.283A.748.748 0 0 1 .23.226Z" fill="#606060"/></svg>',
+    'dxrd-svg-operations-arrowup': '<svg data-bind="svgAttrs" version="1.1" id="Layer_1" width="10" height="6" viewBox="0 0 10 6" xmlns="http://www.w3.org/2000/svg"><path class="dxd-icon-fill" d="M9.77 5.774a.75.75 0 0 1-1.058-.02L5.008 1.828 1.304 5.755A.749.749 0 1 1 .225 4.717L4.47.23a.749.749 0 0 1 1.078 0l4.244 4.488a.748.748 0 0 1-.02 1.057Z" fill="#606060"/></svg>',
     'dxrd-svg-operations-ascending': '<svg data-bind="svgAttrs" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" x="0" y="0" viewBox="0 0 24 24" xml:space="preserve"><path class="dxd-icon-fill" d="M12 0 6 6h4v16h4V6h4z"/></svg>',
     'dxrd-svg-operations-descending': '<svg data-bind="svgAttrs" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" x="0" y="0" viewBox="0 0 24 24" xml:space="preserve"><path class="dxd-icon-fill" d="m12 22 6-6h-4V0h-4v16H6z"/></svg>',
     'dxrd-svg-operations-edit': '<svg data-bind="svgAttrs" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">\<path class="dxd-icon-fill" d="M0 12h2.667L0 9.333V12Zm1.333-4L4 10.667l5.333-5.334-2.666-2.666L1.333 8Zm8-8L8 1.333 10.667 4 12 2.667 9.333 0Z"/></svg>',
-    'dxrd-svg-operations-editCriteria': '<svg data-bind="svgAttrs" width="12" height="12" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.632 0C3.084 0 1 1.029 1 2.286v6.857c0 1.257 2.084 2.286 4.632 2.286.613 0 1.2-.06 1.736-.168v-1.073L5.053 7.902v-2.76h5.21V2.287C10.263 1.029 8.18 0 5.632 0Zm0 3.429c-2.258 0-3.474-.858-3.474-1.143 0-.286 1.216-1.143 3.474-1.143 2.257 0 3.473.857 3.473 1.143 0 .285-1.216 1.143-3.473 1.143Zm.579 4V6.286H12v1.143L9.684 9.714V12H8.526V9.714L6.211 7.43Z" class="dxd-icon-fill"/></svg>',
+    'dxrd-svg-operations-editCriteria': '<svg data-bind="svgAttrs" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.632 0C3.084 0 1 1.029 1 2.286v6.857c0 1.257 2.084 2.286 4.632 2.286.613 0 1.2-.06 1.736-.168v-1.073L5.053 7.902v-2.76h5.21V2.287C10.263 1.029 8.18 0 5.632 0Zm0 3.429c-2.258 0-3.474-.858-3.474-1.143 0-.286 1.216-1.143 3.474-1.143 2.257 0 3.473.857 3.473 1.143 0 .285-1.216 1.143-3.473 1.143Zm.579 4V6.286H12v1.143L9.684 9.714V12H8.526V9.714L6.211 7.43Z" class="dxd-icon-fill"/></svg>',
     'dxrd-svg-operations-movedown': '<svg data-bind="svgAttrs" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" x="0" y="0" viewBox="0 0 24 24" xml:space="preserve"><path class="dxd-icon-fill" d="m6 10 6 6 6-6V6l-6 6-6-6z"/></svg>',
     'dxrd-svg-operations-moveleft': '<svg data-bind="svgAttrs" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" x="0" y="0" viewBox="0 0 24 24" xml:space="preserve"><path class="dxd-icon-fill" d="m12 6-6 6 6 6h4l-6-6 6-6z"/></svg>',
     'dxrd-svg-operations-moveleft_all': '<svg data-bind="svgAttrs" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" x="0" y="0" viewBox="0 0 24 24" xml:space="preserve"><path class="dxd-icon-fill" d="M12 6H8l-6 6 6 6h4l-6-6z"/><path class="dxd-icon-fill" d="M20 6h-4l-6 6 6 6h4l-6-6z"/></svg>',
@@ -22700,7 +22724,7 @@ SvgTemplatesEngine.addTemplates({
     'dxrd-svg-queryBuilder-select_statment': '<svg data-bind="svgAttrs" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" x="0" y="0" viewBox="0 0 24 24" xml:space="preserve"><path class="dxd-icon-fill" d="m18 4-4-4v4zM21.7 22.3l-4.5-4.5c.5-.8.8-1.8.8-2.8 0-2.8-2.2-5-5-5s-5 2.2-5 5 2.2 5 5 5c1 0 2-.3 2.8-.8l4.5 4.5c.4.4 1 .4 1.4 0s.4-1 0-1.4zM13.1 18c-1.7 0-3-1.3-3-3s1.3-3 3-3 3 1.3 3 3-1.4 3-3 3z"/><path class="dxd-icon-fill" d="M13 8c2 0 3.7.8 5 2.1V6h-6V0H0v20h8.1C6.8 18.7 6 17 6 15c0-3.9 3.1-7 7-7z"/></svg>',
     'dxrd-svg-queryBuilder-sorting_asc': '<svg data-bind="svgAttrs" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" x="0" y="0" viewBox="0 0 24 24" xml:space="preserve"><path class="dxd-icon-fill" d="M8 0H4v14H2l4 8 4-8H8zM14 14h6l-6 6v2h8v-2h-6l6-6v-2h-8zM19.4 0 14 10h2l.9-2H20v2h2V0h-2.6zm.6 6h-1.9L20 2v4z"/></svg>',
     'dxrd-svg-queryBuilder-sorting_desc': '<svg data-bind="svgAttrs" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" x="0" y="0" viewBox="0 0 24 24" xml:space="preserve"><path class="dxd-icon-fill" d="M8 0H4v14H2l4 8 4-8H8zM22 0h-8v2h6l-6 6v2h8V8h-6l6-6zM14 22h2l.9-2H20v2h2V12h-2.6L14 22zm6-4h-1.9l1.9-4v4z"/></svg>',
-    'dxrd-svg-tabs-description_info': '<svg data-bind="svgAttrs" xmlns="http://www.w3.org/2000/svg" class="dxd-description_info-icon dxd-icon-highlighted" width="18" height="18" fill="none"><circle class="dxd-description_info-icon-fill dxd-icon-fill" cx="9" cy="9" r="9"/><path class="dxd-description_info-icon-path-fill" d="m7.573 14 1.182-7.09h1.67L9.246 14H7.572Zm2.262-8.107a.893.893 0 0 1-.665-.267.78.78 0 0 1-.23-.642.94.94 0 0 1 .336-.642c.207-.178.442-.267.707-.267.268 0 .487.089.66.267a.78.78 0 0 1 .23.642.916.916 0 0 1-.336.642 1.032 1.032 0 0 1-.702.267Z"/></svg>',
+    'dxrd-svg-tabs-description_info': '<svg data-bind="svgAttrs" xmlns="http://www.w3.org/2000/svg" class="dxd-description_info-icon dxd-icon-highlighted" width="18" height="18" viewBox="0 0 18 18" fill="none"><circle class="dxd-description_info-icon-fill dxd-icon-fill" cx="9" cy="9" r="9"/><path class="dxd-description_info-icon-path-fill" d="m7.573 14 1.182-7.09h1.67L9.246 14H7.572Zm2.262-8.107a.893.893 0 0 1-.665-.267.78.78 0 0 1-.23-.642.94.94 0 0 1 .336-.642c.207-.178.442-.267.707-.267.268 0 .487.089.66.267a.78.78 0 0 1 .23.642.916.916 0 0 1-.336.642 1.032 1.032 0 0 1-.702.267Z"/></svg>',
     'dxrd-svg-tabs-properties': '<svg data-bind="svgAttrs" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" x="0" y="0" viewBox="0 0 24 24" xml:space="preserve"><path class="dxd-icon-fill" d="m21.6 10.4-2.6-.3c-.2 0-.3-.2-.4-.3-.1-.3-.2-.6-.3-.8-.1-.2-.1-.4 0-.5l1.5-2.1c.1-.2.1-.5 0-.7l-1.5-1.5c-.2-.2-.5-.2-.7 0l-2.1 1.5c-.2.1-.4.1-.5 0-.3-.1-.5-.2-.8-.3-.1-.1-.2-.2-.3-.4l-.4-2.5c0-.2-.2-.4-.5-.4h-2.1c-.2 0-.5.2-.5.4L10.1 5c0 .2-.2.3-.3.4l-.9.3c-.2.1-.4.1-.5 0L6.3 4.1c-.2-.1-.4-.1-.6.1L4.2 5.7c-.2.2-.2.4-.1.6l1.5 2.1c.1.2.1.4 0 .5 0 .3-.1.6-.2.8-.1.2-.2.3-.4.4l-2.5.4c-.2 0-.4.2-.4.5v2.1c0 .2.2.5.4.5l2.5.3c.2 0 .3.2.4.3.1.3.2.6.3.8.1.2.1.4 0 .5l-1.5 2.1c-.1.2-.1.5 0 .7l1.5 1.5c.2.2.5.2.7 0l2.1-1.5c.2-.1.4-.1.5 0 .3.1.5.2.8.3.2.1.3.2.3.4.1.6.3 1.9.4 2.6 0 .2.2.4.5.4h2.1c.2 0 .5-.2.5-.4l.4-2.5c0-.2.2-.3.3-.4.3-.1.6-.2.8-.3.2-.1.4-.1.5 0l2.1 1.5c.2.1.5.1.7 0l1.5-1.5c.2-.2.2-.5 0-.7l-1.5-2.1c-.1-.2-.1-.4 0-.5.1-.3.2-.5.3-.8.1-.2.2-.3.4-.3l2.5-.4c.2 0 .4-.2.4-.5V11c0-.3-.2-.5-.4-.6zM12 17c-2.8 0-5-2.2-5-5s2.2-5 5-5 5 2.2 5 5-2.2 5-5 5zm2-5c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z"/></svg>',
     'dxrd-svg-toolbar-copy': '<svg data-bind="svgAttrs" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" x="0" y="0" viewBox="0 0 24 24" xml:space="preserve"><path class="dxd-icon-fill" d="M4 14h2v2H3c-.5 0-1-.5-1-1V3c0-.5.5-1 1-1h12c.5 0 1 .5 1 1v3h-2V4H4v10zm18-5v12c0 .5-.5 1-1 1H9c-.5 0-1-.5-1-1V9c0-.5.5-1 1-1h12c.5 0 1 .5 1 1zm-2 1H10v10h10V10z"/></svg>',
     'dxrd-svg-toolbar-cut': '<svg data-bind="svgAttrs" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" x="0" y="0" viewBox="0 0 24 24" xml:space="preserve"><path class="dxd-icon-fill" d="m20.4 5.6-5 5-2-2 6.4-6.4c.4-.4 1.2-.1 1.2.5v1.5c0 .5-.2 1-.6 1.4zM22 17.5c.3 2.6-1.9 4.9-4.5 4.5-1.6-.2-2.9-1.4-3.3-3-.2-.9-.1-1.8.2-2.6L12 14l-2.4 2.4c.4.7.5 1.6.3 2.6-.4 1.6-1.7 2.8-3.3 3-2.6.3-4.9-1.9-4.5-4.5.2-1.6 1.4-2.9 3-3.3.9-.3 1.8-.2 2.5.2L10 12 3.6 5.6c-.4-.4-.6-.9-.6-1.4V2.7c0-.6.8-.9 1.2-.5l12.1 12.1c.8-.3 1.7-.5 2.6-.2 1.6.4 2.9 1.8 3.1 3.4zM8 18c0-1.1-.9-2-2-2s-2 .9-2 2 .9 2 2 2 2-.9 2-2zm12 0c0-1.1-.9-2-2-2s-2 .9-2 2 .9 2 2 2 2-.9 2-2z"/></svg>',
@@ -22715,7 +22739,7 @@ SvgTemplatesEngine.addTemplates({
     'dxrd-svg-wizard-expressions': '<svg data-bind="svgAttrs" version="1.1" id="Tabs" xmlns="http://www.w3.org/2000/svg" x="0" y="0" viewBox="0 0 32 32" xml:space="preserve"><path class="dxd-icon-fill" d="M25.6 4.3c-.3-.4-.7-.7-1.2-1-.6-.2-1.3-.3-2.2-.3-1.8 0-3.3.4-4.5 1.3s-1.9 2.1-2.2 3.6l-.3 1.4-.4 1.7h-2.4l-.4 2h2.4L12 24.3c-.2 1.3-.7 1.9-1.3 1.9-.2 0-.3 0-.4-.1l-.4-.4c-.3-.4-.6-.7-.7-.8-.2-.2-.4-.3-.6-.4-.2-.1-.4-.1-.7-.1-.5 0-1 .2-1.3.6-.4.4-.6.9-.6 1.5 0 .7.4 1.3 1.2 1.9.6.4 1.5.6 2.6.6s2.1-.2 2.9-.6 1.5-1.1 2.2-2c.6-.9 1.1-2.1 1.4-3.4l2.3-9.9H21l.5-2H19l.4-1.7.4-1.6c.2-.8.3-1.2.5-1.5.2-.3.5-.5.9-.5.2 0 .3 0 .5.1s.4.3.7.7c.3.3.6.6.9.7s.6.2.9.2c.4 0 .7-.1 1-.2.3-.2.5-.4.7-.7.2-.3.3-.7.3-1-.2-.5-.3-.9-.6-1.3z" id="Expressions"/></svg>',
     'dxrd-svg-wizard-FederationDataSource': '<svg data-bind="svgAttrs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" xml:space="preserve"><g class="dxrd-svg-st1"><ellipse class="dxrd-svg-black" cx="32" cy="11" rx="21" ry="5"/></g><path class="dxrd-svg-blue" d="M63 44H51V32h-6v12H33v6h12v12h6V50h12z"/><g class="dxrd-svg-st2"><path class="dxrd-svg-black" d="M65 55c-3.6 0-7-.2-10-.6V66H44v18c0 2.8 9.4 5 21 5s21-2.2 21-5V50c0 2.8-9.4 5-21 5z"/></g><g class="dxrd-svg-st1"><path class="dxrd-svg-black" d="M67 43v10c10.7-.2 19-2.4 19-5s-8.3-4.7-19-5z"/></g><g class="dxrd-svg-st2"><path class="dxrd-svg-black" d="M32 18c-11.6 0-21-2.2-21-5v34c0 2.5 8.9 4.6 19 5V41h12V29h11V13c0 2.8-9.4 5-21 5z"/></g><path class="dxrd-svg-blue" d="M65 43H53V31h-9v12H32v9h12v12h9V52h12z"/></svg>',
     'dxrd-svg-wizard-JsonDataSource': '<svg data-bind="svgAttrs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" xml:space="preserve"><g class="dxrd-svg-st2"><path class="dxrd-svg-black" d="M63.6 72.5c-.1-.2-.2-.4-.3-.7-.5-1.4-.8-2.9-.9-4.4-.1-2.3.4-4.5 1.5-6.3.7-1.2 1.7-2.4 2.8-3.2.4-.3 1.1-.7 1.1-.7s.5-.3 1.2-.6c.1.1.2.1.3.2 1.7 1.2 3 2.8 3.9 4.6.3.7.6 1.5.8 2.3v2.8c0 2.4-4.1 4.6-10.4 6zm-20.4-2.2c-.3-2.6-.3-5.3.2-7.9.4-2.3 1.2-4.5 2.2-6.5C48.9 49.5 55 44.6 62 42.8c1.4-.4 4.2-.8 5.8-.8 1.4 0 4.4.6 6.2 1.4v-22c0 4.2-11.6 7.6-26 7.6s-26-3.4-26-7.6v45c0 3.8 9.5 6.9 21.9 7.5-.3-1.2-.5-2.4-.7-3.6z"/></g><g class="dxrd-svg-st1"><ellipse class="dxrd-svg-black" cx="48" cy="19.5" rx="26" ry="7.5"/></g><path class="dxrd-svg-blue" d="M91.8 70.1c-.3 2.4-1 4.8-2 7-1.2 2.5-2.9 4.9-4.9 6.9-2.2 2.1-4.8 4-7.6 5.2-2 .9-5.5 1.9-9.1 1.9-1 0-3.3-.6-4.7-1.1-2.4-1-4.6-2.5-6.3-4.5-1.1-1.3-2-2.8-2.7-4.3-1.1-2.5-1.7-5.3-1.9-8.1-.1-2-.1-4 .2-5.9.5-3.1 1.8-6.2 4.1-8.5.4-.4 1.9-1.6 2.7-2.1.8-.5 3.2-1.3 4.5-1.4 1-.1 2 0 2.9.2-.5.3-1 .6-1.4 1-1.4 1-2.5 2.3-3.3 3.8-1.3 2.2-1.8 4.8-1.7 7.3 0 1.7.4 3.5 1 5.1.5 1.3 1.2 2.5 2.1 3.5.7.8 1.6 1.6 2.5 2.2.5.3 1 .7 1.6.9.5.2 1 .4 1.5.5 3.1.7 6.4-.4 8.9-2.2 1.5-1.1 2.8-2.6 3.8-4.2 1.4-2.2 2.2-4.7 2.5-7.2.2-1.5.2-3 .1-4.5-.1-2-.4-4.1-1-6-.8-3-2.3-5.8-4.4-8.1-.9-1-2-1.9-3.1-2.7-.2-.2-.5-.3-.7-.4-.2-.1-.5-.3-.7-.4 1.5.4 3 1 4.4 1.7 3.9 2 7.3 4.9 9.6 8.6.7 1 1.2 2.1 1.7 3.2.8 1.8 1.3 3.7 1.6 5.6.1 2.3.1 4.7-.2 7zm-40.1 8.6c-.6-2-.9-4.2-1-6.5-.1-1.5-.1-2.9.1-4.3.3-2.8 1.1-5.4 2.4-7.5 1-1.7 2.3-3.2 3.8-4.4 1.1-.8 2.3-1.5 3.5-1.9 1.3-.5 2.6-.7 4-.7.5 0 1.1 0 1.6.1.7.1 1.4.3 2 .5.1.1.7.3.8.4.4.2.9.5 1.5.9 2 1.4 3.5 3.2 4.5 5.4.9 1.9 1.3 4 1.4 6.3 0 2.4-.4 4.7-1.4 6.7-.8 1.7-2 3.3-3.4 4.5 2.2-.2 4.5-1.2 6.4-3 .4-.3.7-.7 1-1.1.5-.6.9-1.1 1.2-1.5.4-.7.8-1.4 1.2-2.2.5-1.1.8-2.1 1-3.1.3-1.7.4-3.5.3-5.8-.3-4.3-1.5-8-3.5-10.9-.4-.6-.7-1-1-1.4-.6-.7-1.3-1.3-2-2-.8-.7-1.1-.9-2.5-1.7S69 44 67.8 44c-1.3 0-4 .3-5.4.6-6.5 1.7-12 6.2-15 12.2-.9 1.9-1.6 3.9-2 6-.5 2.4-.5 4.8-.2 7.2.2 2 .7 3.9 1.5 5.7.4 1 .9 2.1 1.6 3.1 1.8 2.9 4.2 5.3 7.2 7.2-1.7-1.9-3-4.5-3.8-7.3z"/></svg>',
-    'dxrd-svg-wizard-MongodbDataSource': '<svg data-bind="svgAttrs" width="96" height="96" fill="none" xmlns="http://www.w3.org/2000/svg"><path class="dxrd-svg-st2 dxrd-svg-black" clip-rule="evenodd" d="M22 21.4c0 4.2 11.6 7.6 26 7.6s26-3.4 26-7.6v22.695c-.37-.467-.758-.937-1.163-1.41a91.884 91.884 0 0 1-4.761-5.655.111.111 0 0 0-.151 0 91.807 91.807 0 0 1-4.761 5.654c-11.19 13.072-8.912 23.772-4.71 30.68C55.258 73.772 51.722 74 48 74c-14.4 0-26-3.4-26-7.6v-45Z"/><path class="dxrd-svg-st1 dxrd-svg-black" d="M48 27c14.36 0 26-3.358 26-7.5 0-4.142-11.64-7.5-26-7.5s-26 3.358-26 7.5c0 4.142 11.64 7.5 26 7.5Z"/><path class="dxrd-svg-blue" d="M72.093 45.016a80.401 80.401 0 0 1-4.029-4.99.091.091 0 0 0-.128 0 80.442 80.442 0 0 1-4.028 4.99c-16.973 20.674 2.673 34.627 2.673 34.627l.165.105c.147 2.153.513 5.252.513 5.252H68.724s.366-3.081.512-5.252l.165-.122c.018.017 19.665-13.936 2.692-34.61ZM67.99 79.328s-.879-.718-1.117-1.085v-.035l1.062-22.514c0-.07.11-.07.11 0l1.062 22.513v.036c-.238.367-1.117 1.085-1.117 1.085Z"/></svg>',
+    'dxrd-svg-wizard-MongodbDataSource': '<svg data-bind="svgAttrs" width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg"><path class="dxrd-svg-st2 dxrd-svg-black" clip-rule="evenodd" d="M22 21.4c0 4.2 11.6 7.6 26 7.6s26-3.4 26-7.6v22.695c-.37-.467-.758-.937-1.163-1.41a91.884 91.884 0 0 1-4.761-5.655.111.111 0 0 0-.151 0 91.807 91.807 0 0 1-4.761 5.654c-11.19 13.072-8.912 23.772-4.71 30.68C55.258 73.772 51.722 74 48 74c-14.4 0-26-3.4-26-7.6v-45Z"/><path class="dxrd-svg-st1 dxrd-svg-black" d="M48 27c14.36 0 26-3.358 26-7.5 0-4.142-11.64-7.5-26-7.5s-26 3.358-26 7.5c0 4.142 11.64 7.5 26 7.5Z"/><path class="dxrd-svg-blue" d="M72.093 45.016a80.401 80.401 0 0 1-4.029-4.99.091.091 0 0 0-.128 0 80.442 80.442 0 0 1-4.028 4.99c-16.973 20.674 2.673 34.627 2.673 34.627l.165.105c.147 2.153.513 5.252.513 5.252H68.724s.366-3.081.512-5.252l.165-.122c.018.017 19.665-13.936 2.692-34.61ZM67.99 79.328s-.879-.718-1.117-1.085v-.035l1.062-22.514c0-.07.11-.07.11 0l1.062 22.513v.036c-.238.367-1.117 1.085-1.117 1.085Z"/></svg>',
     'dxrd-svg-wizard-NoDataSource': '<svg data-bind="svgAttrs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" xml:space="preserve"><g class="dxrd-svg-st2"><path class="dxrd-svg-black" d="M44 68c0-12.2 9.8-22 22-22 1.4 0 2.7.1 4 .4v-24c0 4.2-11.6 7.6-26 7.6s-26-3.4-26-7.6v45c0 4.2 11.6 7.6 26 7.6h1.1c-.7-2.2-1.1-4.6-1.1-7z"/></g><g class="dxrd-svg-st1"><ellipse class="dxrd-svg-black" cx="44" cy="20.5" rx="26" ry="7.5"/></g><circle class="dxrd-svg-red" cx="66" cy="68" r="20"/><path class="dxrd-svg-white" d="M53.4 77.8C51.3 75.1 50 71.7 50 68c0-8.8 7.2-16 16-16 3.7 0 7.1 1.3 9.8 3.4L53.4 77.8zm25.2-19.6L56.2 80.6c2.7 2.1 6.1 3.4 9.8 3.4 8.8 0 16-7.2 16-16 0-3.7-1.3-7.1-3.4-9.8z"/></svg>',
     'dxrd-svg-wizard-ObjectDataSource': '<svg data-bind="svgAttrs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" xml:space="preserve"><g class="dxrd-svg-st2"><path class="dxrd-svg-black" d="M64.7 71H64V59h6v7.4c0 1.8-2 3.3-5.3 4.6zM52 52v7h12v-7H52zm-18 7h12V46h18v-7h6V21.4c0 4.2-11.6 7.6-26 7.6s-26-3.4-26-7.6v45c0 3.1 6.6 5.8 16 7V59z"/></g><g class="dxrd-svg-st1"><ellipse class="dxrd-svg-black" cx="44" cy="19.5" rx="26" ry="7.5"/></g><path class="dxrd-svg-blue" d="M82 41H66v7H48v13H36v26h26V75h13V57h7V41zm-9 32H62V61H50V50h16v7h7v16z"/></svg>',
     'dxrd-svg-wizard-SqlDataSource': '<svg data-bind="svgAttrs" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" xml:space="preserve"><g class="dxrd-svg-st2"><path class="dxrd-svg-black" d="M48 29c-14.4 0-26-3.4-26-7.6v45c0 4.2 11.6 7.6 26 7.6s26-3.4 26-7.6v-45c0 4.2-11.6 7.6-26 7.6z"/></g><g class="dxrd-svg-st1"><ellipse class="dxrd-svg-black" cx="48" cy="19.5" rx="26" ry="7.5"/></g></svg>',
@@ -23115,7 +23139,7 @@ external_ko_namespaceObject.bindingHandlers['service'] = {
 
 class GuidEditor extends Editor {
     _getEditorValidationRules() {
-        return (super._getEditorValidationRules() || []).concat(guidValidationRules).concat((this.nullable) ? [] : guidRequiredValidationRules);
+        return (super._getEditorValidationRules() || []).concat(createGuidValidationRules()).concat((this.nullable) ? [] : createGuidRequiredValidationRules());
     }
     get nullable() {
         return koUtils.unwrap(this.editorOptions?.showClearButton);
@@ -23204,7 +23228,12 @@ external_ko_namespaceObject.bindingHandlers['dxEditorPopupTemplate'] = {
     }
 };
 
+;// ./dist/widgets/expressioneditor/settings.js
+
+const ExpressionEditorWordWrapModeEnabled = createGlobalModuleVariableFunc(true);
+
 ;// ./dist/widgets/expressioneditor/expressioneditor.js
+
 
 
 
@@ -23365,7 +23394,8 @@ class ExpressionEditor extends CriteriaEditorBase {
                     const text = lines[1] + '\n' + lines[2];
                     session.setAnnotations([{ row, column, text, 'type': 'error' }]);
                 }
-            }
+            },
+            setUseWrapMode: ExpressionEditorWordWrapModeEnabled()
         };
         this.callbacks = {
             focus: () => void (0)
@@ -24679,8 +24709,10 @@ function registerBaseEditors() {
 
 
 
+
 registerBaseEditors();
 registerDesignerEditors();
+
 
 
 

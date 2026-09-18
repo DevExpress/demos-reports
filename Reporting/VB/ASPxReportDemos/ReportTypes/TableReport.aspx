@@ -5,13 +5,9 @@
     <link rel="stylesheet" type="text/css" href="<%=Me.GetUrlWithVersionSuffix("~/Content/ViewerSelector.css")%>" />
 </asp:Content>
 <asp:Content ID="Content3" ContentPlaceHolderID="TopRightMenuRegion" runat="Server">
-    <dx:ViewerSelector ID="viewerSelector" runat="server" />
     <dx:ReportControlToggleButton ID="showDesignerButton" runat="server" />
 </asp:Content>
 <asp:Content ID="Content1" ContentPlaceHolderID="ContentHolder" runat="Server">
-    <%
-    If IsHTML5Viewer Then
-    %>
     <script>
         function initWebDocumentViewer(webDocumentViewer) {
             webDocumentViewer.CustomizeParameterEditors.AddHandler(function(_, e) {
@@ -31,11 +27,4 @@
     <script type="text/html" id="param-rows-count">
         <div data-bind="dxNumberBox: { value: value, showSpinButtons: true, min: 1, max: 13 }"></div>
     </script>
-    <%
-    ElseIf IsMobileViewer Then
-    %>
-    <dx:MobileEmulator ID="mobileEmulator" runat="server" />
-    <%
-    End If
-    %>
 </asp:Content>

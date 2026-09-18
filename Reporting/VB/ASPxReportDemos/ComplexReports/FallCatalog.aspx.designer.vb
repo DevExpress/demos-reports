@@ -7,19 +7,10 @@
 ' </auto-generated>
 '------------------------------------------------------------------------------
 
-
-
 Namespace DevExpress.Web.Demos
-    Partial Public Class ComplexReports_FallCatalog
 
-        ''' <summary>
-        ''' viewerSelector control.
-        ''' </summary>
-        ''' <remarks>
-        ''' Auto-generated field.
-        ''' To modify move field declaration from designer file to code-behind file.
-        ''' </remarks>
-        Protected viewerSelector As Global.DevExpress.Web.Demos.UserControls_ViewerSelectorControl
+
+    Partial Public Class ComplexReports_FallCatalog
 
         ''' <summary>
         ''' showDesignerButton control.
@@ -38,14 +29,5 @@ Namespace DevExpress.Web.Demos
         ''' To modify move field declaration from designer file to code-behind file.
         ''' </remarks>
         Protected webDocumentViewer As Global.DevExpress.XtraReports.Web.ASPxWebDocumentViewer
-
-        ''' <summary>
-        ''' mobileEmulator control.
-        ''' </summary>
-        ''' <remarks>
-        ''' Auto-generated field.
-        ''' To modify move field declaration from designer file to code-behind file.
-        ''' </remarks>
-        Protected mobileEmulator As Global.DevExpress.Web.Demos.UserControls_MobileEmulator
     End Class
 End Namespace

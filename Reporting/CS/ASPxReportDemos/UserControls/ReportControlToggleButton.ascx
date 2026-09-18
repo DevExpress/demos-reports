@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true"
+<%@ Control Language="C#" AutoEventWireup="true"
     Inherits="DevExpress.Web.Demos.UserControls_ReportControlToggleButtonControl" Codebehind="ReportControlToggleButton.ascx.cs" %>
 <% if(ShowViewerButton) { %>
     <a id="ViewerSelectorPopupButton" class="ViewerSelectorButton" href="<%: Page.ResolveUrl(RouteUrl) %>" title="Show WebDocument Viewer"  style="margin-right: 34px">

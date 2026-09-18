@@ -9,14 +9,10 @@ namespace DevExpress.Web.Demos {
 
         public string ReportID { get; set; }
         public XtraReport Report { get; set; }
-        public MobileEmulatorModel EmulatorModel { get; set; }
         public string CurrentViewer {
             get { return currentViewer; }
             set {
                 currentViewer = ViewerSelectorState.GetSafeCurrentViewerArgFromString(value);
-                if(currentViewer == ViewerSelectorState.MobileViewer) {
-                    DemoHelper.Instance.SuppressThemeSelector = true;
-                }
             }
         }
 
@@ -26,12 +22,6 @@ namespace DevExpress.Web.Demos {
             }
         }
 
-        public bool IsMobileViewer {
-            get {
-                return CurrentViewer == ViewerSelectorState.MobileViewer;
-
-            }
-        }
         public string RedirectUrl { get; set; }
     }
 }

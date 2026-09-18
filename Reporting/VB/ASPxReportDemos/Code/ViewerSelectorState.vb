@@ -10,17 +10,14 @@ Namespace DevExpress.Web.Demos
 
         Friend Const Key As String = "CurrentViewer"
         Public Const ModernViewer As String = "HTML5"
-        Public Const MobileViewer As String = "Mobile"
         Public Const DefaultViewer As String = ModernViewer
 
         Public Shared ReadOnly Items() As Item
 
         Shared Sub New()
             Dim generateHtml5ViewerUrlDelegate = New Func(Of Uri, String)(AddressOf GenerateHtml5ViewerUrl)
-            Dim generateMobileViewerUrlDelegate = New Func(Of Uri, String)(AddressOf GenerateMobileViewerUrl)
             Items = New Item() {
-                New Item(generateHtml5ViewerUrlDelegate) With {.Name = ModernViewer, .Text = "HTML5 Viewer", .CssClass = "viewer-selector-html5"},
-                New Item(generateMobileViewerUrlDelegate) With {.Name = MobileViewer, .Text = "Mobile Viewer", .CssClass = "viewer-selector-html5"}
+                New Item(generateHtml5ViewerUrlDelegate) With {.Name = ModernViewer, .Text = "HTML5 Viewer", .CssClass = "viewer-selector-html5"}
             }
         End Sub
 
@@ -35,12 +32,6 @@ Namespace DevExpress.Web.Demos
         Private Shared Function GenerateHtml5ViewerUrl(ByVal requestUrl As Uri) As String
             Dim builder = New UriBuilder(requestUrl)
             builder.Query = ""
-            Return builder.ToString()
-        End Function
-
-        Private Shared Function GenerateMobileViewerUrl(ByVal requestUrl As Uri) As String
-            Dim builder = New UriBuilder(requestUrl)
-            builder.Query = Key & "=" & MobileViewer
             Return builder.ToString()
         End Function
 

@@ -1,7 +1,7 @@
 ﻿/**
 * DevExpress HTML/JS Reporting (js\dx-reportdesigner.js)
-* Version:  26.1.4
-* Build date: Jul 27, 2026
+* Version:  26.1.5
+* Build date: Sep 14, 2026
 * Copyright (c) 2012 - 2026 Developer Express Inc. ALL RIGHTS RESERVED
 * License: https://www.devexpress.com/Support/EULAs/universal.xml
 */
@@ -1315,6 +1315,7 @@ __webpack_require__.d(reporting_designer_internal_namespaceObject, {
   eventArgsTypes: () => (eventArgsTypes),
   expressionEditorActionId: () => (expressionEditorActionId),
   findFirstParentWithPropertyName: () => (findFirstParentWithPropertyName),
+  getBoundFieldPath: () => (getBoundFieldPath),
   getClosestDataMember: () => (getClosestDataMember),
   getExistTableOfContents: () => (getExistTableOfContents),
   getExpressionPath: () => (getExpressionPath),
@@ -8078,7 +8079,6 @@ class GlyphOptions extends external_DevExpress_Analytics_Utils_namespaceObject.D
         }));
     }
 }
-GlyphOptions.unitProperties = ['size'];
 
 ;// ./dist/designer/controls/metadata/properties/sortingOptions.js
 
@@ -18559,7 +18559,6 @@ class XRChartSurface extends XRControlSurface {
 
 
 
-
 class XRCheckBoxViewModel extends XRControlViewModel {
     static _patchModel(model) {
         if (model['@CheckState']) {
@@ -18591,7 +18590,6 @@ class XRCheckBoxViewModel extends XRControlViewModel {
             this.glyphAlignment = this.glyphOptions.alignment;
     }
 }
-XRCheckBoxViewModel.unitProperties = [].concat(['glyphOptions'], XRReportElementViewModel.unitProperties);
 class XRCheckBoxSurface extends XRTextControlSurfaceBase {
     constructor(control, context) {
         super(control, context);
@@ -18599,10 +18597,10 @@ class XRCheckBoxSurface extends XRTextControlSurfaceBase {
         this.visibleText = external_ko_namespaceObject.observable(true);
         this.contenttemplate = 'dxrd-checkbox-content';
         this._disposables.push(this.checkStateWidth = external_ko_namespaceObject.computed(() => {
-            return (0,external_DevExpress_Analytics_Internal_namespaceObject.unitsToPixel)(control.glyphOptions.size.width(), context.measureUnit(), 1);
+            return control.glyphOptions.size.width();
         }));
         this._disposables.push(this.checkStateHeight = external_ko_namespaceObject.computed(() => {
-            return (0,external_DevExpress_Analytics_Internal_namespaceObject.unitsToPixel)(control.glyphOptions.size.height(), context.measureUnit(), 1);
+            return control.glyphOptions.size.height();
         }));
         this._disposables.push(this.checkStateClass = external_ko_namespaceObject.pureComputed(() => {
             return 'dxrd-checkbox-checkstate-' + control['checkBoxState']().toLowerCase();
@@ -21561,7 +21559,6 @@ const popularPropertiesShape = ['stretch', 'fillColor', 'lineWidth', 'angle', 'b
 
 
 
-
 class XRShapeViewModel extends XRControlViewModel {
     static createShape(model, serializer = null) {
         const type = model && model['@ShapeName'] || 'Ellipse';
@@ -21605,7 +21602,6 @@ class XRShapeViewModel extends XRControlViewModel {
         this.surface?.onAdd?.();
     }
 }
-XRShapeViewModel.unitProperties = [].concat(['lineWidth'], XRReportElementViewModel.unitProperties);
 XRShapeViewModel.timeout = 1;
 XRShapeViewModel.shapes = [
     {
@@ -28221,6 +28217,70 @@ class ErrorPanelViewModel extends external_DevExpress_Analytics_Utils_namespaceO
     }
 }
 
+;// ./dist/designer/internal/fieldlist/_boundFieldPath.js
+
+
+const singleFieldReferenceRegex = /^\s*\[([^[\]]+)\]\s*$/;
+const parameterReferenceRegex = /^\s*\?([^\s?[\]]+)\s*$/;
+const textPropertyName = 'Text';
+const parametersPathPrefix = Parameter.ParametersRefString + '.';
+function _getParameterPath(expression) {
+    const parameterMatch = parameterReferenceRegex.exec(expression);
+    if (parameterMatch) {
+        return parametersPathPrefix + parameterMatch[1];
+    }
+    const fieldMatch = singleFieldReferenceRegex.exec(expression);
+    const reference = fieldMatch && fieldMatch[1];
+    return reference && reference.indexOf(parametersPathPrefix) === 0 ? reference : null;
+}
+function _isSingleReference(expression) {
+    return singleFieldReferenceRegex.test(expression) || parameterReferenceRegex.test(expression);
+}
+function _getExpressionFieldPath(control, reportModel) {
+    const bindings = control.expressionBindings && control.expressionBindings();
+    if (!bindings || bindings.length === 0) {
+        return null;
+    }
+    const fieldBindings = bindings.filter(item => _isSingleReference(item.expression() || ''));
+    const binding = fieldBindings.filter(item => item.propertyName() === textPropertyName)[0] || fieldBindings[0];
+    if (!binding) {
+        return null;
+    }
+    const parameterPath = _getParameterPath(binding.expression());
+    if (parameterPath) {
+        return parameterPath;
+    }
+    const dataSourcePath = reportModel.getPath && reportModel.getPath('dataMember');
+    if (!dataSourcePath) {
+        return null;
+    }
+    return reportModel.getPath('expression') + '.' + singleFieldReferenceRegex.exec(binding.expression())[1];
+}
+function _getDataBindingFieldPath(control, reportModel) {
+    const bindings = control['dataBindings'] && control['dataBindings']();
+    const dataSourceHelper = external_ko_namespaceObject.unwrap(reportModel['dataSourceHelper']);
+    if (!bindings || !dataSourceHelper) {
+        return null;
+    }
+    const fieldBindings = bindings.filter(item => item.parameter() || item.dataMember());
+    const binding = fieldBindings.filter(item => item.propertyName() === textPropertyName)[0] || fieldBindings[0];
+    if (!binding) {
+        return null;
+    }
+    if (binding.parameter() || binding.dataSource()) {
+        return binding.getValuePath(dataSourceHelper) || null;
+    }
+    const reportDataSourcePath = reportModel.getPath && reportModel.getPath('dataMember');
+    return reportDataSourcePath ? reportDataSourcePath + '.' + binding.dataMember() : null;
+}
+function getBoundFieldPath(control) {
+    const reportModel = control?.root;
+    if (!reportModel) {
+        return null;
+    }
+    return _getExpressionFieldPath(control, reportModel) || _getDataBindingFieldPath(control, reportModel);
+}
+
 ;// ./dist/designer/internal/fieldlist/_fieldListController.js
 
 
@@ -28492,20 +28552,20 @@ class FieldListDataSourcesHelper {
             return item['items'];
         }
     }
-    _createRelativePath(fullPath, currentPath) {
-        if (!currentPath)
-            return fullPath;
-        if (fullPath != currentPath) {
-            return fullPath.replace(currentPath + '.', '');
+    _createRelativePath(fullPathParts, currentRequest) {
+        const currentPathParts = currentRequest.pathParts?.slice(1);
+        if (!currentPathParts?.length || currentPathParts.some((part, index) => fullPathParts[index] !== part)) {
+            return [...fullPathParts];
         }
-        return '';
+        return fullPathParts.slice(currentPathParts.length);
     }
     _updateInnerCache(currentRequest, currentPath, result) {
         result.forEach((item) => {
             const itemPath = [currentPath, item.name].join('.');
             if (item.relationPath) {
                 Object.defineProperty(item, 'items', {
-                    get: () => this._findItems(this._innerCache[currentRequest.fullPath], this._createRelativePath(item.relationPath, currentRequest.path).split('.'))
+                    configurable: true,
+                    get: () => this._findItems(this._innerCache[currentRequest.fullPath], this._createRelativePath(item.relationPath, currentRequest))
                 });
             }
             else if (item.items) {
@@ -40064,6 +40124,7 @@ class AIDesignerPanelModel extends external_DevExpress_Analytics_Utils_namespace
 
 
 
+
 class ReportDesignerInitializer extends external_DevExpress_Analytics_Internal_namespaceObject.CommonDesignerGenerator {
     get reportContext() {
         return this._reportcontext;
@@ -41863,6 +41924,22 @@ class ReportDesignerInitializer extends external_DevExpress_Analytics_Internal_n
             else
                 this._selection.focused(newValue);
         }));
+        this._addDisposable(this._selection.focused.subscribe((newValue) => {
+            const boundFieldPath = getBoundFieldPath(newValue?.getControlModel());
+            if (!boundFieldPath) {
+                return;
+            }
+            const selectedPath = this.buildingModel.selectedPath;
+            if (!selectedPath) {
+                return;
+            }
+            if (selectedPath.peek() === boundFieldPath) {
+                selectedPath.valueHasMutated();
+            }
+            else {
+                selectedPath(boundFieldPath);
+            }
+        }));
         const isDefaultLanguage = external_ko_namespaceObject.computed(() => {
             return this.buildingModel.model && this.buildingModel.model() ? this.buildingModel.model().language() == external_DevExpress_Reporting_Metadata_namespaceObject.defaultCulture : false;
         });
@@ -42989,7 +43066,7 @@ class BandLevelEditor extends external_DevExpress_QueryBuilder_Widgets_Internal_
 class CoordinateGridViewModel extends external_DevExpress_Analytics_Utils_namespaceObject.Disposable {
     _initGrid(length, gridSize, gridLines, flip = false) {
         const lines = gridLines.peek();
-        const arrayLength = Math.ceil(length / gridSize), currentLength = lines.length, diff = arrayLength - currentLength;
+        const arrayLength = gridSize > 0 ? Math.ceil(length / gridSize) : 0, currentLength = lines.length, diff = arrayLength - currentLength;
         if (diff > 0) {
             for (let index = currentLength; index < arrayLength; index++) {
                 gridLines.push({ coordVal: external_ko_namespaceObject.observable((index + 1) * gridSize + 0.5), visible: external_ko_namespaceObject.observable(true) });
@@ -43023,14 +43100,14 @@ class CoordinateGridViewModel extends external_DevExpress_Analytics_Utils_namesp
             this.width(width + 0.5);
             this._initGrid(width, gridSize, this.verticalGridLines, flip);
             this._initGrid(width, 4 * gridSize, this.majorVerticalGridLines, flip);
-        }));
+        }).extend({ deferred: true }));
         this._disposables.push(external_ko_namespaceObject.computed(() => {
             const gridSize = (0,external_DevExpress_Analytics_Internal_namespaceObject.unitsToPixel)(options.snapGridSize(), options.measureUnit(), options.zoom());
             const height = (0,external_DevExpress_Analytics_Internal_namespaceObject.unitsToPixel)(options.height(), options.measureUnit(), options.zoom());
             this.height(height + 0.5);
             this._initGrid(height, gridSize, this.horizontalGridLines);
             this._initGrid(height, 4 * gridSize, this.majorHorizontalGridLines);
-        }));
+        }).extend({ deferred: true }));
     }
     dispose() {
         super.dispose();
@@ -44925,6 +45002,8 @@ external_DevExpress_Analytics_Widgets_Internal_namespaceObject.SvgTemplatesEngin
 
 
 
+
+
 ;// ./dist/scopes/reporting-designer-internal-htmlMarkUp.js
 
 
@@ -45536,7 +45615,6 @@ external_DevExpress_registerComponent_default()('dxImageSourceEditor', dxImageSo
 
 
 
-
 class NameEditor extends external_DevExpress_Analytics_Widgets_namespaceObject.Editor {
     createViewModel() {
         return (0,external_DevExpress_Analytics_Serializer_Native_namespaceObject.createViewModelGenerator)(super.createViewModel())
@@ -45580,8 +45658,7 @@ class NameEditor extends external_DevExpress_Analytics_Widgets_namespaceObject.E
                     }).length === 0;
                 }
             },
-            ...super._getEditorValidationRules(),
-            ...external_DevExpress_Analytics_Widgets_Internal_namespaceObject.requiredValidationRules
+            ...super._getEditorValidationRules()
         ]);
         return this.currentValidationRules();
     }

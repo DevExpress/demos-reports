@@ -5,7 +5,7 @@
     <script src="@this.GetUrlContentWithVersionSuffix("~/Scripts/Designer.js")"></script>
     <script type="text/javascript">
         function OnInit(s, e) {
-                RegisterDamageDiagramEditor();
+            RegisterDamageDiagramEditor();
         }
         function EditingFieldsHighlightingEnable(s, e) {
             e.reportPreview.editingFieldsHighlighted = true;
@@ -14,17 +14,12 @@
 }
 
 @section TopRightMenuRegion {
-    @Html.Partial("ViewerSelectorPartial", Model)
     @Html.Partial("ReportControlToggleButtonPartial", Model)
 }
 
-@if(Model.IsHTML5Viewer) {
-    @Html.DevExpress().WebDocumentViewer(settings => {
+@Html.DevExpress().WebDocumentViewer(settings =>
+{
     settings.Name = "webDocumentViewer";
     settings.ClientSideEvents.Init = "OnInit";
     settings.ClientSideEvents.BeforeRender = "EditingFieldsHighlightingEnable";
 }).Bind(Model.ReportID).GetHtml()
-}
-else if(Model.IsMobileViewer) {
-    @Html.Partial("MobileEmulator", Model.EmulatorModel)
-}
