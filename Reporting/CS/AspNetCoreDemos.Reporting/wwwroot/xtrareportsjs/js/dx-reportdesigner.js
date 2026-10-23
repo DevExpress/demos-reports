@@ -1,7 +1,7 @@
 ﻿/**
 * DevExpress HTML/JS Reporting (js\dx-reportdesigner.js)
-* Version:  26.1.5
-* Build date: Sep 14, 2026
+* Version:  26.1.6
+* Build date: Oct 17, 2026
 * Copyright (c) 2012 - 2026 Developer Express Inc. ALL RIGHTS RESERVED
 * License: https://www.devexpress.com/Support/EULAs/universal.xml
 */
@@ -1160,6 +1160,7 @@ __webpack_require__.d(reporting_designer_internal_namespaceObject, {
   CONVERSION_COEEFICIENT: () => (CONVERSION_COEEFICIENT),
   CalculatedFieldsSource: () => (CalculatedFieldsSource),
   CharacterCombHelper: () => (CharacterCombHelper),
+  CharacterHeights: () => (CharacterHeights),
   ChartFieldListExtender: () => (ChartFieldListExtender),
   ChartLocalizationProvider: () => (ChartLocalizationProvider),
   CommonRequestModel: () => (CommonRequestModel),
@@ -1217,6 +1218,7 @@ __webpack_require__.d(reporting_designer_internal_namespaceObject, {
   LocalizationItem: () => (LocalizationItem),
   LocalizedProperty: () => (LocalizedProperty),
   LocaliziblePropertiesAccessibilityProvider: () => (LocaliziblePropertiesAccessibilityProvider),
+  MarkupTextRenderer: () => (MarkupTextRenderer),
   MasterDetailFieldInfo: () => (MasterDetailFieldInfo),
   MasterDetailInfoBase: () => (MasterDetailInfoBase),
   MasterDetailQueryInfo: () => (MasterDetailQueryInfo),
@@ -1319,6 +1321,7 @@ __webpack_require__.d(reporting_designer_internal_namespaceObject, {
   getClosestDataMember: () => (getClosestDataMember),
   getExistTableOfContents: () => (getExistTableOfContents),
   getExpressionPath: () => (getExpressionPath),
+  getFieldListSyncPath: () => (getFieldListSyncPath),
   getFirstSurfaceParentByType: () => (getFirstSurfaceParentByType),
   getFormattedValueInUnits: () => (getFormattedValueInUnits),
   getUnitProperties: () => (getUnitProperties),
@@ -1361,13 +1364,6 @@ __webpack_require__.d(reporting_designer_internal_namespaceObject, {
   updateDataSourceRefs: () => (updateDataSourceRefs),
   updateSurfaceContentSizeLocalizationMode: () => (updateSurfaceContentSizeLocalizationMode),
   valuesArrayAsEnumWithLocalizationId: () => (valuesArrayAsEnumWithLocalizationId)
-});
-
-// NAMESPACE OBJECT: ./dist/scopes/reporting-designer-internal-htmlMarkUp.js
-var reporting_designer_internal_htmlMarkUp_namespaceObject = {};
-__webpack_require__.r(reporting_designer_internal_htmlMarkUp_namespaceObject);
-__webpack_require__.d(reporting_designer_internal_htmlMarkUp_namespaceObject, {
-  ValueConverter: () => (ValueConverter)
 });
 
 // NAMESPACE OBJECT: ./dist/scopes/reporting-designer-localization.js
@@ -8826,6 +8822,9 @@ class WatermarkModel extends external_DevExpress_Analytics_Serializer_Native_nam
 
 
 class ReportRenderingService {
+    static getMarkupTextImages(request, handlerUri = settings_HandlerUri()) {
+        return (0,external_DevExpress_Analytics_Internal_namespaceObject.sendRequest)(handlerUri, 'renderMarkupText', (0,external_DevExpress_Analytics_Utils_namespaceObject.PrepareRequestArgs)(request), undefined, () => true);
+    }
     static getChartImage(surface) {
         return ChartRequests.getChartImage(settings_HandlerUri(), new external_DevExpress_Analytics_Utils_namespaceObject.ModelSerializer().serialize(surface._control['chart'], chartSerializationsInfo), surface.contentWidthWithoutZoom(), surface.contentHeightWithoutZoom());
     }
@@ -10895,6 +10894,325 @@ VerticalBandSurface._unitProperties = {
     widthFromControls: (o) => { return o.widthFromControls; }
 };
 
+;// ./dist/designer/internal/_markupTextRendering.js
+
+
+
+
+
+const imageVersions = new WeakMap();
+let nextImageVersion = 0;
+const maxSvgLength = 1024 * 1024;
+const maxTextLength = 10000;
+const maxDimension = 4000;
+const maxBatchItems = 100;
+const maxBatchRequestLength = 3 * 1024 * 1024;
+const maxCacheEntries = 500;
+const maxCacheLength = 8 * 1024 * 1024;
+const svgCache = new Map();
+const pending = new Map();
+const batchQueue = [];
+let cacheLength = 0;
+let activeBatches = 0;
+let batchTimeout;
+function requestLength(value) {
+    if (external_DevExpress_Analytics_Utils_namespaceObject.requestManager.getRequestContentType() === external_DevExpress_Analytics_Utils_namespaceObject.RequestContentType.Json)
+        return utf8Length(JSON.stringify(value));
+    const encoded = encodeURIComponent((0,external_DevExpress_Analytics_Utils_namespaceObject.encodeURIExtended)(value));
+    return encoded.length + 2 * (encoded.match(/[!'~]/g)?.length || 0);
+}
+function utf8Length(value) {
+    return encodeURIComponent(value).replace(/%[0-9A-F]{2}/g, '_').length;
+}
+function resourcesLength(resources) {
+    return resources.reduce((length, resource) => length + resource.requestLength, 0);
+}
+function validResult(result) {
+    return !result?.error
+        && typeof result?.svg === 'string'
+        && result.svg.length <= maxSvgLength
+        && result.svg.length % 4 === 0
+        && /^[A-Za-z0-9+/]+={0,2}$/.test(result.svg)
+        && (result.plainText === undefined || result.plainText === null || typeof result.plainText === 'string');
+}
+function cacheSize(key, result) {
+    return key.length + (result.svg?.length || 0) + (result.plainText?.length || 0);
+}
+function removeCachedResult(key) {
+    const result = svgCache.get(key);
+    if (result) {
+        cacheLength -= cacheSize(key, result);
+        svgCache.delete(key);
+    }
+}
+function takeCachedResult(key) {
+    const cached = svgCache.get(key);
+    if (cached) {
+        svgCache.delete(key);
+        svgCache.set(key, cached);
+    }
+    return cached;
+}
+function resolve(entry, result) {
+    pending.delete(entry.key);
+    const valid = validResult(result) ? result : undefined;
+    if (valid) {
+        svgCache.set(entry.key, valid);
+        cacheLength += cacheSize(entry.key, valid);
+        while (svgCache.size > maxCacheEntries || cacheLength > maxCacheLength)
+            removeCachedResult(svgCache.keys().next().value);
+    }
+    entry.listeners.forEach(listener => listener(valid));
+    entry.listeners.clear();
+}
+function scheduleBatch(delay) {
+    if (batchTimeout === undefined && batchQueue.length)
+        batchTimeout = setTimeout(flushBatch, delay);
+}
+function sendBatch(batch, resources) {
+    activeBatches++;
+    batch.forEach(entry => entry.sent = true);
+    const complete = (response) => {
+        activeBatches--;
+        batch.forEach((entry, index) => {
+            const result = response?.items?.[index];
+            if (result?.error === 'batchLimit' && batch.length > 1 && entry.listeners.size) {
+                entry.batchSize = Math.ceil(batch.length / 2);
+                entry.sent = false;
+                batchQueue.push(entry);
+            }
+            else {
+                resolve(entry, result);
+            }
+        });
+        scheduleBatch(0);
+    };
+    const request = ReportRenderingService.getMarkupTextImages({
+        items: batch.map(entry => entry.item),
+        imageResources: resources.map(({ id, content }) => ({ id, content }))
+    }, batch[0].uri);
+    request
+        .done(complete)
+        .fail(() => complete());
+}
+function flushBatch() {
+    batchTimeout = undefined;
+    while (batchQueue.length && activeBatches < 2) {
+        const first = batchQueue.shift();
+        const batch = [first];
+        let batchSize = first.batchSize;
+        let resources = new Map(first.resources.map(resource => [resource.id, resource]));
+        let batchLength = first.itemLength + resourcesLength(first.resources);
+        for (let i = 0; i < batchQueue.length && batch.length < batchSize;) {
+            const entry = batchQueue[i];
+            const merged = new Map(resources);
+            entry.resources.forEach(resource => merged.set(resource.id, resource));
+            const conflicts = entry.resources.some(resource => resources.has(resource.id) && resources.get(resource.id).version !== resource.version);
+            const addedLength = entry.itemLength + resourcesLength(entry.resources.filter(resource => !resources.has(resource.id)));
+            if (entry.report === first.report && entry.uri === first.uri && !conflicts && batch.length < entry.batchSize
+                && batchLength + addedLength <= maxBatchRequestLength) {
+                batch.push(batchQueue.splice(i, 1)[0]);
+                resources = merged;
+                batchLength += addedLength;
+                batchSize = Math.min(batchSize, entry.batchSize);
+            }
+            else {
+                i++;
+            }
+        }
+        sendBatch(batch, Array.from(resources.values()));
+    }
+}
+function enqueue(key, request, listener) {
+    const cached = takeCachedResult(key);
+    if (cached) {
+        listener(cached);
+        return () => { };
+    }
+    let entry = pending.get(key);
+    if (!entry) {
+        const { uri, report, item, resources, itemLength } = request;
+        entry = { key, uri, report, item, resources, itemLength, listeners: new Set(), sent: false, batchSize: maxBatchItems };
+        pending.set(key, entry);
+        batchQueue.push(entry);
+        scheduleBatch(50);
+    }
+    entry.listeners.add(listener);
+    return () => {
+        entry.listeners.delete(listener);
+        if (!entry.sent && !entry.listeners.size) {
+            pending.delete(entry.key);
+            const index = batchQueue.indexOf(entry);
+            if (index !== -1)
+                batchQueue.splice(index, 1);
+        }
+    };
+}
+function referencedImages(text, control) {
+    const ids = new Set();
+    const imageTag = /<image=([^>;]+)[>;]/gi;
+    let match;
+    while ((match = imageTag.exec(text)) !== null)
+        ids.add(match[1].trim());
+    const images = control.root?.imageResources?.() || [];
+    return images.filter(image => ids.has(image._model?.['@Id']) && typeof image._model?.['@ImageSource'] === 'string')
+        .map(image => {
+        const content = image._model['@ImageSource'];
+        const id = image._model['@Id'];
+        let version = imageVersions.get(image);
+        if (!version || version.content !== content) {
+            version = { content, version: ++nextImageVersion, contentLength: requestLength(content) };
+            imageVersions.set(image, version);
+        }
+        return { id, content, version: version.version, requestLength: requestLength(id) + version.contentLength };
+    });
+}
+class MarkupTextRenderer extends external_DevExpress_Analytics_Utils_namespaceObject.Disposable {
+    constructor(surface) {
+        super();
+        this.surface = surface;
+        this.imageSrc = external_ko_namespaceObject.observable('');
+        this.isLoading = external_ko_namespaceObject.observable(false);
+        this.error = external_ko_namespaceObject.observable(false);
+        this.multiline = external_ko_namespaceObject.observable(false);
+        this.fallbackText = external_ko_namespaceObject.observable('');
+        this.altText = external_ko_namespaceObject.observable('');
+        this.imageWidth = external_ko_namespaceObject.observable(0);
+        this.imageHeight = external_ko_namespaceObject.observable(0);
+        this.onImageError = (_data, event) => {
+            if (event.target instanceof HTMLImageElement && event.target.getAttribute('src') === this.imageSrc()) {
+                const cached = svgCache.get(this.imageCacheKey);
+                if (cached && this.imageSrc() === 'data:image/svg+xml;base64,' + cached.svg)
+                    removeCachedResult(this.imageCacheKey);
+                if (this.lastRequestKey === this.imageCacheKey)
+                    this.lastRequestKey = undefined;
+                this.imageCacheKey = undefined;
+                this.imageSrc('');
+                this.error(true);
+            }
+        };
+        this._disposables.push(this.imageCss = external_ko_namespaceObject.pureComputed(() => surface.cssCalculator.angle()));
+        this._disposables.push(this.enabled = external_ko_namespaceObject.pureComputed(() => {
+            const parameters = surface.displayNameParameters();
+            return !!parameters.allowMarkupText && !parameters.isExpression && !parameters.dataMember;
+        }));
+        this.addDisposable(() => {
+            this.lastRenderDeferred?.reject();
+            this.lastRenderDeferred = undefined;
+        });
+        this._disposables.push(external_ko_namespaceObject.computed(() => {
+            const state = this.readState();
+            external_ko_namespaceObject.ignoreDependencies(() => this.applyState(state));
+        }));
+    }
+    readState() {
+        if (!this.enabled())
+            return { enabled: false };
+        const control = this.surface.getControlModel();
+        const multiline = control.controlType === 'XRCrossTabCell' || external_ko_namespaceObject.unwrap(control.multiline) === true;
+        const text = this.surface.displayNameParameters().text || '';
+        if (!text)
+            return { enabled: true, multiline, text };
+        const size = this.surface.markupContentSize();
+        const uri = settings_HandlerUri();
+        if (!uri || text.length > maxTextLength || !Number.isFinite(size.width) || !Number.isFinite(size.height)
+            || size.width <= 0 || size.height <= 0 || size.width > maxDimension || size.height > maxDimension)
+            return { enabled: true, multiline, text, request: null };
+        const resources = referencedImages(text, control);
+        const rasterLength = resources.filter(resource => resource.content.startsWith('img,'))
+            .reduce((length, resource) => length + resource.content.length, 0);
+        if (rasterLength * 4 / 3 > maxSvgLength)
+            return { enabled: true, multiline, text, request: null };
+        const item = {
+            text,
+            font: external_ko_namespaceObject.unwrap(control.font) || '',
+            foreColor: (0,external_DevExpress_Analytics_Utils_namespaceObject.colorToString)(external_ko_namespaceObject.unwrap(control.foreColor) || 'Black'),
+            padding: external_ko_namespaceObject.unwrap(control.padding) || '',
+            textAlignment: external_ko_namespaceObject.unwrap(control.textAlignment) || 'TopLeft',
+            wordWrap: external_ko_namespaceObject.unwrap(control.wordWrap) !== false,
+            multiline,
+            rightToLeft: control.rtl() || false,
+            lineSpacing: external_ko_namespaceObject.unwrap(control.lineSpacing) || 1,
+            textTrimming: external_ko_namespaceObject.unwrap(control.textTrimming) || 'Character',
+            textFitMode: external_ko_namespaceObject.unwrap(control.textFitMode) || 'None',
+            dpi: external_ko_namespaceObject.unwrap(control.dpi) || 100,
+            width: size.width,
+            height: size.height
+        };
+        const itemLength = requestLength(JSON.stringify(item));
+        if (itemLength + resourcesLength(resources) > maxBatchRequestLength)
+            return { enabled: true, multiline, text, request: null };
+        return { enabled: true, multiline, text, request: { uri, item, itemLength, resources, report: control.root } };
+    }
+    applyState(state) {
+        if (!state.enabled) {
+            this.resetRender();
+            return;
+        }
+        this.multiline(state.multiline);
+        this.fallbackText(state.text);
+        if (state.request === undefined) {
+            this.resetRender();
+            return;
+        }
+        if (state.request === null) {
+            this.resetRender(true);
+            return;
+        }
+        this.prepareRender(state.text, state.request);
+    }
+    resetRender(error = false) {
+        this.lastRenderDeferred?.reject();
+        this.lastRenderDeferred = undefined;
+        this.lastRequestKey = undefined;
+        this.imageCacheKey = undefined;
+        this.imageSrc('');
+        this.isLoading(false);
+        this.error(error);
+    }
+    showResult(key, text, item, result) {
+        this.isLoading(false);
+        if (result) {
+            this.imageCacheKey = key;
+            this.imageWidth(item.width);
+            this.imageHeight(item.height);
+            this.altText(result.plainText || text);
+            this.imageSrc('data:image/svg+xml;base64,' + result.svg);
+            this.error(false);
+            this.surface.cacheElementContent?.(null);
+        }
+        else {
+            this.lastRequestKey = undefined;
+            this.imageCacheKey = undefined;
+            this.imageSrc('');
+            this.error(true);
+        }
+    }
+    prepareRender(text, request) {
+        const { uri, item, resources } = request;
+        const key = JSON.stringify([uri, item, resources.map(resource => [resource.id, resource.version])]);
+        if (key === this.lastRequestKey)
+            return;
+        this.lastRequestKey = key;
+        this.lastRenderDeferred?.reject();
+        this.lastRenderDeferred = undefined;
+        const cached = takeCachedResult(key);
+        if (cached) {
+            this.showResult(key, text, item, cached);
+            return;
+        }
+        this.error(false);
+        this.isLoading(!this.imageSrc());
+        const deferred = this.lastRenderDeferred = new external_DevExpress_Analytics_Internal_namespaceObject.DxDeferred();
+        deferred.done(result => this.showResult(key, text, item, result));
+        const timeout = setTimeout(() => {
+            const cancel = enqueue(key, request, result => deferred.resolve(result));
+            deferred.fail(cancel);
+        }, 200);
+        deferred.fail(() => clearTimeout(timeout));
+    }
+}
+
 ;// ./dist/designer/controls/xrControl.js
 
 
@@ -11270,6 +11588,10 @@ class XRControlSurfaceBase extends external_DevExpress_Analytics_Elements_namesp
     constructor(control, context, unitProperties) {
         super(control, context, unitProperties);
         this.delta = 0.001;
+        this.markupContentSize = external_ko_namespaceObject.pureComputed(() => {
+            const area = this.getMarkupContentSize();
+            return { width: area.width, height: area.height };
+        });
         this.template = 'dxrd-control';
         this.selectiontemplate = 'dxrd-control-selection';
         this.contenttemplate = 'dxrd-control-content';
@@ -11282,10 +11604,7 @@ class XRControlSurfaceBase extends external_DevExpress_Analytics_Elements_namesp
                 dataMember: null,
                 summaryFunc: null,
                 dataMemberOffset: null,
-                allowMarkupText: false,
-                wordWrap: false,
-                fontSize: 0,
-                fontUnit: null
+                allowMarkupText: false
             };
             if (control['controls'] && control['controls']().length !== 0) {
                 parameters.text = '';
@@ -11294,13 +11613,6 @@ class XRControlSurfaceBase extends external_DevExpress_Analytics_Elements_namesp
             parameters.text = control['getExpressionBinding']?.();
             parameters.isExpression = !!parameters.text;
             parameters.allowMarkupText = control['allowMarkupText'] && control['allowMarkupText']();
-            parameters.wordWrap = control['wordWrap'] && control['wordWrap']();
-            if (control['font']) {
-                const _font = new external_DevExpress_Analytics_Widgets_Internal_namespaceObject.FontModel(control['font']);
-                parameters.fontSize = _font.size();
-                parameters.fontUnit = _font.unit();
-                _font.dispose();
-            }
             if (parameters.isExpression) {
                 parameters.dataMember = control['getPath'] && control['getPath']('expression') || '';
                 return parameters;
@@ -11357,6 +11669,7 @@ class XRControlSurfaceBase extends external_DevExpress_Analytics_Elements_namesp
         this._disposables.push(this.adorntemplate = external_ko_namespaceObject.computed(() => { return this.getAdornTemplate(); }));
         this._disposables.push(this.displayNameParameters);
         this._disposables.push(this.displayName);
+        this._disposables.push(this.markupContentSize);
         this.showDropBorders = external_ko_namespaceObject.observable(false);
     }
     checkParent(surfaceParent) {
@@ -11489,6 +11802,20 @@ class XRControlSurfaceBase extends external_DevExpress_Analytics_Elements_namesp
             }
             return false;
         }
+    }
+    getMarkupContentSize() {
+        const unit = this._context.measureUnit();
+        const size = this._control['size'];
+        return this.cssCalculator.contentSizeCss((0,external_DevExpress_Analytics_Internal_namespaceObject.unitsToPixel)(size?.width() || 0, unit), (0,external_DevExpress_Analytics_Internal_namespaceObject.unitsToPixel)(size?.height() || 0, unit), 1);
+    }
+    get markupTextRendering() {
+        if (!this.markupTextRenderer) {
+            if (!external_ko_namespaceObject.isObservable(this._control['allowMarkupText']))
+                return undefined;
+            this.markupTextRenderer = external_ko_namespaceObject.ignoreDependencies(() => new MarkupTextRenderer(this));
+            this._disposables.push(this.markupTextRenderer);
+        }
+        return this.markupTextRenderer;
     }
     displayText() {
         if (this._control.controlType == 'XRPanel')
@@ -14488,7 +14815,48 @@ class FitTextToBoundsAction {
     }
 }
 
+;// ./dist/designer/helpers/_characterHeights.js
+class CharacterHeights {
+    static use() {
+        CharacterHeights.users += 1;
+        if (CharacterHeights.users === 1 && typeof document !== 'undefined')
+            document.fonts?.addEventListener?.('loadingdone', CharacterHeights.forget);
+        let released = false;
+        return () => {
+            if (released)
+                return;
+            released = true;
+            CharacterHeights.users -= 1;
+            if (CharacterHeights.users === 0) {
+                CharacterHeights.heights.clear();
+                if (typeof document !== 'undefined')
+                    document.fonts?.removeEventListener?.('loadingdone', CharacterHeights.forget);
+            }
+        };
+    }
+    static measure(font, sizeHelper) {
+        const fontSize = font.size() + font.unit();
+        const fontFamily = font.family();
+        const key = fontSize + ' ' + fontFamily;
+        if (CharacterHeights.heights.has(key))
+            return CharacterHeights.heights.get(key);
+        const height = sizeHelper.getTextContainerSize('a', {
+            'font-size': fontSize,
+            'font-family': fontFamily,
+            'height': 'auto',
+            'width': 'auto'
+        }).height;
+        if (height > 0)
+            CharacterHeights.heights.set(key, height);
+        return height;
+    }
+}
+CharacterHeights.heights = new Map();
+CharacterHeights.users = 0;
+CharacterHeights.forget = () => CharacterHeights.heights.clear();
+
 ;// ./dist/designer/controls/xrTextControl.js
+
 
 
 
@@ -14550,7 +14918,7 @@ class XRTextControlSurfaceBase extends XRControlSurfaceBase {
     }
     cacheElementContent(element) {
         this._$element(null);
-        this._$element((0,external_DevExpress_Analytics_Internal_namespaceObject.$dx)(element));
+        this._$element(element ? (0,external_DevExpress_Analytics_Internal_namespaceObject.$dx)(element) : null);
     }
     fitTextToBounds() {
         this.fitTextToBoundsAction.fit();
@@ -14572,33 +14940,55 @@ class XRTextControlSurfaceBase extends XRControlSurfaceBase {
         this.dragDropFileEnabled = external_ko_namespaceObject.observable(true);
         this['multiline'] = control['multiline'] || false;
         this._disposables.push(this._font = new external_DevExpress_Analytics_Widgets_Internal_namespaceObject.FontModel(control['font']));
-        const canGrow = () => { return control['canGrow'] && control['canGrow'](); };
         const textElementSizeHelper = new TextElementSizeHelper();
+        this.addDisposable(CharacterHeights.use());
         this.fitTextToBoundsAction = new FitTextToBoundsAction(this, textElementSizeHelper);
         this.fitBoundsToTextAction = new FitBoundsToTextAction(this, textElementSizeHelper);
-        this._disposables.push(this.characterHeight = external_ko_namespaceObject.computed(() => {
-            return textElementSizeHelper.getTextContainerSize('a', {
-                'font-size': this._font.size() + this._font.unit(),
-                'font-family': this._font.family(),
-                'height': 'auto',
-                'width': 'auto'
-            }).height;
-        }));
+        this._disposables.push(this.characterHeight = external_ko_namespaceObject.computed(() => CharacterHeights.measure(this._font, textElementSizeHelper)));
         this._disposables.push(external_ko_namespaceObject.computed(() => {
-            if (this._$element()) {
-                this._$element().height('auto');
-                const text = this._control['text']();
-                const characterHeight = this.characterHeight();
-                const contentHeight = this._$element().height();
-                if (contentHeight > this.rect().height && !canGrow()) {
-                    const visibleHeight = Math.floor(this.rect().height / characterHeight) * characterHeight;
-                    if (visibleHeight)
-                        this._$element().height(visibleHeight + 'px');
-                }
-            }
+            if (!this._$element())
+                return;
+            this._control['text']();
+            this.characterHeight();
+            this.rect();
+            this.canGrow();
+            XRTextControlSurfaceBase.pendingControls.add(this);
+            XRTextControlSurfaceBase.scheduleClamp();
         }));
     }
+    canGrow() {
+        return this._control['canGrow'] && this._control['canGrow']();
+    }
+    static scheduleClamp() {
+        if (XRTextControlSurfaceBase.clampScheduled)
+            return;
+        XRTextControlSurfaceBase.clampScheduled = true;
+        Promise.resolve().then(() => {
+            XRTextControlSurfaceBase.clampScheduled = false;
+            XRTextControlSurfaceBase.clampHeights();
+        });
+    }
+    static clampHeights() {
+        const surfaces = [...XRTextControlSurfaceBase.pendingControls].filter(surface => !surface.isDisposing && !!surface._$element());
+        XRTextControlSurfaceBase.pendingControls.clear();
+        const characterHeights = surfaces.map(surface => surface.characterHeight());
+        surfaces.forEach(surface => {
+            if (surface._$element().element.style.height !== 'auto')
+                surface._$element().height('auto');
+        });
+        const contentHeights = surfaces.map(surface => surface._$element().height());
+        surfaces.forEach((surface, index) => {
+            const height = surface.rect().height;
+            if (contentHeights[index] <= height || surface.canGrow())
+                return;
+            const visibleHeight = Math.floor(height / characterHeights[index]) * characterHeights[index];
+            if (visibleHeight)
+                surface._$element().height(visibleHeight + 'px');
+        });
+    }
 }
+XRTextControlSurfaceBase.pendingControls = new Set();
+XRTextControlSurfaceBase.clampScheduled = false;
 
 ;// ./dist/designer/controls/utils/_tableComponentSurface.js
 
@@ -14775,19 +15165,7 @@ class XRTableCellSurface extends TableComponentSurface {
         this._rowIndex = () => this._table.rows().indexOf(this._row);
         this.direction = TableActionDirection.horizontal;
         this['multiline'] = control['multiline'];
-        this._disposables.push(this.contentSizes = external_ko_namespaceObject.pureComputed(() => {
-            if (this._isShowBorder('Left')) {
-                return this.cssCalculator.contentSizeCss(this.rect().width, this.heightWithRowSpan(), this._context.zoom());
-            }
-            const bordersArray = control.borders().indexOf('All') === -1 ? control.borders().split(/\s*,\s*/g) : ['Left', 'Top', 'Right', 'Bottom'];
-            const index = bordersArray.indexOf('Left');
-            let width = this.rect().width;
-            if (index !== -1) {
-                bordersArray.splice(index, 1);
-                width += 1;
-            }
-            return this.cssCalculator.contentSizeCss(width, this.heightWithRowSpan(), this._context.zoom(), bordersArray.join(','));
-        }));
+        this._disposables.push(this.contentSizes = external_ko_namespaceObject.pureComputed(() => this.contentSizesFor(this.rect().width, this.heightWithRowSpan(), this._context.zoom())));
         this._disposables.push(this.css = external_ko_namespaceObject.pureComputed(() => {
             const bottom = this.cssCalculator.cellBorder('Bottom', this._context.zoom());
             const right = this.cssCalculator.cellBorder('Right', this._context.zoom());
@@ -14853,6 +15231,24 @@ class XRTableCellSurface extends TableComponentSurface {
             }
             return rect;
         };
+    }
+    contentSizesFor(width, height, zoom) {
+        if (this._isShowBorder('Left'))
+            return this.cssCalculator.contentSizeCss(width, height, zoom);
+        const borders = this._control.borders();
+        const bordersArray = borders.indexOf('All') === -1 ? borders.split(/\s*,\s*/g) : ['Left', 'Top', 'Right', 'Bottom'];
+        const index = bordersArray.indexOf('Left');
+        if (index !== -1) {
+            bordersArray.splice(index, 1);
+            width += 1;
+        }
+        return this.cssCalculator.contentSizeCss(width, height, zoom, bordersArray.join(','));
+    }
+    getMarkupContentSize() {
+        const rowIndex = this._rowIndex();
+        const height = this._table.rows().slice(rowIndex, rowIndex + this.rowSpan()).reduce((sum, row) => sum + (row.height() || 0), 0);
+        const unit = this._context.measureUnit();
+        return this.contentSizesFor((0,external_DevExpress_Analytics_Internal_namespaceObject.unitsToPixel)(this._control.width(), unit), (0,external_DevExpress_Analytics_Internal_namespaceObject.unitsToPixel)(height, unit), 1);
     }
     selectColumn(selection) {
         (this.parent.parent).selectColumn(selection, this);
@@ -15250,7 +15646,10 @@ class SortableBandViewModel extends BandViewModel {
             write: (newValue) => levelSetup(this, newValue)
         }));
         levelSetup(this, this.level());
-        this._disposables.push(this.maxLevel = external_ko_namespaceObject.pureComputed(() => getMaxLevel(this.getFilteredParentBands()) + 1));
+        this._disposables.push(this.maxLevel = external_ko_namespaceObject.pureComputed(() => this.getMaxAllowedLevel()));
+    }
+    getMaxAllowedLevel() {
+        return getMaxLevel(this.getFilteredParentBands()) + 1;
     }
     getFilteredParentBands() {
         return this.parentModel().bands().filter(b => b.constructor === this.constructor);
@@ -15360,7 +15759,134 @@ class SubBandSurface extends BandSurface {
     }
 }
 
+;// ./dist/designer/bands/xrGroupBand.js
+
+
+
+
+class GroupBandViewModel extends SortableBandViewModel {
+    constructor(band, parent, serializer) {
+        super(band, parent, serializer);
+    }
+    _updateLevelsOnInsertWithDefaultLevel() {
+        const parentBands = this.parentModel().bands;
+        const minPossibleLevel = this.findMinPossibleLevel(parentBands);
+        this._level(minPossibleLevel);
+    }
+    _updateLevelsOnInsert(newLevelValue, maxLevel) {
+        const parentBands = this.parentModel().bands;
+        if (!parentBands)
+            return null;
+        const parentGroupBands = this.getSortedGroupBands(parentBands());
+        const existedSameLevelBand = getExistedSameLevelBand(parentGroupBands, newLevelValue);
+        if (!existedSameLevelBand) {
+            newLevelValue = coerceNewLevelValueOnInserting(newLevelValue, 0, maxLevel);
+            this._level(newLevelValue);
+            return;
+        }
+        const startIndex = parentGroupBands.indexOf(existedSameLevelBand);
+        const endIndex = this._calculateEndIndex(parentGroupBands, startIndex);
+        changeLevels(parentGroupBands, startIndex, endIndex);
+        this._level(newLevelValue);
+    }
+    updateLevelsOnInsert(maxLevel, newValue) {
+        if (newValue === NEW_GROUPBAND_DEFAULT_LEVEL)
+            this._updateLevelsOnInsertWithDefaultLevel();
+        else
+            this._updateLevelsOnInsert(newValue, maxLevel + 1);
+    }
+    _calculateEndIndex(bands, startIndex) {
+        const thisIndex = bands.indexOf(this);
+        const endIndex = thisIndex === -1 ? bands.length : thisIndex;
+        const direction = startIndex < endIndex ? 1 : -1;
+        let currentIndex = startIndex;
+        while (currentIndex != endIndex) {
+            const level = bands[currentIndex].level();
+            const nextLevelBand = bands.find(b => b.level() === (level + direction));
+            currentIndex += direction;
+            if (!nextLevelBand)
+                break;
+        }
+        return currentIndex;
+    }
+    _reorderLevelsCore(newLevelValue) {
+        const parentBands = this.parentModel().bands;
+        const parentGroupBands = this.getSortedGroupBands(parentBands());
+        const existedSameLevelBand = getExistedSameLevelBand(parentGroupBands, newLevelValue);
+        if (!existedSameLevelBand) {
+            this._level(newLevelValue);
+            return;
+        }
+        const startIndex = parentGroupBands.indexOf(existedSameLevelBand);
+        const endIndex = this._calculateEndIndex(parentGroupBands, startIndex);
+        changeLevels(parentGroupBands, startIndex, endIndex);
+        this._level(newLevelValue);
+    }
+    getDefaultLevel() {
+        return NEW_GROUPBAND_DEFAULT_LEVEL;
+    }
+    hasOtherTypeBands() {
+        return this.getFilteredParentBands().some(b => b.controlType !== this.controlType);
+    }
+    getMaxAllowedLevel() {
+        const maxLevel = getMaxLevel(this.getFilteredParentBands());
+        return this.hasOtherTypeBands() ? maxLevel + 1 : maxLevel;
+    }
+    reorderLevels(maxLevel, newValue) {
+        const releasedLevel = this.level();
+        newValue = coerceNewLevelValueOnReordering(newValue, 0, this.getMaxAllowedLevel());
+        this._reorderLevelsCore(newValue);
+        this.shiftLevelsAbove(releasedLevel, this.getFilteredParentBands());
+    }
+    getSortedGroupBands(parentBands) {
+        return null;
+    }
+    findMinPossibleLevel(parentBands) {
+        return !parentBands ? NEW_GROUPBAND_DEFAULT_LEVEL : getFirstEmptyLevel(this.getSortedGroupBands(parentBands()));
+    }
+    getFilteredParentBands() {
+        return this.parentModel().bands().filter(b => b instanceof GroupBandViewModel);
+    }
+    updateLevelsOnRemove() {
+        this.shiftLevelsAbove(this.level(), this.getFilteredParentBands().filter(b => b !== this));
+    }
+    shiftLevelsAbove(releasedLevel, groupBands) {
+        if (groupBands.some(b => b.level() === releasedLevel))
+            return;
+        groupBands
+            .filter(b => b.level() > releasedLevel)
+            .forEach(b => b._level(b.level() - 1));
+    }
+}
+class GroupHeaderBand extends GroupBandViewModel {
+    constructor(band, parent, serializer) {
+        super(band, parent, serializer);
+        this.groupFields = (0,external_DevExpress_Analytics_Utils_namespaceObject.deserializeArray)(band.GroupFields, (field) => { return new GroupFieldModel(field, serializer); });
+        this.sortingSummary.getPath = (propertyName) => {
+            if (propertyName === 'fieldName')
+                return this.getPath('groupFields');
+        };
+    }
+    getSortedGroupBands(parentBands) {
+        return parentBands?.filter(band => band.controlType === this.controlType).reverse();
+    }
+    dispose() {
+        super.dispose();
+        this.disposeObservableArray(this.groupFields);
+        this.resetObservableArray(this.groupFields);
+    }
+}
+class GroupFooterBand extends GroupBandViewModel {
+    constructor(band, parent, serializer) {
+        super(band, parent, serializer);
+    }
+    getSortedGroupBands(parentBands) {
+        return parentBands.filter(band => band.controlType === this.controlType);
+    }
+}
+
 ;// ./dist/designer/bands/xrDetailReportBand.js
+
 
 
 
@@ -15454,6 +15980,12 @@ class DetailReportBand extends SortableBandViewModel {
             this._updateLevelsOnInsert(maxLevel, newValue);
     }
     removeChild(control) {
+        if (control instanceof GroupBandViewModel) {
+            control.updateLevelsOnRemove();
+            super.removeChild(control);
+            this.bands.sort(sortBands);
+            return;
+        }
         if (control instanceof SortableBandViewModel) {
             control.level(REMOVED_DETAILBAND_LEVEL);
         }
@@ -15520,6 +16052,7 @@ class DetailReportBandSurface extends BandSurface {
 }
 
 ;// ./dist/designer/controls/xrReport.js
+
 
 
 
@@ -15759,10 +16292,14 @@ class ReportViewModel extends XRReportElementViewModel {
         this.parameterHelper.initialize(knownEnums);
         this._disposables.push(this.measureUnit.subscribe((unitType) => {
             this._update(true);
-            const prevDpi = this._innerDpi();
-            this._recalculateUnits(unitType);
-            this._updatePageSize(this.paperKind.peek(), prevDpi);
-            this._update(false);
+            try {
+                const prevDpi = this._innerDpi();
+                this._recalculateUnits(unitType);
+                this._updatePageSize(this.paperKind.peek(), prevDpi);
+            }
+            finally {
+                this._update(false);
+            }
         }));
         this._disposables.push(this.landscape.subscribe((newVal) => {
             const width = this.pageWidthF();
@@ -15855,9 +16392,13 @@ class ReportViewModel extends XRReportElementViewModel {
         this._disposables.push(this._localization = new ReportLocalizationEngine(this));
         this._localizationItems.removeAll();
         let currentLanguage = external_DevExpress_Reporting_Metadata_namespaceObject.defaultCulture;
-        this.language = external_ko_namespaceObject.observable(currentLanguage);
+        this._language = external_ko_namespaceObject.observable(currentLanguage);
+        this._disposables.push(this.language = external_ko_namespaceObject.pureComputed({
+            read: () => this._language(),
+            write: (newVal) => { newVal && this._language(newVal); }
+        }));
         this._localization.apply(currentLanguage);
-        this._disposables.push(this.language.subscribe((newVal) => {
+        this._disposables.push(this._language.subscribe((newVal) => {
             this._localization.save(currentLanguage);
             this._localization.apply(newVal);
             currentLanguage = newVal;
@@ -15904,6 +16445,8 @@ class ReportViewModel extends XRReportElementViewModel {
         else if (control instanceof BandViewModel) {
             if (control instanceof DetailReportBand)
                 control.level(REMOVED_DETAILBAND_LEVEL);
+            else if (control instanceof GroupBandViewModel)
+                control.updateLevelsOnRemove();
             if (this.bands().length > 1)
                 this.bands.splice(this.bands().indexOf(control), 1);
             this.bands.sort(sortBands);
@@ -20907,8 +21450,18 @@ class XRPdfContentViewModel extends XRControlViewModel {
         this.backgroundImage = external_ko_namespaceObject.observable('');
         if (!!this.sourceUrl())
             this.source(null);
-        const parentSize = () => (this.parentModel() ? this.parentModel().size.width() : 0);
-        this._disposables.push(this.sourceUrl.subscribe(newVal => {
+        const _width = external_ko_namespaceObject.observable(this.size.width());
+        this.size['_width'] = _width;
+        this._disposables.push(this.size.width = external_ko_namespaceObject.computed({
+            read: () => {
+                if (this.generateOwnPages())
+                    return this.parentModel()?.size.width() ?? 0;
+                return _width();
+            },
+            write: (newVal) => {
+                _width(newVal);
+            }
+        }), this.sourceUrl.subscribe(newVal => {
             if (!!newVal)
                 this.source(null);
             this._getPdfContentData(!!newVal);
@@ -20918,16 +21471,15 @@ class XRPdfContentViewModel extends XRControlViewModel {
             this._getPdfContentData(!!newVal);
         }), external_ko_namespaceObject.computed(() => {
             if (this.generateOwnPages()) {
-                this.size.width(parentSize());
                 this.location.x(0);
             }
         }), this.location.x.subscribe(val => {
             if (this.generateOwnPages())
                 this.location.x(0);
-        }), this.size.width.subscribe(val => {
-            if (this.generateOwnPages())
-                this.size.width(parentSize());
-        }), this.generateOwnPages.subscribe(val => {
+        }), this.generateOwnPages.subscribe(oldVal => {
+            if (oldVal)
+                _width(this.parentModel()?.size.width() ?? 0);
+        }, null, 'beforeChange'), this.generateOwnPages.subscribe(val => {
             this._getPdfContentData(true);
         }), this.pageRange.subscribe(val => {
             this._getPdfContentData(false);
@@ -22407,7 +22959,7 @@ class TableOfContentsLevelSurface extends XRControlSurfaceBase {
         this._leaderSymbolWidth = external_ko_namespaceObject.pureComputed(() => {
             if (!TableOfContentsLevelSurface._$leaderSymbol)
                 TableOfContentsLevelSurface._$leaderSymbol = (0,external_DevExpress_Analytics_Internal_namespaceObject.$dx)('<span />').hide().appendTo(document.body);
-            TableOfContentsLevelSurface._$leaderSymbol.html(this.getControlModel().leaderSymbol()).css(this.contentCss());
+            TableOfContentsLevelSurface._$leaderSymbol.text(this.getControlModel().leaderSymbol()).css(this.contentCss());
             return TableOfContentsLevelSurface._$leaderSymbol.width();
         });
         this.leaderSymbols = external_ko_namespaceObject.pureComputed(() => {
@@ -25019,7 +25571,7 @@ class ElementsGroupActions extends external_DevExpress_Analytics_Internal_namesp
 
 class PdfContentActions extends external_DevExpress_Analytics_Internal_namespaceObject.BaseActionsProvider {
     get _focusedPdfContent() {
-        const focusedModel = this._selection.focused().getControlModel();
+        const focusedModel = this._selection.focused()?.getControlModel();
         if (focusedModel instanceof XRPdfContentViewModel)
             return focusedModel;
         return null;
@@ -25844,7 +26396,7 @@ class TableCellGroupActions extends external_DevExpress_Analytics_Internal_names
             'width': width,
             'overflow': 'hidden'
         }, cell.surface.cssCalculator.createFont(external_ko_namespaceObject.unwrap(cell['font'])), cell.surface.cssCalculator.createWordWrap(wordWrap, cell.multiline())))
-            .html(cell.text())
+            .text(cell.text())
             .appendTo(document.body);
         try {
             return (0,external_DevExpress_Analytics_Internal_namespaceObject.pixelToUnits)(Math.ceil($div[0].getBoundingClientRect().height) + 2, cell.root.measureUnit(), 1);
@@ -27934,10 +28486,12 @@ class ErrorPanelViewModel extends external_DevExpress_Analytics_Utils_namespaceO
         }
     }
     getNotificationTemplate() {
-        return this._filteredErrorList().length > 0 ? 'dxrd-svg-errorPanel-notification' : 'dxrd-svg-errorPanel-notification_empty';
+        const accessibilityErrorsVisible = this._choosenTypes().includes(ErrorType.Accessibility);
+        const hasVisibleErrors = this._filteredErrorList().some(x => accessibilityErrorsVisible || x.errorCategory !== ErrorCategory.Accessibility);
+        return hasVisibleErrors ? 'dxrd-svg-errorPanel-notification' : 'dxrd-svg-errorPanel-notification_empty';
     }
     getTitleMessage() {
-        return [this._errorMessage(), this._warningMessage(), this._informationMessage(), this._accessibilityCheckerMessage].join('\n');
+        return [this._errorMessage(), this._warningMessage(), this._informationMessage()].join('\n');
     }
     assignErrors() {
         const errors = this._errorList();
@@ -28220,7 +28774,9 @@ class ErrorPanelViewModel extends external_DevExpress_Analytics_Utils_namespaceO
 ;// ./dist/designer/internal/fieldlist/_boundFieldPath.js
 
 
-const singleFieldReferenceRegex = /^\s*\[([^[\]]+)\]\s*$/;
+
+
+const singleFieldReferenceRegex = /^\s*\[([^[\]^][^[\]]*)\]\s*$/;
 const parameterReferenceRegex = /^\s*\?([^\s?[\]]+)\s*$/;
 const textPropertyName = 'Text';
 const parametersPathPrefix = Parameter.ParametersRefString + '.';
@@ -28236,7 +28792,22 @@ function _getParameterPath(expression) {
 function _isSingleReference(expression) {
     return singleFieldReferenceRegex.test(expression) || parameterReferenceRegex.test(expression);
 }
-function _getExpressionFieldPath(control, reportModel) {
+function getParentWithDataSource(element) {
+    return findFirstParentWithPropertyName(element, 'dataSource');
+}
+function getDataSourcePath(context, dataSourceHelper) {
+    let owner = context;
+    const root = owner.root;
+    while (owner && !external_ko_namespaceObject.unwrap(owner.dataSource) && owner !== root) {
+        owner = getParentWithDataSource(owner);
+    }
+    return external_ko_namespaceObject.unwrap(owner?.dataSource) && dataSourceHelper?.getDataSourcePath(external_ko_namespaceObject.unwrap(owner.dataSource)) || null;
+}
+function getDataContextPath(context, dataSourceHelper) {
+    const dataSourcePath = context && getDataSourcePath(context, dataSourceHelper);
+    return dataSourcePath ? (0,external_DevExpress_Analytics_Internal_namespaceObject.getFullPath)(dataSourcePath, external_ko_namespaceObject.unwrap(context.dataMember)) : null;
+}
+function _getExpressionFieldPath(control, dataSourceHelper) {
     const bindings = control.expressionBindings && control.expressionBindings();
     if (!bindings || bindings.length === 0) {
         return null;
@@ -28250,15 +28821,11 @@ function _getExpressionFieldPath(control, reportModel) {
     if (parameterPath) {
         return parameterPath;
     }
-    const dataSourcePath = reportModel.getPath && reportModel.getPath('dataMember');
-    if (!dataSourcePath) {
-        return null;
-    }
-    return reportModel.getPath('expression') + '.' + singleFieldReferenceRegex.exec(binding.expression())[1];
+    const dataContextPath = getDataContextPath(getParentWithDataSource(control), dataSourceHelper);
+    return dataContextPath && dataContextPath + '.' + singleFieldReferenceRegex.exec(binding.expression())[1];
 }
-function _getDataBindingFieldPath(control, reportModel) {
+function _getDataBindingFieldPath(control, dataSourceHelper) {
     const bindings = control['dataBindings'] && control['dataBindings']();
-    const dataSourceHelper = external_ko_namespaceObject.unwrap(reportModel['dataSourceHelper']);
     if (!bindings || !dataSourceHelper) {
         return null;
     }
@@ -28270,15 +28837,36 @@ function _getDataBindingFieldPath(control, reportModel) {
     if (binding.parameter() || binding.dataSource()) {
         return binding.getValuePath(dataSourceHelper) || null;
     }
-    const reportDataSourcePath = reportModel.getPath && reportModel.getPath('dataMember');
-    return reportDataSourcePath ? reportDataSourcePath + '.' + binding.dataMember() : null;
+    const parentWithDataSource = getParentWithDataSource(control);
+    const dataSourcePath = parentWithDataSource && getDataSourcePath(parentWithDataSource, dataSourceHelper);
+    return dataSourcePath ? dataSourcePath + '.' + binding.dataMember() : null;
+}
+function getDataSourceHelper(element) {
+    return external_ko_namespaceObject.unwrap(element?.root?.dataSourceHelper);
 }
 function getBoundFieldPath(control) {
-    const reportModel = control?.root;
-    if (!reportModel) {
+    if (!control?.root) {
         return null;
     }
-    return _getExpressionFieldPath(control, reportModel) || _getDataBindingFieldPath(control, reportModel);
+    const dataSourceHelper = getDataSourceHelper(control);
+    return _getExpressionFieldPath(control, dataSourceHelper) || _getDataBindingFieldPath(control, dataSourceHelper);
+}
+function getFieldListSyncPath(element) {
+    if (!element?.root) {
+        return null;
+    }
+    const dataSourceHelper = getDataSourceHelper(element);
+    const boundFieldPath = getBoundFieldPath(element);
+    if (boundFieldPath) {
+        return boundFieldPath;
+    }
+    if ('dataMember' in element) {
+        const dataContext = element;
+        if (external_ko_namespaceObject.unwrap(dataContext.dataSource) || external_ko_namespaceObject.unwrap(dataContext.dataMember)) {
+            return getDataContextPath(dataContext, dataSourceHelper);
+        }
+    }
+    return element === element.root ? null : getDataContextPath(getParentWithDataSource(element), dataSourceHelper);
 }
 
 ;// ./dist/designer/internal/fieldlist/_fieldListController.js
@@ -31573,110 +32161,6 @@ const ReportDesignerAddOns = {
     ExpressionEditor: 'dxrd-activated-expressioneditor',
     FilterEditor: 'dx-filtereditor-popup'
 };
-
-;// ./dist/designer/bands/xrGroupBand.js
-
-
-
-
-class GroupBandViewModel extends SortableBandViewModel {
-    constructor(band, parent, serializer) {
-        super(band, parent, serializer);
-    }
-    _updateLevelsOnInsertWithDefaultLevel() {
-        const parentBands = this.parentModel().bands;
-        const minPossibleLevel = this.findMinPossibleLevel(parentBands);
-        this._level(minPossibleLevel);
-    }
-    _updateLevelsOnInsert(newLevelValue, maxLevel) {
-        const parentBands = this.parentModel().bands;
-        if (!parentBands)
-            return null;
-        const parentGroupBands = this.getSortedGroupBands(parentBands());
-        const existedSameLevelBand = getExistedSameLevelBand(parentGroupBands, newLevelValue);
-        if (!existedSameLevelBand) {
-            newLevelValue = coerceNewLevelValueOnInserting(newLevelValue, 0, maxLevel);
-            this._level(newLevelValue);
-            return;
-        }
-        const startIndex = parentGroupBands.indexOf(existedSameLevelBand);
-        const endIndex = this._calculateEndIndex(parentGroupBands, startIndex);
-        changeLevels(parentGroupBands, startIndex, endIndex);
-        this._level(newLevelValue);
-    }
-    updateLevelsOnInsert(maxLevel, newValue) {
-        if (newValue === NEW_GROUPBAND_DEFAULT_LEVEL)
-            this._updateLevelsOnInsertWithDefaultLevel();
-        else
-            this._updateLevelsOnInsert(newValue, maxLevel + 1);
-    }
-    _calculateEndIndex(bands, startIndex) {
-        const thisIndex = bands.indexOf(this);
-        const endIndex = thisIndex === -1 ? bands.length : thisIndex;
-        const direction = startIndex < endIndex ? 1 : -1;
-        let currentIndex = startIndex;
-        while (currentIndex != endIndex) {
-            const level = bands[currentIndex].level();
-            const nextLevelBand = bands.find(b => b.level() === (level + direction));
-            currentIndex += direction;
-            if (!nextLevelBand)
-                break;
-        }
-        return currentIndex;
-    }
-    _reorderLevelsCore(newLevelValue) {
-        const parentBands = this.parentModel().bands;
-        const parentGroupBands = this.getSortedGroupBands(parentBands());
-        const existedSameLevelBand = getExistedSameLevelBand(parentGroupBands, newLevelValue);
-        if (!existedSameLevelBand) {
-            this._level(newLevelValue);
-            return;
-        }
-        const startIndex = parentGroupBands.indexOf(existedSameLevelBand);
-        const endIndex = this._calculateEndIndex(parentGroupBands, startIndex);
-        changeLevels(parentGroupBands, startIndex, endIndex);
-        this._level(newLevelValue);
-    }
-    getDefaultLevel() {
-        return NEW_GROUPBAND_DEFAULT_LEVEL;
-    }
-    reorderLevels(maxLevel, newValue) {
-        newValue = coerceNewLevelValueOnReordering(newValue, 0, maxLevel);
-        this._reorderLevelsCore(newValue);
-    }
-    getSortedGroupBands(parentBands) {
-        return null;
-    }
-    findMinPossibleLevel(parentBands) {
-        return !parentBands ? NEW_GROUPBAND_DEFAULT_LEVEL : getFirstEmptyLevel(this.getSortedGroupBands(parentBands()));
-    }
-}
-class GroupHeaderBand extends GroupBandViewModel {
-    constructor(band, parent, serializer) {
-        super(band, parent, serializer);
-        this.groupFields = (0,external_DevExpress_Analytics_Utils_namespaceObject.deserializeArray)(band.GroupFields, (field) => { return new GroupFieldModel(field, serializer); });
-        this.sortingSummary.getPath = (propertyName) => {
-            if (propertyName === 'fieldName')
-                return this.getPath('groupFields');
-        };
-    }
-    getSortedGroupBands(parentBands) {
-        return parentBands?.filter(band => band.controlType === this.controlType).reverse();
-    }
-    dispose() {
-        super.dispose();
-        this.disposeObservableArray(this.groupFields);
-        this.resetObservableArray(this.groupFields);
-    }
-}
-class GroupFooterBand extends GroupBandViewModel {
-    constructor(band, parent, serializer) {
-        super(band, parent, serializer);
-    }
-    getSortedGroupBands(parentBands) {
-        return parentBands.filter(band => band.controlType === this.controlType);
-    }
-}
 
 ;// ./dist/designer/bands/xrMarginBands.js
 
@@ -41924,20 +42408,27 @@ class ReportDesignerInitializer extends external_DevExpress_Analytics_Internal_n
             else
                 this._selection.focused(newValue);
         }));
+        let focusedReport = this._selection.focused()?.getControlModel()?.root;
         this._addDisposable(this._selection.focused.subscribe((newValue) => {
-            const boundFieldPath = getBoundFieldPath(newValue?.getControlModel());
-            if (!boundFieldPath) {
+            const element = newValue?.getControlModel();
+            if (!element) {
+                return;
+            }
+            const isNavigation = element.root !== focusedReport;
+            focusedReport = element.root;
+            const fieldListPath = !isNavigation && getFieldListSyncPath(element);
+            if (!fieldListPath) {
                 return;
             }
             const selectedPath = this.buildingModel.selectedPath;
             if (!selectedPath) {
                 return;
             }
-            if (selectedPath.peek() === boundFieldPath) {
+            if (selectedPath.peek() === fieldListPath) {
                 selectedPath.valueHasMutated();
             }
             else {
-                selectedPath(boundFieldPath);
+                selectedPath(fieldListPath);
             }
         }));
         const isDefaultLanguage = external_ko_namespaceObject.computed(() => {
@@ -43129,199 +43620,7 @@ external_ko_namespaceObject.bindingHandlers['coordinateGrid'] = {
     }
 };
 
-;// ./dist/designer/internal/_htmlMarkUpConverter.js
-
-
-
-
-class TextTag {
-    constructor(node, inheritValues) {
-        this.node = node;
-        this.inheritValues = inheritValues;
-        this.value = null;
-        this.element = null;
-        this.hasChildNodes = false;
-        this.value = this.node.getAttribute && this.node.getAttribute(ValueConverter.ValueAttrName);
-        if (this.value)
-            this.value = this.value.trim();
-    }
-    createElement() {
-        this.element = document.createTextNode(this.node.outerHTML || this.node.textContent || this.node['data']);
-    }
-    setProperties(parameters, inheritValues) { }
-    appendTo(el) {
-        el.appendChild(this.element);
-    }
-}
-class SpanTag extends TextTag {
-    constructor() {
-        super(...arguments);
-        this.hasChildNodes = true;
-    }
-    createElement() {
-        this.element = document.createElement('span');
-        if (this.inheritValues.backcolor) {
-            this.element.style.backgroundColor = 'inherit';
-        }
-    }
-}
-class AnchorTag extends TextTag {
-    constructor() {
-        super(...arguments);
-        this.hasChildNodes = true;
-    }
-    createElement() {
-        this.element = document.createElement('a');
-    }
-    setProperties() {
-        this.element.href = 'javascript:void(0);';
-    }
-}
-class ImageTag extends TextTag {
-    appendTo(el) { }
-}
-class SimpleTag extends SpanTag {
-    createElement() {
-        this.element = document.createElement(this.node.nodeName);
-    }
-}
-class ColorTag extends SpanTag {
-    setProperties() {
-        this.element.style.color = external_DevExpress_Analytics_Serializer_Native_namespaceObject.currentMultiPlatformEngine.unwrap((0,external_DevExpress_Analytics_Utils_namespaceObject.colorFromString)(this.value));
-    }
-}
-class BackColorTag extends SpanTag {
-    setProperties() {
-        this.element.style.backgroundColor = external_DevExpress_Analytics_Serializer_Native_namespaceObject.currentMultiPlatformEngine.unwrap((0,external_DevExpress_Analytics_Utils_namespaceObject.colorFromString)(this.value));
-        this.inheritValues.backcolor = true;
-    }
-}
-class SizeTag extends SpanTag {
-    setProperties(parameters) {
-        let sizeValue;
-        const textValue = this.value;
-        if (textValue && (textValue[0] === '+' || textValue[0] === '-')) {
-            const _val = parseFloat(textValue.substr(1));
-            sizeValue = this.inheritValues.fontSize + (textValue[0] === '+' ? _val : _val * (-1));
-        }
-        else {
-            sizeValue = parseFloat(textValue);
-        }
-        if (!isNaN(sizeValue))
-            this.element.style.fontSize = sizeValue + (parameters.fontUnit || 'pt');
-        else
-            sizeValue = this.inheritValues.fontSize;
-        this.inheritValues.fontSize = sizeValue;
-    }
-}
-class ValueConverter {
-    _createTag(node, inheritValues) {
-        if (!this._checkValidTag(node.nodeName) || node.nodeName === '#text') {
-            return new TextTag(node, inheritValues);
-        }
-        else if (node.nodeName === 'COLOR') {
-            return new ColorTag(node, inheritValues);
-        }
-        else if (node.nodeName === 'BACKCOLOR') {
-            return new BackColorTag(node, inheritValues);
-        }
-        else if (node.nodeName === 'HREF') {
-            return new AnchorTag(node, inheritValues);
-        }
-        else if (node.nodeName === 'SIZE') {
-            return new SizeTag(node, inheritValues);
-        }
-        else if (node.nodeName === 'IMG') {
-            return new ImageTag(node, inheritValues);
-        }
-        else if (node.nodeName !== '#text') {
-            return new SimpleTag(node, inheritValues);
-        }
-    }
-    _parceToXml(str) {
-        let matches;
-        while ((matches = this._regExp.exec(str)) !== null) {
-            if (matches.index === this._regExp.lastIndex) {
-                this._regExp.lastIndex++;
-            }
-            const fullmatch = matches[0];
-            const escapeTag = matches[1];
-            const closingTag = matches[2] === '/' ? '/' : '';
-            const tag = matches[3];
-            const value = matches[5];
-            let replacedStr = '';
-            if (this._checkValidTag(tag) && !escapeTag) {
-                if (value) {
-                    replacedStr = '<' + tag + ' ' + ValueConverter.ValueAttrName + "='" + value + "'>";
-                }
-                else {
-                    replacedStr = '<' + closingTag + tag + '>';
-                }
-            }
-            else {
-                let _fullmatch = fullmatch;
-                if (!!escapeTag) {
-                    _fullmatch = _fullmatch.slice(escapeTag.length);
-                }
-                const $spanEscape = (0,external_DevExpress_Analytics_Internal_namespaceObject.$dx)('<span>');
-                replacedStr = $spanEscape.text(_fullmatch)[0].innerHTML;
-            }
-            str = str.replace(fullmatch, replacedStr);
-        }
-        str = str.replace(/<nbsp>/g, '&nbsp;');
-        str = str.replace(/<br>/g, this._displayNameParameters.wordWrap ? '<br>' : '');
-        return str;
-    }
-    _checkValidTag(tag) {
-        switch (tag.toLocaleLowerCase()) {
-            case 'href':
-            case 'color':
-            case 'backcolor':
-            case 'size':
-            case 'img':
-            case 'image':
-            case 'br':
-            case 'b':
-            case 'i':
-            case 'u':
-            case 'nbsp':
-            case 's': return true;
-        }
-        return false;
-    }
-    _createTree(treeElement, writeTo, inheritValues = { fontSize: this._displayNameParameters.fontSize || 0 }) {
-        if (treeElement.childNodes.length > 0) {
-            const childNodes = Array.prototype.slice.call(treeElement.childNodes);
-            childNodes.forEach((node) => {
-                const tag = this._createTag(node, { fontSize: inheritValues.fontSize, backcolor: inheritValues.backcolor });
-                tag.createElement();
-                tag.setProperties(this._displayNameParameters);
-                tag.appendTo(writeTo);
-                if (tag.hasChildNodes)
-                    this._createTree(node, tag.element, tag.inheritValues);
-            });
-        }
-    }
-    constructor(_displayNameParameters) {
-        this._displayNameParameters = _displayNameParameters;
-        this._regExp = /<(<*)(\/?)(\s*\w+\s*)(=(\s*.+?\s*)|\b[^>]*)?>/gm;
-    }
-    appendTo(element) {
-        if (!element)
-            return;
-        const fragment = document.createDocumentFragment();
-        const temp = document.createElement('div');
-        fragment.appendChild(temp);
-        external_ko_namespaceObject.utils.setHtml(element, '');
-        external_ko_namespaceObject.utils.setHtml(temp, this._parceToXml(this._displayNameParameters.text));
-        this._createTree(temp, element);
-        fragment.removeChild(temp);
-    }
-}
-ValueConverter.ValueAttrName = 'value';
-
 ;// ./dist/designer/internal/_displayNameBindings.js
-
 
 
 external_ko_namespaceObject.bindingHandlers['controlDisplayName'] = {
@@ -43347,12 +43646,7 @@ external_ko_namespaceObject.bindingHandlers['controlDisplayName'] = {
                 .fail(() => (0,external_DevExpress_Analytics_Internal_namespaceObject.$dx)(element).text(wrapFieldName(parameters.dataMember)));
         }
         else {
-            if (!parameters.allowMarkupText) {
-                (0,external_DevExpress_Analytics_Internal_namespaceObject.$dx)(element).text(parameters.text || '');
-            }
-            else {
-                new ValueConverter(parameters).appendTo(element);
-            }
+            (0,external_DevExpress_Analytics_Internal_namespaceObject.$dx)(element).text(parameters.text || '');
         }
     }
 };
@@ -43751,8 +44045,11 @@ class PageSetupHelper {
 (0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('styleunit:{ width: checkStateWidth, height: checkStateHeight }, css: checkStateClass, template: {name: $data.checkStateStyleIcon, if: !!ko.unwrap($data.checkStateStyleIcon)}', function ($context, $element) { return { 'styleunit': function () { return { 'width': $context.$data.checkStateWidth, 'height': $context.$data.checkStateHeight }; }, 'css': function () { return $context.$data.checkStateClass; }, 'template': function () { return { 'name': $context.$data.checkStateStyleIcon, 'if': !!$context.ko.unwrap($context.$data.checkStateStyleIcon) }; } }; });
 (0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('styleunit: { width: textWidth, lineHeight: contentHeightWithoutZoom }, visible: visibleText, style: { cssFloat: isGlyphAlignmentNear() ? \'right\': \'left\' }', function ($context, $element) { return { 'styleunit': function () { return { 'width': $context.$data.textWidth, 'lineHeight': $context.$data.contentHeightWithoutZoom }; }, 'visible': function () { return $context.$data.visibleText; }, 'style': function () { return { 'cssFloat': $context.$data.isGlyphAlignmentNear() ? 'right' : 'left' }; } }; });
 (0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('controlDisplayName: $data, style: contentCss, cacheElement: { action: function(element) { $data.cacheElementContent(element); } }', function ($context, $element) { return { 'controlDisplayName': function () { return $context.$data; }, 'style': function () { return $context.$data.contentCss; }, 'cacheElement': function () { return { 'action': function (element) { $context.$data.cacheElementContent(element); } }; } }; });
+(0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('template: { name: \'dxrd-markup-text-content\', data: markupTextRendering }', function ($context, $element) { return { 'template': function () { return { 'name': 'dxrd-markup-text-content', 'data': $context.$data.markupTextRendering }; } }; });
 (0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('styleunit: { lineHeight: contentHeightWithoutZoom }', function ($context, $element) { return { 'styleunit': function () { return { 'lineHeight': $context.$data.contentHeightWithoutZoom }; } }; });
 (0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('controlDisplayName: $data, style: contentCss, css: {\'dxrd-control-content-multiline\' : multiline }', function ($context, $element) { return { 'controlDisplayName': function () { return $context.$data; }, 'style': function () { return $context.$data.contentCss; }, 'css': function () { return { 'dxrd-control-content-multiline': $context.$data.multiline }; } }; });
+(0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('if: $data.markupTextRendering && markupTextRendering.enabled()', function ($context, $element) { return { 'if': function () { return $context.$data.markupTextRendering && $context.$data.markupTextRendering.enabled(); } }; });
+(0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('ifnot: $data.markupTextRendering && markupTextRendering.enabled()', function ($context, $element) { return { 'ifnot': function () { return $context.$data.markupTextRendering && $context.$data.markupTextRendering.enabled(); } }; });
 (0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('dragDropFileToControl:{ dragDropHandler: $root.toolboxDragHandler, dragDropFileEnabled: dragDropFileEnabled}, event: { dblclick: function() { $root.inlineTextEdit.show($element) } }, style: { visibility: (selected() || focused()) ? \'inherit\' : \'hidden\'}, css: {\'dxrd-selected dxrd-context-menu-container\': selected, \'dxrd-focused\': focused, \'dxrd-intersect\': isIntersect, \'dxrd-locked\': locked, \'dxrd-drop-zone-border\': showDropBorders }, resizable: $root.resizeHandler, draggable: $root.dragHandler, styleunit: position, trackCursor: underCursor', function ($context, $element) { return { 'dragDropFileToControl': function () { return { 'dragDropHandler': $context.$root.toolboxDragHandler, 'dragDropFileEnabled': $context.$data.dragDropFileEnabled }; }, 'event': function () { return { 'dblclick': function () { $context.$root.inlineTextEdit.show($element); } }; }, 'style': function () { return { 'visibility': ($context.$data.selected() || $context.$data.focused()) ? 'inherit' : 'hidden' }; }, 'css': function () { return { 'dxrd-selected dxrd-context-menu-container': $context.$data.selected, 'dxrd-focused': $context.$data.focused, 'dxrd-intersect': $context.$data.isIntersect, 'dxrd-locked': $context.$data.locked, 'dxrd-drop-zone-border': $context.$data.showDropBorders }; }, 'resizable': function () { return $context.$root.resizeHandler; }, 'draggable': function () { return $context.$root.dragHandler; }, 'styleunit': function () { return $context.$data.position; }, 'trackCursor': function () { return $context.$data.underCursor; } }; });
 (0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('dxTextArea: { value: text, onKeyUp: keypressAction, valueChangeEvent: \'keyup\' }', function ($context, $element) { return { 'dxTextArea': function () { return { 'value': $context.$data.text, 'onKeyUp': $context.$data.keypressAction, 'valueChangeEvent': 'keyup' }; } }; });
 (0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('dragDropFileToControl: { dragDropHandler: $root.toolboxDragHandler, dragDropFileEnabled: dragDropFileEnabled}, visible: !(selected() && focused()), styleunit: position, trackCursor: underCursor, style:{ overflow: isSelected() ? \'visible\' : \'hidden\'}, css: {\'dxrd-drop-zone-border\': showDropBorders }', function ($context, $element) { return { 'dragDropFileToControl': function () { return { 'dragDropHandler': $context.$root.toolboxDragHandler, 'dragDropFileEnabled': $context.$data.dragDropFileEnabled }; }, 'visible': function () { return !($context.$data.selected() && $context.$data.focused()); }, 'styleunit': function () { return $context.$data.position; }, 'trackCursor': function () { return $context.$data.underCursor; }, 'style': function () { return { 'overflow': $context.$data.isSelected() ? 'visible' : 'hidden' }; }, 'css': function () { return { 'dxrd-drop-zone-border': $context.$data.showDropBorders }; } }; });
@@ -43794,6 +44091,13 @@ class PageSetupHelper {
 (0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('event: { dblclick: function() { $root.inlineTextEdit.show($element) } }, style: { visibility: (selected() || focused()) ? \'inherit\' : \'hidden\'}, css: {\'dxrd-selected dxrd-context-menu-container\': selected, \'dxrd-focused\': focused, \'dxrd-intersect\': isIntersect, \'dxrd-locked\': locked }, resizable: $root.resizeHandler, draggable: $root.dragHandler, styleunit: position, trackCursor: underCursor', function ($context, $element) { return { 'event': function () { return { 'dblclick': function () { $context.$root.inlineTextEdit.show($element); } }; }, 'style': function () { return { 'visibility': ($context.$data.selected() || $context.$data.focused()) ? 'inherit' : 'hidden' }; }, 'css': function () { return { 'dxrd-selected dxrd-context-menu-container': $context.$data.selected, 'dxrd-focused': $context.$data.focused, 'dxrd-intersect': $context.$data.isIntersect, 'dxrd-locked': $context.$data.locked }; }, 'resizable': function () { return $context.$root.resizeHandler; }, 'draggable': function () { return $context.$root.dragHandler; }, 'styleunit': function () { return $context.$data.position; }, 'trackCursor': function () { return $context.$data.underCursor; } }; });
 (0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('visible: !(selected() && focused()), styleunit: position, trackCursor: underCursor, style:{ overflow: \'visible\'}', function ($context, $element) { return { 'visible': function () { return !($context.$data.selected() && $context.$data.focused()); }, 'styleunit': function () { return $context.$data.position; }, 'trackCursor': function () { return $context.$data.underCursor; }, 'style': function () { return { 'overflow': 'visible' }; } }; });
 (0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('attr: { x1: linePosition().x1 / _context.zoom(), x2: linePosition().x2 / _context.zoom(), y1: linePosition().y1 / _context.zoom(), y2: linePosition().y2 / _context.zoom() }, style: contentCss', function ($context, $element) { return { 'attr': function () { return { 'x1': $context.$data.linePosition().x1 / $context.$data._context.zoom(), 'x2': $context.$data.linePosition().x2 / $context.$data._context.zoom(), 'y1': $context.$data.linePosition().y1 / $context.$data._context.zoom(), 'y2': $context.$data.linePosition().y2 / $context.$data._context.zoom() }; }, 'style': function () { return $context.$data.contentCss; } }; });
+(0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('attr: { src: imageSrc, alt: altText }, event: { error: onImageError }, style: imageCss, styleunit: { height: imageHeight, width: imageWidth }', function ($context, $element) { return { 'attr': function () { return { 'src': $context.$data.imageSrc, 'alt': $context.$data.altText }; }, 'event': function () { return { 'error': $context.$data.onImageError }; }, 'style': function () { return $context.$data.imageCss; }, 'styleunit': function () { return { 'height': $context.$data.imageHeight, 'width': $context.$data.imageWidth }; } }; });
+(0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('styleunit: { lineHeight: $parent.contentHeightWithoutZoom }', function ($context, $element) { return { 'styleunit': function () { return { 'lineHeight': $context.$parent.contentHeightWithoutZoom }; } }; });
+(0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('text: fallbackText, css: { \'dxrd-control-content-multiline\': multiline }, style: $parent.contentCss, cacheElement: { action: function(element) { $parent.cacheElementContent && $parent.cacheElementContent(element); } }', function ($context, $element) { return { 'text': function () { return $context.$data.fallbackText; }, 'css': function () { return { 'dxrd-control-content-multiline': $context.$data.multiline }; }, 'style': function () { return $context.$parent.contentCss; }, 'cacheElement': function () { return { 'action': function (element) { $context.$parent.cacheElementContent && $context.$parent.cacheElementContent(element); } }; } }; });
+(0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('template: \'dxrd-svg-errorPanel-warning\'', function ($context, $element) { return { 'template': function () { return 'dxrd-svg-errorPanel-warning'; } }; });
+(0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('if: imageSrc', function ($context, $element) { return { 'if': function () { return $context.$data.imageSrc; } }; });
+(0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('ifnot: imageSrc', function ($context, $element) { return { 'ifnot': function () { return $context.$data.imageSrc; } }; });
+(0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('if: error', function ($context, $element) { return { 'if': function () { return $context.$data.error; } }; });
 (0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('visible: isSelected(), trackCursor: underCursor, css: {\'dxrd-selected dxrd-context-menu-container\': selected, \'dxrd-focused\': focused, \'dxrd-locked\': locked }, draggable: $root.dragHandler, styleunit: { \'width\': position.width(), \'height\': 3, \'top\': position.top() - 1, left: position.left() }', function ($context, $element) { return { 'visible': function () { return $context.$data.isSelected(); }, 'trackCursor': function () { return $context.$data.underCursor; }, 'css': function () { return { 'dxrd-selected dxrd-context-menu-container': $context.$data.selected, 'dxrd-focused': $context.$data.focused, 'dxrd-locked': $context.$data.locked }; }, 'draggable': function () { return $context.$root.dragHandler; }, 'styleunit': function () { return { 'width': $context.$data.position.width(), 'height': 3, 'top': $context.$data.position.top() - 1, 'left': $context.$data.position.left() }; } }; });
 (0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('visible: !isSelected(), trackCursor: underCursor, styleunit: { \'width\': position.width(), \'height\': 3, \'top\': position.top() - 1, left: position.left() }', function ($context, $element) { return { 'visible': function () { return !$context.$data.isSelected(); }, 'trackCursor': function () { return $context.$data.underCursor; }, 'styleunit': function () { return { 'width': $context.$data.position.width(), 'height': 3, 'top': $context.$data.position.top() - 1, 'left': $context.$data.position.left() }; } }; });
 (0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('styleunit: position', function ($context, $element) { return { 'styleunit': function () { return $context.$data.position; } }; });
@@ -44265,7 +44569,7 @@ class PageSetupHelper {
 (0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('dxPopup: { showTitle: true, width: \'550px\', height: \'400px\', wrapperAttr: { class: \'dxrd-summaryeditor-popup\' }, title: $root.getLocalization(\'Summary Editor\'), visible: $data.popup.visible, toolbarItems: $data.popup.buttons, showCloseButton: true, container: $data.popup.container($element), position: { of: $data.popup.container($element) }}', function ($context, $element) { return { 'dxPopup': function () { return { 'showTitle': true, 'width': '550px', 'height': '400px', 'wrapperAttr': { 'class': 'dxrd-summaryeditor-popup' }, 'title': $context.$root.getLocalization('Summary Editor'), 'visible': $context.$data.popup.visible, 'toolbarItems': $context.$data.popup.buttons, 'showCloseButton': true, 'container': $context.$data.popup.container($element), 'position': { 'of': $context.$data.popup.container($element) } }; } }; });
 (0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('dxSelectBox: { dataSource: $data.getValues(), searchEnabled: true, value: value, valueExpr: \'value\', displayExpr: \'displayValue\', disabled: disabled, dropDownOptions: { container: $root.getPopupContainer($element)  }, inputAttr: { id: editorInputId }, popupPosition: { boundary: $root.getPopupContainer($element) }, useItemTextAsTitle: true  }', function ($context, $element) { return { 'dxSelectBox': function () { return { 'dataSource': $context.$data.getValues(), 'searchEnabled': true, 'value': $context.$data.value, 'valueExpr': 'value', 'displayExpr': 'displayValue', 'disabled': $context.$data.disabled, 'dropDownOptions': { 'container': $context.$root.getPopupContainer($element) }, 'inputAttr': { 'id': $context.$data.editorInputId }, 'popupPosition': { 'boundary': $context.$root.getPopupContainer($element) }, 'useItemTextAsTitle': true }; } }; });
 (0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('text: displayValue, style: { \'fontWeight\': $root.isLocalized($data.value) ? \'bold\' : \'normal\' }, attr: { title: displayValue }', function ($context, $element) { return { 'text': function () { return $context.$data.displayValue; }, 'style': function () { return { 'fontWeight': $context.$root.isLocalized($context.$data.value) ? 'bold' : 'normal' }; }, 'attr': function () { return { 'title': $context.$data.displayValue }; } }; });
-(0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('dxSelectBox: { dataSource: $data.getValues(), searchEnabled: true, value: value, valueExpr: \'value\', displayExpr: \'displayValue\', disabled: disabled, dropDownOptions: { container: $root.getPopupContainer($element), width:  $root.calculateWithZoomFactor(357) }, inputAttr: { id: editorInputId }, popupPosition: { boundary: $root.getPopupContainer($element) }, useItemTextAsTitle: true }', function ($context, $element) { return { 'dxSelectBox': function () { return { 'dataSource': $context.$data.getValues(), 'searchEnabled': true, 'value': $context.$data.value, 'valueExpr': 'value', 'displayExpr': 'displayValue', 'disabled': $context.$data.disabled, 'dropDownOptions': { 'container': $context.$root.getPopupContainer($element), 'width': $context.$root.calculateWithZoomFactor(357) }, 'inputAttr': { 'id': $context.$data.editorInputId }, 'popupPosition': { 'boundary': $context.$root.getPopupContainer($element) }, 'useItemTextAsTitle': true }; } }; });
+(0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('dxSelectBox: { allowClearing: false, dataSource: $data.getValues(), searchEnabled: true, value: value, valueExpr: \'value\', displayExpr: \'displayValue\', disabled: disabled, dropDownOptions: { container: $root.getPopupContainer($element), width:  $root.calculateWithZoomFactor(357) }, inputAttr: { id: editorInputId }, popupPosition: { boundary: $root.getPopupContainer($element) }, useItemTextAsTitle: true }', function ($context, $element) { return { 'dxSelectBox': function () { return { 'allowClearing': false, 'dataSource': $context.$data.getValues(), 'searchEnabled': true, 'value': $context.$data.value, 'valueExpr': 'value', 'displayExpr': 'displayValue', 'disabled': $context.$data.disabled, 'dropDownOptions': { 'container': $context.$root.getPopupContainer($element), 'width': $context.$root.calculateWithZoomFactor(357) }, 'inputAttr': { 'id': $context.$data.editorInputId }, 'popupPosition': { 'boundary': $context.$root.getPopupContainer($element) }, 'useItemTextAsTitle': true }; } }; });
 (0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('text: value === \'Default\' ? \'\' : value, style: { \'fontWeight\': $root.isLocalized($data.value) ? \'bold\' : \'normal\' }, attr: { title: value }', function ($context, $element) { return { 'text': function () { return $context.$data.value === 'Default' ? '' : $context.$data.value; }, 'style': function () { return { 'fontWeight': $context.$root.isLocalized($context.$data.value) ? 'bold' : 'normal' }; }, 'attr': function () { return { 'title': $context.$data.value }; } }; });
 (0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('dxTagBox: { dataSource: getValues(), value: editorValue, valueExpr: \'value\', displayExpr: \'displayValue\', disabled: disabled, dropDownOptions: { container: $root.getPopupContainer($element) }, useItemTextAsTitle: true, multiline: false, showSelectionControls: true, showDropDownButton: true, selectAllText: selectAllText, maxDisplayedTags: maxDisplayedTags, onMultiTagPreparing: onMultiTagPreparing, }', function ($context, $element) { return { 'dxTagBox': function () { return { 'dataSource': $context.$data.getValues(), 'value': $context.$data.editorValue, 'valueExpr': 'value', 'displayExpr': 'displayValue', 'disabled': $context.$data.disabled, 'dropDownOptions': { 'container': $context.$root.getPopupContainer($element) }, 'useItemTextAsTitle': true, 'multiline': false, 'showSelectionControls': true, 'showDropDownButton': true, 'selectAllText': $context.$data.selectAllText, 'maxDisplayedTags': $context.$data.maxDisplayedTags, 'onMultiTagPreparing': $context.$data.onMultiTagPreparing }; } }; });
 (0,external_DevExpress_Analytics_Widgets_Internal_namespaceObject.addToBindingsCache)('template: $parent.templateBinding(\'dxrd-svg-checkboxglyphs-\' + $parent.value + \'_\' + $data)', function ($context, $element) { return { 'template': function () { return $context.$parent.templateBinding('dxrd-svg-checkboxglyphs-' + $context.$parent.value + '_' + $context.$data); } }; });
@@ -44565,7 +44869,7 @@ external_DevExpress_Analytics_Widgets_Internal_namespaceObject.SvgTemplatesEngin
     'dxrd-chart-designer-popup': '<div data-bind="dxPopup: { showTitle: true, width: \'95%\', height: \'95%\', wrapperAttr: { class: \'dxrd-chartdesigner-popup\' }, title: $root.getLocalization(\'Chart Designer\', \'ChartDesignerStringIDs.ChartDesignerWindowTitle\'), visible: visible, toolbarItems: buttons, showCloseButton: true, container: container($element), position: { of: container($element) }}"> <div class="dxrd-chartdesigner-popup-content"> <div class="dxrd-width-100 dxrd-height-100" data-bind="visible: visible, dxChartDesigner: options"></div> </div></div>',
     'dxrd-chart-selection': '<div class="dxrd-control" data-bind="visible: selected() || focused(), css: {\'dxrd-selected dxrd-context-menu-container\': selected, \'dxrd-focused\': focused, \'dxrd-intersect\': isIntersect, \'dxrd-locked\': locked }, resizable: $root.resizeHandler, draggable: $root.dragHandler, styleunit: position, trackCursor: underCursor"> <div class="dxd-border-accented dxrd-control-border-box"></div> <div class="dxrd-chart-panel"> <div class="dxrd-chart-panel-text" data-bind="dxclick: function() { $root.runChartDesigner($data); }, text: runDesignerButtonText(), attr: { title: runDesignerButtonText() }"></div> </div></div><div class="dxrd-control dxrd-context-menu-container" data-bind="visible: !(selected() && focused()), styleunit: position, trackCursor: underCursor, style:{ overflow: isSelected() ? \'visible\' : \'hidden\'}"></div>',
     'dxrd-checkbox-content': '<div data-bind="style: { cssFloat: isGlyphAlignmentNear() ? \'left\': \'right\', width: checkStateWidthContainer() }, styleunit: { lineHeight: contentHeightWithoutZoom }" class="dxrd-text-align-center"> <div class="dxrd-checkbox-checkstate" data-bind="styleunit:{ width: checkStateWidth, height: checkStateHeight }, css: checkStateClass, template: {name: $data.checkStateStyleIcon, if: !!ko.unwrap($data.checkStateStyleIcon)}"> </div></div><div class="dxrd-display-inline-block dxrd-box-sizing-border-box dxrd-letter-spacing-normal dxrd-padding-left-3px" data-bind="styleunit: { width: textWidth, lineHeight: contentHeightWithoutZoom }, visible: visibleText, style: { cssFloat: isGlyphAlignmentNear() ? \'right\': \'left\' }"> <span class="dxrd-control-content dxrd-control-content-multiline" data-bind="controlDisplayName: $data, style: contentCss, cacheElement: { action: function(element) { $data.cacheElementContent(element); } }"></span></div>',
-    'dxrd-control-content': '<div class="dxrd-box-sizing-border-box dxrd-letter-spacing-normal dxrd-width-100" data-bind="styleunit: { lineHeight: contentHeightWithoutZoom }"> <div class="dxrd-control-content" data-bind="controlDisplayName: $data, style: contentCss, css: {\'dxrd-control-content-multiline\' : multiline }"></div></div>',
+    'dxrd-control-content': '<!-- ko if: $data.markupTextRendering && markupTextRendering.enabled() --><div data-bind="template: { name: \'dxrd-markup-text-content\', data: markupTextRendering }"></div><!-- /ko --><!-- ko ifnot: $data.markupTextRendering && markupTextRendering.enabled() --><div class="dxrd-box-sizing-border-box dxrd-letter-spacing-normal dxrd-width-100" data-bind="styleunit: { lineHeight: contentHeightWithoutZoom }"> <div class="dxrd-control-content" data-bind="controlDisplayName: $data, style: contentCss, css: {\'dxrd-control-content-multiline\' : multiline }"></div></div><!-- /ko -->',
     'dxrd-control-selection': '<div class="dxrd-control" data-bind="dragDropFileToControl:{ dragDropHandler: $root.toolboxDragHandler, dragDropFileEnabled: dragDropFileEnabled}, event: { dblclick: function() { $root.inlineTextEdit.show($element) } }, style: { visibility: (selected() || focused()) ? \'inherit\' : \'hidden\'}, css: {\'dxrd-selected dxrd-context-menu-container\': selected, \'dxrd-focused\': focused, \'dxrd-intersect\': isIntersect, \'dxrd-locked\': locked, \'dxrd-drop-zone-border\': showDropBorders }, resizable: $root.resizeHandler, draggable: $root.dragHandler, styleunit: position, trackCursor: underCursor"> <div class="dxd-border-accented dxrd-control-border-box"></div> <!-- ko if: $root.inlineTextEdit.visible() && selected() --> <!-- ko with: $root.inlineTextEdit--> <div class="inline-text-edit" data-bind="dxTextArea: { value: text, onKeyUp: keypressAction, valueChangeEvent: \'keyup\' }"></div> <!-- /ko --> <!-- /ko --> <!-- ko if: $data.controls--> <!-- ko foreach: controls --> <!-- ko template: { name: $data.selectiontemplate } --> <!-- /ko --> <!-- /ko --> <!-- /ko --></div><div class="dxrd-control dxrd-context-menu-container" data-bind="dragDropFileToControl: { dragDropHandler: $root.toolboxDragHandler, dragDropFileEnabled: dragDropFileEnabled}, visible: !(selected() && focused()), styleunit: position, trackCursor: underCursor, style:{ overflow: isSelected() ? \'visible\' : \'hidden\'}, css: {\'dxrd-drop-zone-border\': showDropBorders }"> <div class="dxrd-control-content-select-main" data-bind="styleunit: { \'top\': contentSizes().top + (isIntersect() ? 1 : 0), \'left\': contentSizes().left + (isIntersect()? 1 : 0), lineHeight: contentSizes().height, height: contentSizes().height, width: contentSizes().width}"> <!-- ko if: $data.controls--> <!-- ko foreach: controls --> <!-- ko template: { name: $data.selectiontemplate } --> <!-- /ko --> <!-- /ko --> <!-- /ko --> </div></div>',
     'dxrd-control': '<div class="dxrd-control dxd-selectable" data-bind="styleunit: position, css: adorntemplate"> <div class="dxrd-control-content-main" data-bind="styleunit: { \'top\': contentSizes().top, \'left\': contentSizes().left, lineHeight: contentSizes().height, height: contentSizes().height, width: contentSizes().width }, style: css"> <div data-bind="zoom: _context.zoom, template: contenttemplate, styleunit: { \'height\': contentHeightWithoutZoom, \'width\': contentWidthWithoutZoom }"> </div> <!-- ko if: $data.controls --> <!-- ko foreach: controls --> <!-- ko template: { name: $data.template } --> <!-- /ko --> <!-- /ko --> <!-- /ko --> </div> <div data-bind="style: borderCss" class="dxrd-width-100 dxrd-height-100 dxrd-position-absolute dxrd-box-sizing-border-box"></div></div>',
     'dxrd-crossband-line': '<div class="dxrd-cross-band dxrd-control dxd-selectable" data-bind="css: {\'dxrd-uiselected\': selected }, styleunit: position"> <svg width="100%" height="100%"> <line data-bind="attr: { x1: \'50%\', x2: \'50%\', y1: 0, y2: \'100%\'} , style: lineCss" /> <!-- ko if: isIntersect --> <line class="dxrd-cross-band-intersect" data-bind="attr: { x1: \'50%\', x2: \'50%\', y1: 0, y2: \'100%\'}, style: lineWidthCss  " /> <!-- /ko --> </svg></div>',
@@ -44573,9 +44877,10 @@ external_DevExpress_Analytics_Widgets_Internal_namespaceObject.SvgTemplatesEngin
     'dxrd-crossband-selection': '<div class="dxrd-cross-band" data-bind=" visible: isSelected() && !$root.dx._static.DragDropHandler.started(), css: {\'dxrd-selected dxrd-context-menu-container\': selected, \'dxrd-focused\': focused, \'dxrd-intersect\': isIntersect, \'dxrd-locked\': locked }, resizable: $root.resizeHandler, draggable: $root.dragHandler, styleunit: position, trackCursor: underCursor"> </div> <div class="dxrd-crossband-selection-box dxrd-position-absolute" data-bind="visible: !isSelected(), styleunit: { left: rect().left, top: rect().top, width: 0, height: 0 }"> <div class="dxrd-crossband-selection-right dxrd-position-absolute" data-bind="styleunit: { left: rect().width - 5, top: -5, width: 10, height: rect().height + 10 }, trackCursor: selectionUnderCursor"></div> <div class="dxrd-crossband-selection-top dxrd-position-absolute" data-bind="styleunit: { left: -5, top: -5, width: rect().width + 10, height: 10 }, trackCursor: selectionUnderCursor"></div> <div class="dxrd-crossband-selection-left dxrd-position-absolute" data-bind="styleunit: { left: -5, top: -5, width: 10, height: rect().height + 10 }, trackCursor: selectionUnderCursor"></div> <div class="dxrd-crossband-selection-bottom dxrd-position-absolute" data-bind="styleunit: { left: -5, top: rect().height - 5, width: rect().width + 10, height: 10 }, trackCursor: selectionUnderCursor"></div> </div>',
     'dxrd-crosstab-cell': '<div class="dxrd-crosstab-cell dxrd-control" data-bind="event: { dblclick: function() { isEditable() && $root.inlineTextEdit.show($element) } }, style: { visibility: (selected() || focused()) ? \'inherit\' : \'hidden\'}, css: {\'dxrd-selected dxrd-context-menu-container\': selected, \'dxrd-focused\': focused, \'dxrd-intersect\': isIntersect, \'dxrd-locked\': locked }, resizable: $root.resizeHandler, styleunit: position, trackCursor: underCursor"> <!-- ko template: \'dxrd-crosstab-cell-selection\' --> <!-- /ko --> <div class="dxd-border-accented dxrd-control-border-box"></div> <!-- ko if: $root.inlineTextEdit.visible() && selected() --> <!-- ko with: $root.inlineTextEdit--> <div class="inline-text-edit" data-bind="dxTextArea: { value: text, onKeyUp: keypressAction, valueChangeEvent: \'keyup\' }"></div> <!-- /ko --> <!-- /ko --> <div id="dxrd-crosstab-cell-drop" data-bind="visible: showDropSurface, css: dragCss, styleunit: { left: dropRect.left, top: dropRect.top, width: dropRect.width, height: dropRect.height }"></div> </div> <div class="dxrd-crosstab-cell dxrd-control dxrd-context-menu-container" data-bind="visible: !(selected() && focused()), styleunit: position, trackCursor: underCursor, style:{ overflow: \'visible\'}, event: { mousedown: function(e) { cellClick(); } }"> <!-- ko template: \'dxrd-crosstab-cell-selection\' --> <!-- /ko --> <div class="dxrd-control-content-select-main" data-bind="styleunit: { \'top\': contentSizes().top + (isIntersect() ? 1 : 0), \'left\': contentSizes().left + (isIntersect()? 1 : 0), lineHeight: contentSizes().height, height: contentSizes().height, width: contentSizes().width}"> <div id="dxrd-crosstab-cell-drop" data-bind="visible: showDropSurface, css: dragCss, styleunit: { left: dropRect.left, top: dropRect.top, width: dropRect.width, height: dropRect.height }"></div> </div> </div>',
     'dxrd-crosstab-cell-selection': '<!-- ko if: _control._rowIndex() === 0 --> <div class="dxrd-table-column-selection dxrd-table-column-selection-top" data-bind="click: function(_, e) { !$root.selection.disabled() && selectLine($root.selection, e); e.stopPropagation(); }, visible: !$root.dx._static.DragDropHandler.started(), styleunit: { \'width\': position.width }"></div> <!-- /ko --> <!-- ko if: _control._columnIndex() === 0 --> <div class="dxrd-table-row-selection dxrd-table-row-selection-left" data-bind="click: function(_, e) { !$root.selection.disabled() && selectLine($root.selection, e, true); e.stopPropagation(); }, visible: !$root.dx._static.DragDropHandler.started()"></div> <!-- /ko --> <!-- ko if: _control.parent._rowDefinitions().length - 1 ===  _control._rowIndex() --> <div class="dxrd-table-column-selection dxrd-table-column-selection-bottom" data-bind="click: function(_, e) { !$root.selection.disabled() && selectLine($root.selection, e); e.stopPropagation(); },visible: !$root.dx._static.DragDropHandler.started(), styleunit: { \'width\': position.width }"></div> <!-- /ko --> <!-- ko if: _control.parent._columnDefinitions().length - 1 ===  _control._columnIndex() --> <div class="dxrd-table-row-selection dxrd-table-row-selection-right" data-bind="click: function(_, e) { !$root.selection.disabled() && selectLine($root.selection, e, true); e.stopPropagation(); }, visible: !$root.dx._static.DragDropHandler.started()"></div> <!-- /ko -->',
-    'dxrd-crosstab-control-content': '<div class="dxrd-box-sizing-border-box dxrd-letter-spacing-normal dxrd-width-100" data-bind="styleunit: { lineHeight: contentHeightWithoutZoom }"> <div class="dxrd-control-content" data-bind="controlDisplayName: $data, style: contentCss, css: {\'dxrd-control-content-multiline\' : multiline, \'dxrd-disabled\': $data.getControlModel().isBindable() && !$data.getControlModel().fieldName() }, cacheElement: { action: function(element) { $data.cacheElementContent(element); } }"></div></div>',
+    'dxrd-crosstab-control-content': '<!-- ko if: $data.markupTextRendering && markupTextRendering.enabled() --><div data-bind="template: { name: \'dxrd-markup-text-content\', data: markupTextRendering }"></div><!-- /ko --><!-- ko ifnot: $data.markupTextRendering && markupTextRendering.enabled() --><div class="dxrd-box-sizing-border-box dxrd-letter-spacing-normal dxrd-width-100" data-bind="styleunit: { lineHeight: contentHeightWithoutZoom }"> <div class="dxrd-control-content" data-bind="controlDisplayName: $data, style: contentCss, css: {\'dxrd-control-content-multiline\' : multiline, \'dxrd-disabled\': $data.getControlModel().isBindable() && !$data.getControlModel().fieldName() }, cacheElement: { action: function(element) { $data.cacheElementContent(element); } }"></div></div><!-- /ko -->',
     'dxrd-crosstab': '<div class="dxrd-crosstab dxrd-control" data-bind="event: { dblclick: function() { $root.inlineTextEdit.show($element) } }, style: { visibility: (selected() || focused()) ? \'inherit\' : \'hidden\'}, css: {\'dxrd-selected dxrd-context-menu-container\': selected, \'dxrd-focused\': focused, \'dxrd-intersect\': isIntersect, \'dxrd-locked\': locked }, resizable: $root.resizeHandler, draggable: $root.dragHandler, styleunit: position, trackCursor: underCursor"> <div class="dxd-border-accented dxrd-control-border-box"></div> <!-- ko if: $root.inlineTextEdit.visible() && selected() --> <!-- ko with: $root.inlineTextEdit--> <div class="inline-text-edit" data-bind="dxTextArea: { value: text, onKeyUp: keypressAction, valueChangeEvent: \'keyup\' }"></div> <!-- /ko --> <!-- /ko --> <!-- ko if: $data.controls--> <!-- ko foreach: controls --> <!-- ko template: { name: $data.selectiontemplate } --> <!-- /ko --> <!-- /ko --> <!-- /ko --></div><div class="dxrd-crosstab dxrd-control dxrd-context-menu-container" data-bind="visible: !(selected() && focused()), styleunit: position, trackCursor: underCursor, style:{ overflow: \'visible\'}"> <div class="dxrd-control-content-select-main" data-bind="styleunit: { \'top\': contentSizes().top + (isIntersect() ? 1 : 0), \'left\': contentSizes().left + (isIntersect()? 1 : 0), lineHeight: contentSizes().height, height: contentSizes().height, width: contentSizes().width}"> <!-- ko if: $data.controls--> <!-- ko foreach: controls --> <!-- ko template: { name: $data.selectiontemplate } --> <!-- /ko --> <!-- /ko --> <!-- /ko --> </div></div>',
     'dxrd-line-content': '<svg class="dxrd-position-absolute dxrd-left-0 dxrd-width-100 dxrd-height-100"> <line data-bind="attr: { x1: linePosition().x1 / _context.zoom(), x2: linePosition().x2 / _context.zoom(), y1: linePosition().y1 / _context.zoom(), y2: linePosition().y2 / _context.zoom() }, style: contentCss" /></svg>',
+    'dxrd-markup-text-content': '<!-- ko if: imageSrc --><img class="dxrd-markup-text-image" data-bind="attr: { src: imageSrc, alt: altText }, event: { error: onImageError }, style: imageCss, styleunit: { height: imageHeight, width: imageWidth }" /><!-- /ko --><!-- ko ifnot: imageSrc --><div class="dxrd-box-sizing-border-box dxrd-letter-spacing-normal dxrd-width-100" data-bind="styleunit: { lineHeight: $parent.contentHeightWithoutZoom }"> <div class="dxrd-control-content" data-bind="text: fallbackText, css: { \'dxrd-control-content-multiline\': multiline }, style: $parent.contentCss, cacheElement: { action: function(element) { $parent.cacheElementContent && $parent.cacheElementContent(element); } }"></div></div><!-- /ko --><!-- ko if: error --><div class="dxrd-markup-text-error dxd-icon-warning" data-bind="template: \'dxrd-svg-errorPanel-warning\'"></div><!-- /ko --><!-- ko if: isLoading --><div class="dx-content-loading-panel"> <div data-bind="dxLoadIndicator: { visible: isLoading() }"></div></div><!-- /ko -->',
     'dxrd-pagebreak-selection': '<div class="dxrd-control dxrd-pagebreak" data-bind="visible: isSelected(), trackCursor: underCursor, css: {\'dxrd-selected dxrd-context-menu-container\': selected, \'dxrd-focused\': focused, \'dxrd-locked\': locked }, draggable: $root.dragHandler, styleunit: { \'width\': position.width(), \'height\': 3, \'top\': position.top() - 1, left: position.left() }"> <div class="dxd-border-accented dxrd-control-border-box"></div></div><div class="dxrd-control dxrd-pagebreak dxrd-context-menu-container" data-bind="visible: !isSelected(), trackCursor: underCursor, styleunit: { \'width\': position.width(), \'height\': 3, \'top\': position.top() - 1, left: position.left() }"></div>',
     'dxrd-pagebreak': '<div class="dxrd-control dxd-selectable dxrd-border-none dxrd-background-none"  data-bind="styleunit: position"> <div data-bind="zoom: _context.zoom, template: contenttemplate, styleunit: { \'lineHeight\': lineHeight, \'height\': lineHeight, \'width\': position.width() / _context.zoom() }"> </div></div>',
     'dxrd-pdfcontent-control-content': '<div class="dxrd-box-sizing-border-box dxrd-letter-spacing-normal dxrd-width-100" data-bind="styleunit: { lineHeight: contentHeightWithoutZoom }"> <div class="dxrd-control-content" data-bind="style: contentCss, styleunit: { lineHeight: contentHeightWithoutZoom, height: contentHeightWithoutZoom, width: contentWidthWithoutZoom }"> <div data-bind="css: controlTypeClass, template: controlTypeIconTemplate" class="dxrd-position-absolute dxrd-width-24px dxrd-height-24px dxrd-right-5px dxrd-top-5px"> </div> <!-- ko if: generateOwnPages() --> <div class="dxrd-text-nowrap-ellipsis" data-bind="text: getControlModel().textContent"></div> <!-- /ko --> </div></div>',
@@ -44601,7 +44906,7 @@ external_DevExpress_Analytics_Widgets_Internal_namespaceObject.SvgTemplatesEngin
     'dxrd-table-of-contents': '<div class="dxrd-control dxd-selectable dxrd-control-table-of-content" data-bind="styleunit: position, trackCursor: underCursor, css: adorntemplate"> <div data-bind="style: css" class="dxrd-width-100 dxrd-height-100"> <!-- ko template: { name: levelTitle.template, data: levelTitle } --> <!-- /ko --> <div class="dxrd-control-table-of-content-levelsElements"> <!-- ko foreach: $data.levels() --> <!-- ko template: { name: $data.template } --> <!-- /ko --> <!-- /ko --> <!-- ko template: { name: levelDefault.template, data: levelDefault, isDefault: true } --> <!-- /ko --> </div> </div> </div>',
     'dxrd-table-of-contents-level': '<div class="dxrd-control dxrd-left-0 dxrd-width-100" data-bind="styleunit: { height: position.height, top: position.top, lineHeight: position.lineHeight}, css: adorntemplate" > <div class="dxrd-tocLevel-border" data-bind="styleunit: { \'height\': _context.zoom()}"></div> <!-- ko if: getControlModel().rtl() --> <div data-bind="style: borderCss, styleunit: { left: position.left, width: contentSizes().width + (contentSizes().left + contentSizes().right)} " class="dxrd-height-100 dxrd-position-absolute dxrd-box-sizing-border-box"></div> <!-- /ko --> <!-- ko if: !getControlModel().rtl() --> <div data-bind="style: borderCss, styleunit: { left: position.left} " class="dxrd-height-100 dxrd-right-0 dxrd-position-absolute dxrd-box-sizing-border-box"></div> <!-- /ko --> <div class="dxrd-control-content-main dxrd-overflow-hidden"  data-bind="styleunit: { \'top\': contentSizes().top, \'left\': contentSizes().left + position.left(), lineHeight: contentSizes().height, height: contentSizes().height, width: contentSizes().width}, style: css"> <div class="dxrd-tocLevel-zoomer" data-bind="zoom: _context.zoom, styleunit: { \'height\': contentHeightWithoutZoom, \'width\': contentWidthWithoutZoom }"> <div class="dxrd-box-sizing-border-box dxrd-letter-spacing-normal dxrd-width-100 dxrd-height-100" data-bind="styleunit: { lineHeight: contentHeightWithoutZoom }"> <!-- ko if: getControlModel().isTitle --> <div class="dxrd-control-content dxrd-control-content-multiline" data-bind="controlDisplayName: $data, style: contentCss"></div> <!-- /ko --> <!-- ko ifnot: getControlModel().isTitle --> <div class="dxrd-control-content dxrd-width-100 dxrd-height-100 dxrd-line-height-inherit" data-bind="style: contentCss" > <div class="dxrd-control-content-level-text"> <table border="0" cellspacing="0" cellpadding="0"> <tr> <td> <div class="dxrd-control-content-line-text"><span data-bind="text: $data.getControlModel().name"></span></div> </td> <td class="middle"> <table border="0" cellspacing="0" cellpadding="0" class="dxrd-table-layout-fixed dxrd-width-100"> <tr> <td data-bind="text: leaderSymbols" class="dxrd-word-wrap-break-word"></td> </tr> </table> </td> <td> <div class="dxrd-control-content-number">&nbsp;&nbsp;#&nbsp;&nbsp;</div> </td> </tr> </table> </div> </div> <!-- /ko --> </div> </div> </div> </div>',
     'dxrd-table-of-contents-selected': '<div class="dxrd-control dxrd-table-of-contents-selected dxrd-context-menu-container" data-bind="event: { dblclick: function() { $root.inlineTextEdit.show($element) } }, visible: isSelected, css: {\'dxrd-intersect\': isIntersect, \'dxrd-locked\': locked }, draggable: $root.dragHandler, styleunit: position, trackCursor: underCursor"> <div class="dxd-border-accented dxrd-control-border-box"></div> <!-- ko with: levelTitle --> <div class="dxrd-control dxrd-control-line-ui-resizeble" data-bind="styleunit: position, resizable: resizable($root.resizeHandler, $element)"> <!-- ko with: $root.inlineTextEdit--> <!-- ko if: visible --> <div class="inline-text-edit" data-bind="dxTextArea: { value: text, onKeyUp: keypressAction, valueChangeEvent: \'keyup\' }"></div> <!-- /ko --> <!-- /ko --> </div> <!-- /ko --> <!-- ko foreach: $data.levels() --> <div class="dxrd-control dxrd-control-line-ui-resizeble" data-bind="styleunit: { height: position.height, top: position.top, lineHeight: position.lineHeight }, resizable: resizable($root.resizeHandler, $element)" class="dxrd-left-0 dxrd-width-100"></div> <!-- /ko --> <!-- ko with: levelDefault --> <div class="dxrd-control" data-bind="styleunit: { height: position.height, top: position.top, lineHeight: position.lineHeight }, resizable: resizable($root.resizeHandler, $element)" class="dxrd-left-0 dxrd-width-100"></div> <!-- /ko --> </div> <div class="dxrd-control dxrd-context-menu-container" data-bind="visible: !isSelected(), styleunit: position, trackCursor: underCursor"> </div>',
-    'dxrd-textcontrol-content': '<div class="dxrd-box-sizing-border-box dxrd-letter-spacing-normal dxrd-width-100" data-bind="styleunit: { lineHeight: contentHeightWithoutZoom }"> <div class="dxrd-control-content" data-bind="controlDisplayName: $data, style: contentCss, css: {\'dxrd-control-content-multiline\' : multiline }, cacheElement: { action: function(element) { $data.cacheElementContent(element); } } "></div></div>',
+    'dxrd-textcontrol-content': '<!-- ko if: $data.markupTextRendering && markupTextRendering.enabled() --><div data-bind="template: { name: \'dxrd-markup-text-content\', data: markupTextRendering }"></div><!-- /ko --><!-- ko ifnot: $data.markupTextRendering && markupTextRendering.enabled() --><div class="dxrd-box-sizing-border-box dxrd-letter-spacing-normal dxrd-width-100" data-bind="styleunit: { lineHeight: contentHeightWithoutZoom }"> <div class="dxrd-control-content" data-bind="controlDisplayName: $data, style: contentCss, css: {\'dxrd-control-content-multiline\' : multiline }, cacheElement: { action: function(element) { $data.cacheElementContent(element); } } "></div></div><!-- /ko -->',
     'dxrd-todocontrol': '<div class="dxrd-control dxd-selectable" data-bind="styleunit: position, trackCursor: underCursor, style: css, css: adorntemplate"> <div data-bind="style: borderCss" class="dxrd-control-border-box"></div> <div data-bind="css: controlTypeClass, template: controlTypeIconTemplate" class="dxrd-position-absolute dxrd-width-24px dxrd-height-24px dxrd-right-5px dxrd-top-5px"> </div> <span class="dxrd-control-content" data-bind="text: displayName, style: contentCss"></span></div>',
     'dxrd-unknown-control': '<div class="dxrd-control dxd-selectable" data-bind="styleunit: position, css: adorntemplate"> <div class="dxrd-control-content-main"> <div data-bind="zoom: _context.zoom, template: contenttemplate" class="dxrd-position-absolute"> </div> </div></div>',
     'dxrd-calculatedfield-content': '<div data-bind="with: propertyGrid"> <!-- ko foreach: getEditors() --> <!-- ko template: editorTemplate --> <!-- /ko --> <!-- /ko --></div>',
@@ -44696,7 +45001,7 @@ external_DevExpress_Analytics_Widgets_Internal_namespaceObject.SvgTemplatesEngin
     'dxrd-pdfcontent-loadfile': '<div data-bind="dxFileImagePicker: { value: value, inputAttr: { id: editorInputId }, placeholderId: \'File\', disabled: disabled, accept:\'.pdf\', showClearButton: true }"></div>',
     'dxrd-summaryeditor-header': '<!-- ko template: \'dx-emptyHeader\' --> <!-- /ko --> <div data-bind="dxPopup: { showTitle: true, width: \'550px\', height: \'400px\', wrapperAttr: { class: \'dxrd-summaryeditor-popup\' }, title: $root.getLocalization(\'Summary Editor\'), visible: $data.popup.visible, toolbarItems: $data.popup.buttons, showCloseButton: true, container: $data.popup.container($element), position: { of: $data.popup.container($element) }}"> <!-- ko template: { name: \'dx-propertieseditor\', data: $data.popup.grid } --> <!-- /ko --> </div>',
     'dxrd-datasource-combobox': '<div data-bind="dxSelectBox: { dataSource: $data.getValues(), searchEnabled: true, value: value, valueExpr: \'value\', displayExpr: \'displayValue\', disabled: disabled, dropDownOptions: { container: $root.getPopupContainer($element)  }, inputAttr: { id: editorInputId }, popupPosition: { boundary: $root.getPopupContainer($element) }, useItemTextAsTitle: true  }"> <div data-options="dxTemplate: { name: \'item\' }" data-bind="text: displayValue, style: { \'fontWeight\': $root.isLocalized($data.value) ? \'bold\' : \'normal\' }, attr: { title: displayValue }"> </div> </div>',
-    'dxrd-localization-combobox': '<div data-bind="dxSelectBox: { dataSource: $data.getValues(), searchEnabled: true, value: value, valueExpr: \'value\', displayExpr: \'displayValue\', disabled: disabled, dropDownOptions: { container: $root.getPopupContainer($element), width:  $root.calculateWithZoomFactor(357) }, inputAttr: { id: editorInputId }, popupPosition: { boundary: $root.getPopupContainer($element) }, useItemTextAsTitle: true }"> <div class="dx-localization-combobox-content" data-options="dxTemplate: { name: \'item\' }"> <div class="dx-culture dx-culture-code dxd-text-info" data-bind="text: value === \'Default\' ? \'\' : value, style: { \'fontWeight\': $root.isLocalized($data.value) ? \'bold\' : \'normal\' }, attr: { title: value }"></div> <div class="dx-culture" data-bind="text: displayValue, style: { \'fontWeight\': $root.isLocalized($data.value) ? \'bold\' : \'normal\' }, attr: { title: displayValue }"></div> </div> </div>',
+    'dxrd-localization-combobox': '<div data-bind="dxSelectBox: { allowClearing: false, dataSource: $data.getValues(), searchEnabled: true, value: value, valueExpr: \'value\', displayExpr: \'displayValue\', disabled: disabled, dropDownOptions: { container: $root.getPopupContainer($element), width:  $root.calculateWithZoomFactor(357) }, inputAttr: { id: editorInputId }, popupPosition: { boundary: $root.getPopupContainer($element) }, useItemTextAsTitle: true }"> <div class="dx-localization-combobox-content" data-options="dxTemplate: { name: \'item\' }"> <div class="dx-culture dx-culture-code dxd-text-info" data-bind="text: value === \'Default\' ? \'\' : value, style: { \'fontWeight\': $root.isLocalized($data.value) ? \'bold\' : \'normal\' }, attr: { title: value }"></div> <div class="dx-culture" data-bind="text: displayValue, style: { \'fontWeight\': $root.isLocalized($data.value) ? \'bold\' : \'normal\' }, attr: { title: displayValue }"></div> </div> </div>',
     'dxrd-tagbox': '<div data-bind="dxTagBox: { dataSource: getValues(), value: editorValue, valueExpr: \'value\', displayExpr: \'displayValue\', disabled: disabled, dropDownOptions: { container: $root.getPopupContainer($element) }, useItemTextAsTitle: true, multiline: false, showSelectionControls: true, showDropDownButton: true, selectAllText: selectAllText, maxDisplayedTags: maxDisplayedTags, onMultiTagPreparing: onMultiTagPreparing, }"></div>',
     'dxrd-page-choose-report-type': '<div class="dxrd-wizard-type-page" data-bind="css: $data._extendCssClass(\'type-page\')"> <div class="dxrd-wizard-report-gallery" data-bind="dxList: getListOptions()"></div> </div>',
     'dxrd-page-crosstab-dataMembers': '<div class="dxrd-wizard-page dxrd-wizard-crosstab-select-dataMembers-page dxrd-wizard-page-treelist-accordion-style"> <div class="dxrd-wizard-list-container"> <div class="dxrd-wizard-list dx-default-border-style dxd-border-secondary" data-bind="dxScrollView: { showScrollbar: \'onHover\', height: \'100%\' }"> <div class="dxrd-wizard-field-infos dxrd-wizard-field-infos-title dxd-border-secondary dxd-back-contrast"> <div class="dxrd-wizard-field-infos-title-image" data-bind="template: _icon"></div> <div class="dxrd-wizard-field-infos-title-content dxd-text-primary" data-bind="text: _title"></div> </div> <div data-bind="dxScrollView: { showScrollbar: \'onHover\', height: \'auto\' }"> <div data-bind="treelist: _signleFieldMemberFieldListModel" class="dxrd-width-100 dxrd-height-100"></div> </div> </div> </div> </div>',
@@ -45004,7 +45309,7 @@ external_DevExpress_Analytics_Widgets_Internal_namespaceObject.SvgTemplatesEngin
 
 
 
-;// ./dist/scopes/reporting-designer-internal-htmlMarkUp.js
+
 
 
 
@@ -46366,7 +46671,6 @@ registerEditors();
 
 
 
-
 function _addDesignerToBundle(bundle) {
     bundle.Reporting = bundle.Reporting || {};
     bundle.Reporting.Designer = reporting_designer_namespaceObject;
@@ -46391,7 +46695,6 @@ function _addDesignerToBundle(bundle) {
     bundle.Reporting.Designer.Data = reporting_designer_data_namespaceObject;
     bundle.Reporting.Designer.Data.Metadata = reporting_designer_data_metadata_namespaceObject;
     bundle.Reporting.Designer.Internal = reporting_designer_internal_namespaceObject;
-    bundle.Reporting.Designer.Internal.HtmlMarkUp = reporting_designer_internal_htmlMarkUp_namespaceObject;
     bundle.Reporting.Designer.Localization = reporting_designer_localization_namespaceObject;
     bundle.Reporting.Designer.Tools = reporting_designer_tools_namespaceObject;
     bundle.Reporting.Designer.Utils = reporting_designer_utils_namespaceObject;

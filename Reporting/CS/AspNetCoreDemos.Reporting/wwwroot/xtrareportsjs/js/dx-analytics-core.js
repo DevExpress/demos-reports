@@ -1,7 +1,7 @@
 ﻿/**
 * DevExpress Analytics (js\dx-analytics-core.js)
-* Version:  26.1.5
-* Build date: Sep 14, 2026
+* Version:  26.1.6
+* Build date: Oct 17, 2026
 * Copyright (c) 2012 - 2026 Developer Express Inc. ALL RIGHTS RESERVED
 * License: https://www.devexpress.com/Support/EULAs/universal.xml
 */
@@ -193,6 +193,7 @@ __webpack_require__.d(analytics_internal_namespaceObject, {
   chooseBetterPositionOf: () => (chooseBetterPositionOf),
   cloneHtmlBinding: () => (cloneHtmlBinding),
   collectGroupsFromFlatList: () => (collectGroupsFromFlatList),
+  collectIncorrectSyntax: () => (collectIncorrectSyntax),
   collectionsVisitor: () => (collectionsVisitor),
   compareArrays: () => (compareArrays),
   compareEditorInfo: () => (compareEditorInfo),
@@ -220,6 +221,7 @@ __webpack_require__.d(analytics_internal_namespaceObject, {
   custom_localization_values: () => (custom_localization_values),
   cutRefs: () => (cutRefs),
   defaultAccessibilityProvider: () => (defaultAccessibilityProvider),
+  deferredToPromise: () => (deferredToPromise),
   delay: () => (delay),
   deleteSelection: () => (deleteSelection),
   deserializeChildArray: () => (deserializeChildArray),
@@ -303,6 +305,7 @@ __webpack_require__.d(analytics_internal_namespaceObject, {
   locationFake: () => (locationFake),
   messages: () => (messages),
   minHeightWithoutScroll: () => (minHeightWithoutScroll),
+  mute: () => (mute),
   nameRequiredValidationRule: () => (nameRequiredValidationRule),
   nameValidationRules: () => (nameValidationRules),
   noDataText: () => (noDataText),
@@ -335,6 +338,7 @@ __webpack_require__.d(analytics_internal_namespaceObject, {
   tryDelay: () => (tryDelay),
   unitPerInch: () => (unitPerInch),
   unitsToPixel: () => (unitsToPixel),
+  unmute: () => (unmute),
   unwrapImmidiatePromise: () => (unwrapImmidiatePromise),
   updateSurfaceContentSize: () => (updateSurfaceContentSize),
   updateZoomBinding: () => (updateZoomBinding),
@@ -1470,6 +1474,12 @@ function unwrapImmidiatePromise(promise) {
         result = value;
     });
     return result;
+}
+function deferredToPromise(deferred) {
+    return new Promise((resolve, reject) => {
+        deferred.done(resolve);
+        deferred.fail?.(reject);
+    });
 }
 function isPromise(object) {
     return object && typeof object['then'] === 'function';
@@ -5033,7 +5043,7 @@ class WizardDragDropHandler extends DragDropHandler {
 ;// external "DevExpress.VERSION"
 const external_DevExpress_VERSION_namespaceObject = DevExpress.VERSION;
 ;// ./dist/analytics-version.js
-const version = '26.1.5';
+const version = '26.1.6';
 
 ;// ./dist/core/internal/dxtTemplate.js
 function dxtTemplate() {
@@ -8139,6 +8149,7 @@ class TreeListItemViewModel extends BaseRenderingModel {
             }
             else {
                 this._treeListController.select(item);
+                item.isSelected && this._onItemSelectedByPath?.(item);
             }
         }
     }
@@ -8262,6 +8273,7 @@ class TreeListItemViewModel extends BaseRenderingModel {
         this._onItemsVisibilityChanged = onItemsVisibilityChanged;
         this.dragDropHandler = options.treeListController.dragDropHandler;
         this._onItemsChangedCallback = options.onItemsChanged;
+        this._onItemSelectedByPath = options.onItemSelectedByPath;
         this.getItems = () => {
             if (this.items.length > 0)
                 return new DxDeferred().resolve(this.items).promise();
@@ -15366,6 +15378,32 @@ function createDesigner(model, surface, controlsFactory, groups = {}, editors = 
         .getModel();
 }
 
+;// ./dist/core/utils/_testHelpers.js
+
+const originalWarn = console.warn;
+function mute() {
+    _setShowMessageFunc(() => { });
+    console.warn = function () { };
+}
+function unmute() {
+    _resetShowMessageFunc();
+    console.warn = originalWarn;
+}
+function collectIncorrectSyntax(content, fileName) {
+    const errors = [];
+    content.split('\n').forEach((line, index) => {
+        const tagIndex = line.indexOf('<style>');
+        if (tagIndex !== -1) {
+            errors.push(`${fileName}:${index + 1}:${tagIndex + 1} Contains '<style>' tag`);
+        }
+        const attributeIndex = line.indexOf('style="');
+        if (attributeIndex !== -1) {
+            errors.push(`${fileName}:${index + 1}:${attributeIndex + 1} Contains 'style' attribute`);
+        }
+    });
+    return errors;
+}
+
 ;// ./dist/core/utils/_units.js
 
 
@@ -17706,6 +17744,8 @@ function base64DecodeUnicode(base64string) {
 }
 
 ;// ./dist/analytics-internal.js
+
+
 
 
 
@@ -21713,18 +21753,45 @@ class TreeListSearchOptions {
 
 
 function initTreeListBinding(bindingOptions) {
+    const itemRenderAttempts = 25;
+    const itemRenderDelay = 20;
     const values = bindingOptions.values;
     const element = bindingOptions.element;
     const options = koUtils.unwrap(values);
     let treeListViewModel = null;
+    let cancelScrollToItem = () => void 0;
+    const getScrollView = () => {
+        const scrollViewElt = bindingOptions.element.closest('.dx-scrollview');
+        return scrollViewElt && external_DevExpress_ui_dxScrollView_default().getInstance(scrollViewElt);
+    };
     const updateScrollBar = () => {
         const options = koUtils.unwrap(values);
-        const scrollViewElt = bindingOptions.element.closest('.dx-scrollview');
-        const scrollView = scrollViewElt && external_DevExpress_ui_dxScrollView_default().getInstance(scrollViewElt);
-        scrollView && scrollView['update']();
+        const scrollView = getScrollView();
+        scrollView && scrollView.update();
         if (options.onItemsVisibilityChanged) {
             options.onItemsVisibilityChanged();
         }
+    };
+    const scrollToItem = (item) => {
+        cancelScrollToItem();
+        let attemptsLeft = itemRenderAttempts;
+        let isCanceled = false;
+        let timeout;
+        const tryScroll = () => {
+            const itemElement = element.querySelector(`[id="${item.id}"]`);
+            const scrollView = getScrollView();
+            if (itemElement?.getClientRects().length > 0 && scrollView) {
+                scrollView.update().then(() => !isCanceled && scrollView.scrollToElement(itemElement));
+            }
+            else if (--attemptsLeft > 0) {
+                timeout = setTimeout(tryScroll, itemRenderDelay);
+            }
+        };
+        timeout = setTimeout(tryScroll);
+        cancelScrollToItem = () => {
+            isCanceled = true;
+            clearTimeout(timeout);
+        };
     };
     const updateTreeList = (options) => {
         const treeListController = options.treeListController || new TreeListController();
@@ -21734,6 +21801,11 @@ function initTreeListBinding(bindingOptions) {
         options.store = new TreeListItemStore();
         options.itemsProvider = koUtils.unwrap(options.itemsProvider);
         options.pageSize = options.pageSize || -1;
+        const onItemSelectedByPath = options.onItemSelectedByPath;
+        options.onItemSelectedByPath = (item) => {
+            onItemSelectedByPath?.(item);
+            scrollToItem(item);
+        };
         if (!options || !options.itemsProvider)
             return;
         if (!options.rtl) {
@@ -21758,7 +21830,7 @@ function initTreeListBinding(bindingOptions) {
     };
     const path = koUtils.unwrap(options.path);
     if (path && !Array.isArray(path) && koUtils.isSubscribable(options.path))
-        subscriptions.push(options.path.subscribe((newValue) => updateTreeList(options)));
+        subscriptions.push(options.path.subscribe((newValue) => updateTreeList(extend({}, options))));
     if (koUtils.isSubscribable(values)) {
         subscriptions.push(values.subscribe((newValue) => onTreeListChanged(newValue)));
     }
@@ -21769,6 +21841,7 @@ function initTreeListBinding(bindingOptions) {
         subscriptions.push({ dispose: values.setTreeListChangedEvent(onTreeListChanged) });
     }
     return () => {
+        cancelScrollToItem();
         treeListViewModel && treeListViewModel.dispose();
         treeListViewModel = null;
         subscriptions.forEach(subscription => subscription.dispose());

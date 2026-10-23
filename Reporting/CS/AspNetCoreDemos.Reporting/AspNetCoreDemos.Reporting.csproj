@@ -5,9 +5,9 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="DevExpress.AIIntegration.AspNetCore.Reporting" VersionOverride="26.1.5" />
-    <PackageReference Include="DevExpress.AspNetCore.Reporting" VersionOverride="26.1.5" />
-    <PackageReference Include="DevExpress.Drawing.Skia" VersionOverride="26.1.5" />
+    <PackageReference Include="DevExpress.AIIntegration.AspNetCore.Reporting" VersionOverride="26.1.6" />
+    <PackageReference Include="DevExpress.AspNetCore.Reporting" VersionOverride="26.1.6" />
+    <PackageReference Include="DevExpress.Drawing.Skia" VersionOverride="26.1.6" />
     <PackageReference Include="Azure.AI.OpenAI" />
     <PackageReference Include="BuildBundlerMinifier" />
     <PackageReference Include="CommonMark.NET" />
@@ -18,7 +18,7 @@
     <PackageReference Include="Microsoft.Extensions.AI.OpenAI" />
   </ItemGroup>
   <ItemGroup Condition="!Exists('..\DevExpress.DemoReports\DevExpress.DemoReports.NetCore.csproj')">
-    <PackageReference Include="DevExpress.Reporting.Demos" Version="26.1.5" />
+    <PackageReference Include="DevExpress.Reporting.Demos" Version="26.1.6" />
   </ItemGroup>
   <ItemGroup Condition="Exists('..\DevExpress.DemoReports\DevExpress.DemoReports.NetCore.csproj')">
     <ProjectReference Include="..\DevExpress.DemoReports\DevExpress.DemoReports.NetCore.csproj" />

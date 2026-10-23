@@ -1,7 +1,7 @@
 ﻿/**
 * DevExpress HTML/JS Reporting (css\dx-reportdesigner.css)
-* Version:  26.1.5
-* Build date: Sep 14, 2026
+* Version:  26.1.6
+* Build date: Oct 17, 2026
 * Copyright (c) 2012 - 2026 Developer Express Inc. ALL RIGHTS RESERVED
 * License: https://www.devexpress.com/Support/EULAs/universal.xml
 */
@@ -4403,6 +4403,25 @@
   bottom: 0;
   right: 0;
   left: 0;
+}
+.dxrd-markup-text-image {
+  display: block;
+}
+.dxrd-markup-text-error {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 18px;
+  height: 18px;
+  padding: 1px;
+  box-sizing: border-box;
+  border-radius: 2px;
+  background-color: #fff;
+}
+.dxrd-markup-text-error svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 .dx-expressioneditor .dx-popup-content .dx-expression-variables-arguments {
   display: none;

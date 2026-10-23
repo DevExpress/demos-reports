@@ -34,11 +34,14 @@
     <PackageVersion Include="System.Text.Json" Version="8.0.6" />
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="9.0.8" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.1.2" />
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="8.0.2" />
     <PackageVersion Include="Microsoft.Identity.Client" Version="4.78.0" />
     <PackageVersion Include="NUnit" Version="3.14.0" />
     <PackageVersion Include="BuildBundlerMinifier" Version="3.2.449" />
     <PackageVersion Include="MSBuild.WebApplication.CopyContentLinkedFiles" Version="1.0.0" />
     <PackageVersion Include="System.Data.SQLite.EF6" Version="2.0.2" />
+    <!-- Required for the DevAV project, which is stored in Demos.RealLife\DevExpress.DevAV (dxvcs repo) and copied to the ASP.NET demos folder by installation scripts -->
+    <PackageVersion Include="System.Data.SQLite" Version="2.0.3" />
     <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.1" />
   </ItemGroup>
 </Project>

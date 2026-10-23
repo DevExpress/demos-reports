@@ -1,7 +1,7 @@
 ﻿/**
 * DevExpress Analytics (js\dx-querybuilder.js)
-* Version:  26.1.5
-* Build date: Sep 14, 2026
+* Version:  26.1.6
+* Build date: Oct 17, 2026
 * Copyright (c) 2012 - 2026 Developer Express Inc. ALL RIGHTS RESERVED
 * License: https://www.devexpress.com/Support/EULAs/universal.xml
 */
@@ -16313,6 +16313,7 @@ function _createQueryBuilder(element, options, callbacks, applyBindings = true) 
     designerModel.parametersBindingsProvider = options.parametersItemsProvider || designerModel.dataBindingsProvider;
     designerModel.dataBindingsGroupProvider = new QueryBuilderObjectsProvider(query, QueryBuilderObjectsProvider.groupByObjectsFilter);
     designerModel.isLoading = createIsLoadingFlag(designerModel.model, options.dbSchemaProvider);
+    designerModel.addDisposables(designerModel.isLoading);
     designerModel.actionLists = new external_DevExpress_Analytics_Internal_namespaceObject.ActionLists(surface, designerModel.selection, designerModel.undoEngine, customizeDesignerActions(designerModel, callbacks && callbacks.customizeActions));
     if (!designerModel.isLoading()) {
         designerModel.undoEngine && designerModel.undoEngine().clearHistory();

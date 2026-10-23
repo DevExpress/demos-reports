@@ -1,7 +1,7 @@
 ﻿/**
 * DevExpress HTML/JS Reporting (js\dx-webdocumentviewer.js)
-* Version:  26.1.5
-* Build date: Sep 14, 2026
+* Version:  26.1.6
+* Build date: Oct 17, 2026
 * Copyright (c) 2012 - 2026 Developer Express Inc. ALL RIGHTS RESERVED
 * License: https://www.devexpress.com/Support/EULAs/universal.xml
 */
@@ -1011,7 +1011,7 @@ class EventGenerator {
 ;// external "DevExpress.Analytics.Internal.dxversions"
 const external_DevExpress_Analytics_Internal_dxversions_namespaceObject = DevExpress.Analytics.Internal.dxversions;
 ;// ./dist/dx-reporting-version.js
-const version = '26.1.5';
+const version = '26.1.6';
 
 ;// ./dist/common/versions.js
 
@@ -5366,7 +5366,7 @@ class ExportHandler extends external_DevExpress_Analytics_Serializer_Native_name
             else {
                 if (!this._useSameTabExport) {
                     this._window = window.open();
-                    this._window && (this._window.onunload = () => {
+                    this._window && (this._window.onpagehide = () => {
                         this.preview.progressBar.cancelAction();
                         this._terminateWorker();
                     });
@@ -5584,7 +5584,7 @@ class ExportHandler extends external_DevExpress_Analytics_Serializer_Native_name
                 requestData.QueryParameters['arg'] = arg;
             }
         }
-        this._window && (this._window.onunload = null);
+        this._window && (this._window.onpagehide = null);
         this._doExportSync(this._window, printable, useSameTab, !!uri, operationId, abortController);
         this._window = null;
     }
@@ -6214,6 +6214,9 @@ class PreviewPage extends external_DevExpress_Analytics_Serializer_Native_namesp
         };
     }
     _clear() {
+        this.aiCustomDocumentStorageId = undefined;
+        this._useOriginal = false;
+        this.aiOperationInProgress = false;
         this.pageIndex = -1;
         this.isClientVisible = false;
         this._setPageImgSrc(null, null, 1);
@@ -13711,7 +13714,7 @@ class AIPanelViewModel extends external_DevExpress_Analytics_Serializer_Native_n
             page.shouldSendRequest = false;
         return this.translateWholeDocument ? '' : (page?.getBricksTextContent(useSelectedContent) ?? '');
     }
-    copyResultClick(e) {
+    async copyResultClick(e) {
         const animateCopy = () => {
             this.copyButtonTemplate = 'dxrd-svg-toolbox-checkbox';
             setTimeout(() => {
@@ -13719,9 +13722,8 @@ class AIPanelViewModel extends external_DevExpress_Analytics_Serializer_Native_n
             }, 3000);
         };
         if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(this.aiProcessingResultText).then(() => {
-                animateCopy();
-            });
+            await navigator.clipboard.writeText(this.aiProcessingResultText);
+            animateCopy();
         }
         else {
             const tempTextArea = document.createElement('textarea');
@@ -13735,29 +13737,29 @@ class AIPanelViewModel extends external_DevExpress_Analytics_Serializer_Native_n
             animateCopy();
         }
     }
-    onSummarizeClick() {
+    async onSummarizeClick() {
         if (this.loading)
             return;
         this.clearProcessing();
         this.loading = true;
         const text = this._getTextContentToProcess();
-        this.summarizeText(text, this.selectedLanguage);
+        await this.summarizeText(text, this.selectedLanguage);
     }
-    onTranslateClick(language, translateInPlace = false, allDocument = false) {
+    async onTranslateClick(language, translateInPlace = false, allDocument = false) {
         if (this.loading && !translateInPlace)
             return;
         if (!translateInPlace) {
             this.clearProcessing();
             this.loading = true;
             const text = this._getTextContentToProcess();
-            this.translateText(text);
+            await this.translateText(text);
         }
         else {
             if (allDocument)
-                this.translateDocument(language);
+                await this.translateDocument(language);
             else {
                 const brickIndexes = this._currentPage?.getActiveBrick()?.map(brick => brick.indexes) ?? [];
-                this.translateDocumentPage(brickIndexes, this._currentPage.pageIndex, language, this._currentPage.aiCustomDocumentStorageId);
+                await this.translateDocumentPage(brickIndexes, this._currentPage.pageIndex, language, this._currentPage.aiCustomDocumentStorageId);
             }
         }
     }
@@ -13776,92 +13778,165 @@ class AIPanelViewModel extends external_DevExpress_Analytics_Serializer_Native_n
         }
     }
     clearTranslatePagesDeffereds() {
-        this.tranlsatePagesDeferred.length && this.tranlsatePagesDeferred.forEach(deferred => deferred.reject());
+        const deferreds = this.tranlsatePagesDeferred;
         this.tranlsatePagesDeferred = [];
+        this.reportPreview?.pages?.forEach(page => page.aiOperationInProgress = false);
+        deferreds.forEach(deferred => deferred.reject());
     }
     cancelDocumentTranslation() {
         this.clearTranslatePagesDeffereds();
         this.progressBar.complete(this.reportPreview.documentId);
-        this.reportPreview?.pages.forEach(page => page.aiOperationInProgress = false);
     }
     startProgressBar() {
         this.progressBar.text = (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('Translating the document...', 'ASPxReportsStringId.WebDocumentViewer_AI_TranslatingDocument');
         this.progressBar.cancelText = (0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)('Cancel', 'AnalyticsCoreStringId.SearchDialog_Cancel');
         this.progressBar.startProgress(this.reportPreview.documentId, (documentId) => this.cancelDocumentTranslation());
     }
-    translateDocument(language) {
+    async translateDocument(language) {
         this.clearTranslatePagesDeffereds();
         this.startProgressBar();
+        const documentId = this.reportPreview.documentId;
         let totalPagesProcessed = 0;
         const totalPages = this.reportPreview.pages.length;
         const step = 100 / totalPages;
-        this.reportPreview.pages.forEach(page => {
-            const translatePageDeffered = new external_DevExpress_Analytics_Internal_namespaceObject.DxDeferred();
-            this.tranlsatePagesDeferred.push(translatePageDeffered);
+        for (const page of this.reportPreview.pages) {
+            const pageIndex = page.pageIndex;
+            const translatePageDeferred = new external_DevExpress_Analytics_Internal_namespaceObject.DxDeferred();
+            this.tranlsatePagesDeferred.push(translatePageDeferred);
+            const isCurrentTranslation = () => this.tranlsatePagesDeferred.includes(translatePageDeferred)
+                && this.reportPreview.documentId === documentId && page.pageIndex === pageIndex
+                && this.reportPreview.pages[pageIndex] === page;
+            const isActiveTranslation = () => isCurrentTranslation() && translatePageDeferred.state() !== 'rejected';
+            const nextChunkRequest = async (prevResultText, nextChunkPosition, aiCustomDocumentStorageId) => {
+                if (isActiveTranslation())
+                    await this.translateDocumentPage([], pageIndex, language, aiCustomDocumentStorageId, prevResultText, nextChunkPosition);
+            };
             page.aiOperationInProgress = true;
-            this.reportPreview.requestWrapper.translateDocumentInPlaseRequest([], language ?? 'en', false, '', 0, page.pageIndex, page.aiCustomDocumentStorageId, this.ignore)
-                .then(result => translatePageDeffered.resolve(result), fail => translatePageDeffered.reject())
-                .always(() => {
-                page.aiOperationInProgress = false;
-                this.progressBar.progress += step;
-                totalPagesProcessed += 1;
-                if (totalPagesProcessed == totalPages) {
-                    this.loading = false;
-                    this.progressBar.complete(this.reportPreview.documentId);
+            try {
+                const result = await this.reportPreview.requestWrapper.translateDocumentInPlaseRequest([], language ?? 'en', false, '', 0, pageIndex, page.aiCustomDocumentStorageId, this.ignore);
+                if (!isActiveTranslation())
+                    return;
+                translatePageDeferred.resolve(result);
+                await this._handeTranslateInPlaseResult(result, page, nextChunkRequest, isActiveTranslation);
+            }
+            catch {
+                if (isCurrentTranslation()) {
+                    translatePageDeferred.reject();
+                    page.loading = false;
                 }
-            });
-            translatePageDeffered.done(result => this._handeTranslateInPlaseResult(result, page, (prevResultText, nextChunkPosition, aiCustomDocumentStorageId) => this.translateDocumentPage([], page.pageIndex, language, aiCustomDocumentStorageId, prevResultText, nextChunkPosition)));
-            translatePageDeffered.fail(() => page.loading = false);
-        });
+            }
+            finally {
+                if (isCurrentTranslation()) {
+                    page.aiOperationInProgress = false;
+                    this.progressBar.progress += step;
+                    totalPagesProcessed += 1;
+                    if (totalPagesProcessed == totalPages) {
+                        this.loading = false;
+                        this.progressBar.complete(documentId);
+                    }
+                }
+            }
+        }
     }
-    translateDocumentPage(brickIndexes, pageIndex, language, aiCustomDocumentStorageId, prevResponse, currentChunkPosition) {
+    async translateDocumentPage(brickIndexes, pageIndex, language, aiCustomDocumentStorageId, prevResponse, currentChunkPosition) {
         const page = this.reportPreview.pages[pageIndex];
         if (!page)
             return;
+        const documentId = this.reportPreview.documentId;
+        const translatePageDeferred = new external_DevExpress_Analytics_Internal_namespaceObject.DxDeferred();
+        this.tranlsatePagesDeferred.push(translatePageDeferred);
+        const isCurrentTranslation = () => this.tranlsatePagesDeferred.includes(translatePageDeferred)
+            && this.reportPreview.documentId === documentId && page.pageIndex === pageIndex
+            && this.reportPreview.pages[pageIndex] === page;
+        const isActiveTranslation = () => isCurrentTranslation() && translatePageDeferred.state() !== 'rejected';
+        const nextChunkRequest = async (prevResultText, nextChunkPosition, aiCustomDocumentStorageId) => {
+            if (isActiveTranslation())
+                await this.translateDocumentPage(brickIndexes, pageIndex, language, aiCustomDocumentStorageId, prevResultText, nextChunkPosition);
+        };
         page.aiOperationInProgress = true;
         const ignore = true;
-        this.aiProcessingRequestDeferred = new external_DevExpress_Analytics_Internal_namespaceObject.DxDeferred();
-        this.reportPreview.requestWrapper.translateDocumentInPlaseRequest(brickIndexes, language, false, prevResponse, currentChunkPosition, pageIndex, aiCustomDocumentStorageId, ignore)
-            .then(result => this.aiProcessingRequestDeferred.resolve(result), fail => this.aiProcessingRequestDeferred.reject())
-            .always(() => page && (page.aiOperationInProgress = false));
-        this.aiProcessingRequestDeferred.done((result) => {
-            this._handeTranslateInPlaseResult(result, page, (prevResultText, nextChunkPosition, aiCustomDocumentStorageId) => this.translateDocumentPage(brickIndexes, pageIndex, language, aiCustomDocumentStorageId, prevResultText, nextChunkPosition));
-        }).always(() => page && (page.aiOperationInProgress = false));
+        try {
+            const result = await this.reportPreview.requestWrapper.translateDocumentInPlaseRequest(brickIndexes, language, false, prevResponse, currentChunkPosition, pageIndex, aiCustomDocumentStorageId, ignore);
+            if (!isActiveTranslation())
+                return;
+            translatePageDeferred.resolve(result);
+            await this._handeTranslateInPlaseResult(result, page, nextChunkRequest, isActiveTranslation);
+        }
+        catch {
+            if (isCurrentTranslation())
+                translatePageDeferred.reject();
+        }
+        finally {
+            if (isCurrentTranslation())
+                page.aiOperationInProgress = false;
+        }
     }
-    translateText(text, prevResponse, currentChunkPosition) {
+    async translateText(text, prevResponse, currentChunkPosition) {
         const ignore = true;
-        this.aiProcessingRequestDeferred = new external_DevExpress_Analytics_Internal_namespaceObject.DxDeferred();
-        this.reportPreview.requestWrapper.translateTextRequest(text, this.selectedLanguage ?? 'en', this.translateWholeDocument, prevResponse, currentChunkPosition, false, ignore)
-            .then(result => this.aiProcessingRequestDeferred.resolve(result), fail => this.failRequestHandler(fail, ignore));
-        this.aiProcessingRequestDeferred.done((result) => {
-            this._handleTextProcessingResult(result, (prevResultText, nextChunkPosition) => this.translateText(text, prevResultText, nextChunkPosition));
+        const documentId = this.reportPreview.documentId;
+        const requestDeferred = this.aiProcessingRequestDeferred = new external_DevExpress_Analytics_Internal_namespaceObject.DxDeferred();
+        const isCurrentRequest = () => this.aiProcessingRequestDeferred === requestDeferred
+            && this.reportPreview.documentId === documentId && requestDeferred.state() !== 'rejected';
+        let result;
+        try {
+            result = await this.reportPreview.requestWrapper.translateTextRequest(text, this.selectedLanguage ?? 'en', this.translateWholeDocument, prevResponse, currentChunkPosition, false, ignore);
+        }
+        catch (fail) {
+            if (isCurrentRequest())
+                this.failRequestHandler(fail, ignore);
+            return;
+        }
+        if (!isCurrentRequest())
+            return;
+        requestDeferred.resolve(result);
+        await this._handleTextProcessingResult(result, async (prevResultText, nextChunkPosition) => {
+            if (isCurrentRequest())
+                await this.translateText(text, prevResultText, nextChunkPosition);
         });
     }
-    summarizeText(text, language, prevResponse, currentChunkPosition) {
-        this.aiProcessingRequestDeferred = new external_DevExpress_Analytics_Internal_namespaceObject.DxDeferred();
-        this.reportPreview.requestWrapper.summarizeTextRequest(text, this.translateWholeDocument, prevResponse, currentChunkPosition, language, this.ignore)
-            .then(result => this.aiProcessingRequestDeferred.resolve(result), fail => this.failRequestHandler(fail, this.ignore));
-        this.aiProcessingRequestDeferred.done((result) => {
-            result.language = language;
-            this._handleTextProcessingResult(result, (prevResultText, nextChunkPosition) => this.summarizeText(text, language, prevResultText, nextChunkPosition), true);
-        });
+    async summarizeText(text, language, prevResponse, currentChunkPosition) {
+        const documentId = this.reportPreview.documentId;
+        const requestDeferred = this.aiProcessingRequestDeferred = new external_DevExpress_Analytics_Internal_namespaceObject.DxDeferred();
+        const isCurrentRequest = () => this.aiProcessingRequestDeferred === requestDeferred
+            && this.reportPreview.documentId === documentId && requestDeferred.state() !== 'rejected';
+        let result;
+        try {
+            result = await this.reportPreview.requestWrapper.summarizeTextRequest(text, this.translateWholeDocument, prevResponse, currentChunkPosition, language, this.ignore);
+        }
+        catch (fail) {
+            if (isCurrentRequest() && requestDeferred.state() === 'pending')
+                this.failRequestHandler(fail, this.ignore);
+            return;
+        }
+        if (!isCurrentRequest())
+            return;
+        requestDeferred.resolve(result);
+        result.language = language;
+        await this._handleTextProcessingResult(result, async (prevResultText, nextChunkPosition) => {
+            if (isCurrentRequest())
+                await this.summarizeText(text, language, prevResultText, nextChunkPosition);
+        }, true);
     }
-    _handeTranslateInPlaseResult(result, page, nextChunkRequestFunc) {
+    async _handeTranslateInPlaseResult(result, page, nextChunkRequestFunc, isCurrentTranslation = () => true) {
+        if (!isCurrentTranslation())
+            return;
         if (result.success) {
             if (result.requestAgain) {
                 let nextChunkPosition = result.chunkIndex;
                 if (nextChunkPosition === -1 || (result.text && result.text.length))
                     nextChunkPosition += 1;
                 if (this.proceedForAllChunks) {
-                    nextChunkRequestFunc(result.text, nextChunkPosition, result.aiCustomDocumentStorageId);
+                    await nextChunkRequestFunc(result.text, nextChunkPosition, result.aiCustomDocumentStorageId);
                 }
                 else {
                     const remainingChunkRequests = parseInt(result.totalChunks) - nextChunkPosition;
                     this.limitExceededWarningMsg = (0,external_DevExpress_Analytics_Internal_namespaceObject.formatUnicorn)((0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)(this.warningMsg, 'ASPxReportsStringId.AIPanel_LimitExceededWarning'), remainingChunkRequests);
                     this.warningTextLimitPopupVisible = true;
-                    this.proceedNextButtonClick = (e) => {
+                    this.proceedNextButtonClick = async (e) => {
+                        if (!isCurrentTranslation())
+                            return;
                         this.warningTextLimitPopupVisible = false;
-                        nextChunkRequestFunc(result.text, nextChunkPosition);
+                        await nextChunkRequestFunc(result.text, nextChunkPosition, result.aiCustomDocumentStorageId);
                     };
                 }
             }
@@ -13874,7 +13949,11 @@ class AIPanelViewModel extends external_DevExpress_Analytics_Serializer_Native_n
             this.failRequestHandler(result.errorMessage, false);
         }
     }
-    _handleTextProcessingResult(result, nextChunkRequestFunc, isSummary = false) {
+    async _handleTextProcessingResult(result, nextChunkRequestFunc, isSummary = false) {
+        const requestDeferred = this.aiProcessingRequestDeferred;
+        const documentId = this.reportPreview.documentId;
+        const isCurrentRequest = () => this.aiProcessingRequestDeferred === requestDeferred
+            && this.reportPreview.documentId === documentId && requestDeferred.state() !== 'rejected';
         if (result.success) {
             if (!isSummary)
                 this.aiProcessingResultText += result.text;
@@ -13883,33 +13962,43 @@ class AIPanelViewModel extends external_DevExpress_Analytics_Serializer_Native_n
                 if (nextChunkPosition === -1 || (result.text && result.text.length))
                     nextChunkPosition += 1;
                 if (this.proceedForAllChunks) {
-                    nextChunkRequestFunc(result.text, nextChunkPosition);
+                    await nextChunkRequestFunc(result.text, nextChunkPosition);
                 }
                 else {
                     const remainingChunkRequests = parseInt(result.totalChunks) - nextChunkPosition;
                     this.limitExceededWarningMsg = (0,external_DevExpress_Analytics_Internal_namespaceObject.formatUnicorn)((0,external_DevExpress_Analytics_Utils_namespaceObject.getLocalization)(this.warningMsg, 'ASPxReportsStringId.AIPanel_LimitExceededWarning'), remainingChunkRequests);
                     this.warningTextLimitPopupVisible = true;
-                    this.proceedNextButtonClick = (e) => {
+                    this.proceedNextButtonClick = async (e) => {
+                        if (!isCurrentRequest())
+                            return;
                         this.warningTextLimitPopupVisible = false;
-                        nextChunkRequestFunc(result.text, nextChunkPosition);
+                        await nextChunkRequestFunc(result.text, nextChunkPosition);
                     };
                 }
             }
             else {
                 if (isSummary) {
                     if (result.language) {
-                        this.reportPreview.requestWrapper.translateTextRequest(result.text, result.language, false, '', 0, true, this.ignore)
-                            .then(translateResult => {
-                            if (translateResult.success) {
-                                this.aiProcessingResultText = translateResult.text;
-                                this.clearProcessing(false);
+                        let translateResult;
+                        try {
+                            translateResult = await this.reportPreview.requestWrapper.translateTextRequest(result.text, result.language, false, '', 0, true, this.ignore);
+                        }
+                        catch (fail) {
+                            if (isCurrentRequest()) {
+                                this.aiProcessingResultText = result.text;
+                                this.failRequestHandler(fail, this.ignore);
                             }
-                            else
-                                this.failRequestHandler(result.errorMessage, this.ignore);
-                        }, fail => {
-                            this.aiProcessingResultText = result.text;
-                            this.failRequestHandler(fail, this.ignore);
-                        });
+                            return;
+                        }
+                        if (!isCurrentRequest())
+                            return;
+                        if (translateResult.success) {
+                            this.aiProcessingResultText = translateResult.text;
+                            this.clearProcessing(false);
+                        }
+                        else {
+                            this.failRequestHandler(translateResult.errorMessage, this.ignore);
+                        }
                     }
                     else {
                         this.aiProcessingResultText = result.text;
@@ -13949,12 +14038,13 @@ class AIPanelViewModel extends external_DevExpress_Analytics_Serializer_Native_n
         clear && this.clearProcessing(false);
     }
     clearProcessing(clearContent = true) {
+        const requestDeferred = this.aiProcessingRequestDeferred;
+        this.aiProcessingRequestDeferred = new external_DevExpress_Analytics_Internal_namespaceObject.DxDeferred();
         this.loading = false;
         this.prevRespose = '';
         if (clearContent)
             this.aiProcessingResultText = '';
-        this.aiProcessingRequestDeferred?.reject();
-        this.warningTextLimitPopupVisible = false;
+        requestDeferred?.reject();
         this.proceedForAllChunks = false;
         this.warningTextLimitPopupVisible = false;
     }
@@ -13962,6 +14052,7 @@ class AIPanelViewModel extends external_DevExpress_Analytics_Serializer_Native_n
         return false;
     }
     dispose() {
+        this.clearTranslatePagesDeffereds();
         this.clearProcessing();
     }
 }

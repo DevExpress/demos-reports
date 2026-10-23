@@ -1,7 +1,7 @@
 ﻿/**
 * DevExpress HTML/JS Reporting (js\dx-reporting.d.ts)
-* Version:  26.1.5
-* Build date: Sep 14, 2026
+* Version:  26.1.6
+* Build date: Oct 17, 2026
 * Copyright (c) 2012 - 2026 Developer Express Inc. ALL RIGHTS RESERVED
 * License: https://www.devexpress.com/Support/EULAs/universal.xml
 */
@@ -730,11 +730,16 @@ declare module DevExpress.Reporting.Designer.Internal {
     import ModelSerializer = DevExpress.Analytics.Utils.ModelSerializer;
     import XRControlSurface = DevExpress.Reporting.Designer.Controls.XRControlSurface;
     import XRControlViewModel = DevExpress.Reporting.Designer.Controls.XRControlViewModel;
+    import DxPromise = DevExpress.Analytics.Internal.DxPromise;
     import XRChartSurface = DevExpress.Reporting.Designer.Controls.XRChartSurface;
     import XRPdfContentViewModel = DevExpress.Reporting.Designer.Controls.XRPdfContentViewModel;
     import XRRichSurface = DevExpress.Reporting.Designer.Controls.XRRichSurface;
     import XRShapeControlSurface = DevExpress.Reporting.Designer.Controls.XRShapeControlSurface;
+    import IMarkupTextRenderRequest = DevExpress.Reporting.Designer.Internal.IMarkupTextRenderRequest;
+    import IMarkupTextRenderResponse = DevExpress.Reporting.Designer.Internal.IMarkupTextRenderResponse;
     import IJQueryWrapper = DevExpress.Analytics.Internal.IJQueryWrapper;
+    import FontModel = DevExpress.Analytics.Widgets.Internal.FontModel;
+    import TextElementSizeHelper = DevExpress.Reporting.Designer.Internal.TextElementSizeHelper;
     import IArea = DevExpress.Analytics.Elements.IArea;
     import XRTextControlSurfaceBase = DevExpress.Reporting.Designer.Controls.XRTextControlSurfaceBase;
     import XRTableControlViewModel = DevExpress.Reporting.Designer.Controls.XRTableControlViewModel;
@@ -748,7 +753,6 @@ declare module DevExpress.Reporting.Designer.Internal {
     import VerticalBandSurface = DevExpress.Reporting.Designer.Bands.VerticalBandSurface;
     import ReportSurface = DevExpress.Reporting.Designer.Controls.ReportSurface;
     import DataBindingMode = DevExpress.Reporting.Designer.Internal.DataBindingMode;
-    import DxPromise = DevExpress.Analytics.Internal.DxPromise;
     import IDisplayNameProvider = DevExpress.Analytics.Utils.IDisplayNameProvider;
     import IItemsProvider = DevExpress.Analytics.Utils.IItemsProvider;
     import ObjectStorageItem = DevExpress.Reporting.Designer.Data.ObjectStorageItem;
@@ -946,7 +950,6 @@ declare module DevExpress.Reporting.Designer.Internal {
     import UndoEditor = DevExpress.QueryBuilder.Widgets.Internal.UndoEditor;
     import MeasureUnit = DevExpress.Analytics.Internal.MeasureUnit;
     import IControlPropertiesViewModel = DevExpress.Analytics.Internal.IControlPropertiesViewModel;
-    import FontModel = DevExpress.Analytics.Widgets.Internal.FontModel;
     import dxSelectBox = DevExpress.ui.dxSelectBox;
     import IFormatStringEditorActions = DevExpress.Analytics.Widgets.IFormatStringEditorActions;
     export const reportStorageWebIsRegister: DevExpress.Analytics.Internal.IGlobalSubscribableValue<boolean>;
@@ -1273,7 +1276,80 @@ declare module DevExpress.Reporting.Designer.Internal {
     export class TodoControlSurface extends XRControlSurface {
         constructor(control: DevExpress.Reporting.Designer.Controls.XRControlViewModel, context: DevExpress.Analytics.Elements.ISurfaceContext);
     }
+    export interface IMarkupTextRenderItem {
+        text: string;
+        font: string;
+        foreColor: string;
+        padding: string;
+        textAlignment: string;
+        wordWrap: boolean;
+        multiline: boolean;
+        rightToLeft: boolean;
+        lineSpacing: number;
+        textTrimming: string;
+        textFitMode: string;
+        dpi: number;
+        width: number;
+        height: number;
+    }
+    export interface IMarkupTextImageResource {
+        id: string;
+        content: string;
+    }
+    export interface IMarkupTextRenderRequest {
+        items: IMarkupTextRenderItem[];
+        imageResources: IMarkupTextImageResource[];
+    }
+    export interface IMarkupTextRenderResult {
+        svg?: string;
+        plainText?: string;
+        error?: string;
+    }
+    export interface IMarkupTextRenderResponse {
+        items: IMarkupTextRenderResult[];
+    }
+    export interface IMarkupTextSurface {
+        displayNameParameters: ko.Computed<{
+            text: string;
+            isExpression: boolean;
+            dataMember: string;
+            allowMarkupText: boolean;
+        }>;
+        markupContentSize: ko.Computed<{
+            width: number;
+            height: number;
+        }>;
+        getControlModel(): object;
+        cssCalculator: {
+            angle(): Record<string, string>;
+        };
+        cacheElementContent?: (element: HTMLElement) => void;
+    }
+    export class MarkupTextRenderer extends Disposable {
+        private surface;
+        private lastRenderDeferred?;
+        private lastRequestKey?;
+        private imageCacheKey?;
+        enabled: ko.Computed<boolean>;
+        imageSrc: ko.Observable<string>;
+        isLoading: ko.Observable<boolean>;
+        error: ko.Observable<boolean>;
+        multiline: ko.Observable<boolean>;
+        fallbackText: ko.Observable<string>;
+        altText: ko.Observable<string>;
+        imageWidth: ko.Observable<number>;
+        imageHeight: ko.Observable<number>;
+        imageCss: ko.Computed<Record<string, string>>;
+        constructor(surface: IMarkupTextSurface);
+        private readState;
+        private applyState;
+        private resetRender;
+        private showResult;
+        private prepareRender;
+        onImageError: (_data: unknown, event: Event) => void;
+    }
     export class ReportRenderingService {
+        static getMarkupTextImages(request: DevExpress.Reporting.Designer.Internal.IMarkupTextRenderRequest, handlerUri?: string): DevExpress.Analytics.Internal.DxPromise<IMarkupTextRenderResponse>;
         static getChartImage(surface: DevExpress.Reporting.Designer.Controls.XRChartSurface): DevExpress.Analytics.Internal.DxPromise<any>;
         static getUnknownControlImage(model: any, scale: number): DevExpress.Analytics.Internal.DxPromise<any>;
         static getShapeImage(surface: DevExpress.Reporting.Designer.Controls.XRShapeControlSurface): DevExpress.Analytics.Internal.DxPromise<any>;
@@ -1289,6 +1365,13 @@ declare module DevExpress.Reporting.Designer.Internal {
             width: number;
             height: number;
         };
+    }
+    export class CharacterHeights {
+        private static heights;
+        private static users;
+        private static forget;
+        static use(): () => void;
+        static measure(font: DevExpress.Analytics.Widgets.Internal.FontModel, sizeHelper: DevExpress.Reporting.Designer.Internal.TextElementSizeHelper): number;
     }
     export enum TableActionDirection {
         vertical = 0,
@@ -2168,7 +2251,7 @@ declare module DevExpress.Reporting.Designer.Internal {
         propertiesHeaderText: () => string;
         localizationItems: ko.ObservableArray<ILocalizationItem>;
         textToSearch: ko.Observable<string>;
-        language: ko.Observable<string>;
+        language: ko.Observable<string> | ko.Computed<string>;
         searchPlaceholder: () => string;
         searchBox: ko.Observable<any>;
         availableCultures: any;
@@ -2799,6 +2882,7 @@ declare module DevExpress.Reporting.Designer.Internal {
         canDrop(dropTarget: any, controlModel: any, metaData: any): boolean;
     }
     export function getBoundFieldPath(control: DevExpress.Reporting.Designer.Controls.XRControlViewModel): string;
+    export function getFieldListSyncPath(element: DevExpress.Reporting.Designer.Controls.XRReportElementViewModel): string;
     export class ReportExplorerModel extends Disposable {
         private _dataSourceSettings?;
         static getPathByMember(model: any): any;
@@ -4388,6 +4472,7 @@ declare module DevExpress.Reporting.Designer.Controls {
     import SortingOptions = DevExpress.Reporting.Designer.Controls.SortingOptions;
     import IReportControlMetadata = DevExpress.Reporting.Designer.Controls.IReportControlMetadata;
     import ActionTypeBase = DevExpress.Reporting.Designer.Controls.ActionTypeBase;
+    import MarkupTextRenderer = DevExpress.Reporting.Designer.Internal.MarkupTextRenderer;
     import IMargins = DevExpress.Analytics.Elements.IMargins;
     import INumericSize = DevExpress.Analytics.Elements.INumericSize;
     import Margins = DevExpress.Analytics.Elements.Margins;
@@ -4940,6 +5025,11 @@ declare module DevExpress.Reporting.Designer.Controls {
         error: ko.Observable<string>;
         _updateImageSubscription: ko.Computed<any> | null;
     }
+    export class ImageResourceItem {
+        getInfo(): DevExpress.Analytics.Utils.ISerializationInfoArray;
+        constructor(model: any, serializer?: DevExpress.Analytics.Utils.IModelSerializer);
+        _model: any;
+    }
     export class ControlParameter extends DataBindingBase implements ISerializableModel {
         private _dataSourceHelper?;
         private _dataBindingsProvider?;
@@ -5057,6 +5147,11 @@ declare module DevExpress.Reporting.Designer.Controls {
         fitHeightToText(): void;
         fitBoundsToText(): void;
         constructor(control: M, context: DevExpress.Analytics.Elements.ISurfaceContext, units?: DevExpress.Analytics.Internal.IUnitProperties<any>);
+        private canGrow;
+        private static pendingControls;
+        private static clampScheduled;
+        private static scheduleClamp;
+        private static clampHeights;
         fitTextToBoundsAction: DevExpress.Reporting.Designer.Actions.FitTextToBoundsAction;
         fitBoundsToTextAction: DevExpress.Reporting.Designer.Actions.FitBoundsToTextAction;
         dragDropFileEnabled: ko.Observable<boolean>;
@@ -5108,6 +5203,8 @@ declare module DevExpress.Reporting.Designer.Controls {
         static _unitProperties: DevExpress.Analytics.Internal.IUnitProperties<XRTableCellViewModel>;
         dispose(): void;
         constructor(control: DevExpress.Reporting.Designer.Controls.XRTableCellViewModel, context: DevExpress.Analytics.Elements.ISurfaceContext);
+        private contentSizesFor;
+        protected getMarkupContentSize(): DevExpress.Analytics.Elements.IArea;
         direction: DevExpress.Reporting.Designer.Internal.TableActionDirection;
         controls: ko.ObservableArray<DevExpress.Reporting.Designer.Controls.XRControlSurface>;
         x: ko.Observable<number> | ko.Computed<number>;
@@ -5410,6 +5507,13 @@ declare module DevExpress.Reporting.Designer.Controls {
         contentSizes: any;
         contentHeightWithoutZoom: any;
         contentWidthWithoutZoom: any;
+        markupContentSize: ko.PureComputed<{
+            width: number;
+            height: number;
+        }>;
+        protected getMarkupContentSize(): DevExpress.Analytics.Elements.IArea;
+        private markupTextRenderer;
+        get markupTextRendering(): DevExpress.Reporting.Designer.Internal.MarkupTextRenderer;
         borderCss: any;
         template: string;
         selectiontemplate: string;
@@ -5425,9 +5529,6 @@ declare module DevExpress.Reporting.Designer.Controls {
             summaryFunc: any;
             dataMemberOffset: any;
             allowMarkupText: boolean;
-            wordWrap: boolean;
-            fontSize: number;
-            fontUnit: any;
         }>;
         displayName: ko.PureComputed<any>;
         displayText(): any;
@@ -5439,11 +5540,6 @@ declare module DevExpress.Reporting.Designer.Controls {
         controls: ko.ObservableArray<DevExpress.Reporting.Designer.Controls.XRControlSurface>;
     }
     export {};
-    export class ImageResourceItem {
-        getInfo(): DevExpress.Analytics.Utils.ISerializationInfoArray;
-        constructor(model: any, serializer?: DevExpress.Analytics.Utils.IModelSerializer);
-        _model: any;
-    }
     export class ReportViewModel extends XRReportElementViewModel implements IModelReady {
         static availableDataSourceTypes: string[];
         static bandsTypeOrdering: DevExpress.Reporting.Designer.Internal.ReportBandsType[];
@@ -5538,7 +5634,8 @@ declare module DevExpress.Reporting.Designer.Controls {
         displayNameObject: ko.Observable<string>;
         _localizationItems: ko.ObservableArray<DevExpress.Reporting.Designer.Internal.LocalizationItem>;
         _localization: DevExpress.Reporting.Designer.Internal.ReportLocalizationEngine;
-        language: ko.Observable<string>;
+        _language: ko.Observable<string>;
+        language: ko.Observable<string> | ko.Computed<string>;
     }
     export class ReportSurface extends SurfaceElementArea<DevExpress.Reporting.Designer.Controls.ReportViewModel, DevExpress.Reporting.Designer.Internal.ControlType> implements ISelectionTarget, ISurfaceContext {
         private report;
@@ -6720,9 +6817,14 @@ declare module DevExpress.Reporting.Designer.Bands {
         private _calculateEndIndex;
         protected _reorderLevelsCore(newLevelValue: number): void;
         protected getDefaultLevel(): number;
+        private hasOtherTypeBands;
+        protected getMaxAllowedLevel(): number;
         reorderLevels(maxLevel: number, newValue: number): void;
         getSortedGroupBands(parentBands: DevExpress.Reporting.Designer.Bands.BandViewModel[]): GroupBandViewModel[];
         findMinPossibleLevel(parentBands: ko.ObservableArray<DevExpress.Reporting.Designer.Bands.BandViewModel>): number;
+        getFilteredParentBands(): GroupBandViewModel[];
+        updateLevelsOnRemove(): void;
+        private shiftLevelsAbove;
     }
     export class GroupHeaderBand extends GroupBandViewModel {
         groupFields: ko.ObservableArray<DevExpress.Reporting.Designer.Bands.GroupFieldModel>;
@@ -6741,6 +6843,7 @@ declare module DevExpress.Reporting.Designer.Bands {
         maxLevel: ko.Observable<number> | ko.Computed<number>;
         private _initialLevel;
         constructor(band: any, parent: DevExpress.Analytics.Elements.ElementViewModel<ControlType>, serializer?: DevExpress.Analytics.Utils.ModelSerializer);
+        protected getMaxAllowedLevel(): number;
         getFilteredParentBands(): DevExpress.Reporting.Designer.Bands.SortableBandViewModel[];
         protected _reorderLevelsCore(newLevelValue: number): void;
         coerceDefaultLevelValue(newValue: number): number;
@@ -8703,20 +8806,20 @@ declare module DevExpress.Reporting.Viewer.Internal {
         get translateWholeDocument(): boolean;
         _preparetextProcessingButtonTemplate(data: any, container: any): void;
         _getTextContentToProcess(): string;
-        copyResultClick(e: any): void;
-        onSummarizeClick(): void;
-        onTranslateClick(language: string, translateInPlace?: boolean, allDocument?: boolean): void;
+        copyResultClick(e: any): Promise<void>;
+        onSummarizeClick(): Promise<void>;
+        onTranslateClick(language: string, translateInPlace?: boolean, allDocument?: boolean): Promise<void>;
         revertPageToOriginal(page: DevExpress.Reporting.Viewer.Internal.PreviewPage): void;
         revertToOriginal(allPages?: boolean): void;
         clearTranslatePagesDeffereds(): void;
         cancelDocumentTranslation(): void;
         startProgressBar(): void;
-        translateDocument(language: string): void;
-        translateDocumentPage(brickIndexes: string[], pageIndex: number, language: string, aiCustomDocumentStorageId?: string, prevResponse?: string, currentChunkPosition?: number): void;
-        translateText(text: string, prevResponse?: string, currentChunkPosition?: number): void;
-        summarizeText(text: string, language?: string, prevResponse?: string, currentChunkPosition?: number): void;
-        _handeTranslateInPlaseResult(result: any, page: DevExpress.Reporting.Viewer.Internal.PreviewPage, nextChunkRequestFunc: (prevResultText: string, nextChunkPosition: number, aiCustomDocumentStorageId?: string) => void): void;
-        _handleTextProcessingResult(result: DevExpress.Reporting.Viewer.Internal.IAITextTranslationResponse, nextChunkRequestFunc: (prevResultText: string, nextChunkPosition: number) => void, isSummary?: boolean): void;
+        translateDocument(language: string): Promise<void>;
+        translateDocumentPage(brickIndexes: string[], pageIndex: number, language: string, aiCustomDocumentStorageId?: string, prevResponse?: string, currentChunkPosition?: number): Promise<void>;
+        translateText(text: string, prevResponse?: string, currentChunkPosition?: number): Promise<void>;
+        summarizeText(text: string, language?: string, prevResponse?: string, currentChunkPosition?: number): Promise<void>;
+        _handeTranslateInPlaseResult(result: any, page: DevExpress.Reporting.Viewer.Internal.PreviewPage, nextChunkRequestFunc: (prevResultText: string, nextChunkPosition: number, aiCustomDocumentStorageId?: string) => Promise<void> | void, isCurrentTranslation?: () => boolean): Promise<void>;
+        _handleTextProcessingResult(result: DevExpress.Reporting.Viewer.Internal.IAITextTranslationResponse, nextChunkRequestFunc: (prevResultText: string, nextChunkPosition: number) => Promise<void> | void, isSummary?: boolean): Promise<void>;
         _updatePageImage(page?: DevExpress.Reporting.Viewer.Internal.PreviewPage): void;
         resizeResultArea(): void;
         failRequestHandler(errorMessage: string, clear: boolean): void;
@@ -15299,39 +15402,6 @@ declare module DevExpress.Reporting.Viewer.Mobile {
         mobileZoomRead: number;
         brickEventsDisabled: boolean;
         scrollAvailable: boolean;
-    }
-}
-declare module DevExpress.Reporting.Designer.Internal.HtmlMarkUp {
-    export interface IDiplayNameParameters {
-        text: string;
-        wordWrap?: boolean;
-        fontSize?: number;
-        fontUnit?: string;
-    }
-    export interface IInheritValues {
-        fontSize?: number;
-        backcolor?: boolean;
-    }
-    export interface ITag {
-        node: Element;
-        element: HTMLElement;
-        createElement: () => any;
-        appendTo: (el: HTMLElement) => void;
-        hasChildNodes: boolean;
-        setProperties: (parameters?: IDiplayNameParameters, inheritValues?: IInheritValues) => any;
-        value?: any;
-        inheritValues: IInheritValues;
-    }
-    export class ValueConverter {
-        private _displayNameParameters;
-        static ValueAttrName: string;
-        private _regExp;
-        private _createTag;
-        private _parceToXml;
-        private _checkValidTag;
-        private _createTree;
-        constructor(_displayNameParameters: IDiplayNameParameters);
-        appendTo(element: HTMLElement): void;
     }
 }
 declare module DevExpress.Reporting.Designer.Widgets.Internal {

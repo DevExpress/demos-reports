@@ -1,7 +1,7 @@
 ﻿/**
 * DevExpress Analytics (js\dx-analytics-core.d.ts)
-* Version:  26.1.5
-* Build date: Sep 14, 2026
+* Version:  26.1.6
+* Build date: Oct 17, 2026
 * Copyright (c) 2012 - 2026 Developer Express Inc. ALL RIGHTS RESERVED
 * License: https://www.devexpress.com/Support/EULAs/universal.xml
 */
@@ -1156,6 +1156,10 @@ declare module DevExpress.Analytics.Internal {
     export function delay(timeout: number, signal?: AbortSignal): Promise<void>;
     export function createDxDeferred<T = any>(): DevExpress.Analytics.Internal.DxDeferred<T>;
     export function unwrapImmidiatePromise<T = any>(promise: DevExpress.Analytics.Internal.DxPromise<T>): T;
+    export function deferredToPromise<T = any>(deferred: {
+        done?: (callback: (value: T) => void) => unknown;
+        fail?: (callback: (reason: any) => void) => unknown;
+    }): Promise<T>;
     export function isPromise<T>(object: T | PromiseLike<T>): object is PromiseLike<T>;
     export {};
     export function checkModelReady(model: any): boolean;
@@ -2846,6 +2850,9 @@ declare module DevExpress.Analytics.Internal {
         dispose: () => void;
         getItems: (IPathRequest: any) => DevExpress.Analytics.Internal.DxPromise<IDataMemberInfo[]>;
     }
+    export function mute(): void;
+    export function unmute(): void;
+    export function collectIncorrectSyntax(content: string, fileName: string): string[];
     export type DxXHR<T = unknown> = XMLHttpRequest & {
         responseJSON?: ApiResponse<T>;
     };
@@ -3321,6 +3328,7 @@ declare module DevExpress.Analytics.Widgets.Internal {
         factory?: DevExpress.Analytics.Widgets.Internal.ITreeListItemFactory;
         store?: TreeListItemStore;
         onItemsChanged?: (items: DevExpress.Analytics.Widgets.Internal.TreeListItemViewModel[]) => void;
+        onItemSelectedByPath?: (item: DevExpress.Analytics.Widgets.Internal.TreeListItemViewModel) => void;
     }
     export class TreeListEllipsisButton extends BaseRenderingModel<DevExpress.Analytics.Widgets.Internal.ITreeListItemViewModel> {
         private setMaxItemsCount;
@@ -3371,6 +3379,7 @@ declare module DevExpress.Analytics.Widgets.Internal {
         private _loadItems;
         private _nodeIsLocked;
         private _onItemsChangedCallback;
+        private _onItemSelectedByPath;
         protected _onItemsChanged(): void;
         protected _getTemplateName(): string;
         _selectItem(itemPath: string): void;

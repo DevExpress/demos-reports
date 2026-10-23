@@ -99,7 +99,7 @@
   overflow: hidden;
 }
 .dxreBoxSpace img {
-  vertical-align: bottom;
+  vertical-align: top;
 }
 
 .dxreHiddenBox {
